@@ -1,8 +1,8 @@
 "use client"
 
-import { PageShell } from "@/src/components/page-shell"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/src/components/ui/card"
-import { InventoryList } from "@/src/components/inventory-list"
+import { PageShell } from "@/components/page-shell"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { InventoryList } from "@/components/inventory-list"
 
 export default function InventoryItems() {
   return (

@@ -1,7 +1,7 @@
 "use client"
-import { PageShell } from "@/src/components/page-shell"
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/src/components/ui/card"
-import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/src/components/ui/table"
+import { PageShell } from "@/components/page-shell"
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
+import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table"
 export default function ProductSell() {
   const rows = [{ sku: "AP-4012", qty: 280, amount: 3360 }]
   return (

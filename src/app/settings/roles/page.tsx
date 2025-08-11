@@ -1,10 +1,10 @@
 "use client"
 
 import Link from "next/link"
-import { PageShell } from "@/src/components/page-shell"
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/src/components/ui/card"
-import { Table, TableHeader, TableHead, TableRow, TableBody, TableCell } from "@/src/components/ui/table"
-import { Button } from "@/src/components/ui/button"
+import { PageShell } from "@/components/page-shell"
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
+import { Table, TableHeader, TableHead, TableRow, TableBody, TableCell } from "@/components/ui/table"
+import { Button } from "@/components/ui/button"
 
 export default function Roles() {
   const rows = [

@@ -1,9 +1,9 @@
 "use client"
 import Link from "next/link"
-import { PageShell } from "@/src/components/page-shell"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/src/components/ui/card"
-import { Button } from "@/src/components/ui/button"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/src/components/ui/table"
+import { PageShell } from "@/components/page-shell"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 export default function FacebookAds() {
   const rows = [
     { id: "AD-2001", name: "Summer Promo", status: "Active", spend: 240, clicks: 120 },

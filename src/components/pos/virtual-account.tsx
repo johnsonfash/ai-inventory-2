@@ -1,6 +1,6 @@
 "use client"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/src/components/ui/card"
-import { listLocations, listCashiersForLocation, findVirtualAccount } from "@/src/lib/payments/virtual-accounts"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { listLocations, listCashiersForLocation, findVirtualAccount } from "@/lib/payments/virtual-accounts"
 
 export function VirtualAccountPanel({
   location,

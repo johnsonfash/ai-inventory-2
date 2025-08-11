@@ -1,11 +1,11 @@
 "use client"
 
 import * as React from "react"
-import { PageShell } from "@/src/components/page-shell"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/src/components/ui/card"
-import { Input } from "@/src/components/ui/input"
-import { Button } from "@/src/components/ui/button"
-import { RoleGuard } from "@/src/components/auth/role-guard"
+import { PageShell } from "@/components/page-shell"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { RoleGuard } from "@/components/auth/role-guard"
 import { Trash2, X } from "lucide-react"
 
 type Message = { id: string; author: string; text: string; ts: number; channel: string }

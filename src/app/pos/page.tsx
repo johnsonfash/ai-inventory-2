@@ -2,14 +2,14 @@
 
 import * as React from "react"
 import { useSearchParams, useRouter } from "next/navigation"
-import { PageShell } from "@/src/components/page-shell"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/src/components/ui/card"
-import { Input } from "@/src/components/ui/input"
-import { Button } from "@/src/components/ui/button"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/src/components/ui/table"
-import { Dialog, DialogContent } from "@/src/components/ui/dialog"
-import { BarcodeScannerInput } from "@/src/components/pos/barcode-scanner-input"
-import { InvoicePreview, ReceiptPreview, printInvoiceNode } from "@/src/components/pos/invoice-print"
+import { PageShell } from "@/components/page-shell"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Dialog, DialogContent } from "@/components/ui/dialog"
+import { BarcodeScannerInput } from "@/components/pos/barcode-scanner-input"
+import { InvoicePreview, ReceiptPreview, printInvoiceNode } from "@/components/pos/invoice-print"
 import {
   loadCatalog,
   genId,
@@ -22,9 +22,9 @@ import {
   type Invoice,
   type PaymentLine,
   seedPosDemo,
-} from "@/src/lib/pos/storage"
-import { RecentTransactionsDialog } from "@/src/components/pos/recent-transactions-dialog"
-import { cn } from "@/src/lib/utils"
+} from "@/lib/pos/storage"
+import { RecentTransactionsDialog } from "@/components/pos/recent-transactions-dialog"
+import { cn } from "@/lib/utils"
 import {
   Barcode,
   Printer,
@@ -42,10 +42,10 @@ import {
   X,
   ArrowLeftRight,
 } from "lucide-react"
-import { CatalogGrid } from "@/src/components/pos/catalog-grid"
-import { VirtualAccountPanel } from "@/src/components/pos/virtual-account"
-import { listLocations, listCashiersForLocation, findVirtualAccount } from "@/src/lib/payments/virtual-accounts"
-import { CalcPopover } from "@/src/components/pos/calc-popover"
+import { CatalogGrid } from "@/components/pos/catalog-grid"
+import { VirtualAccountPanel } from "@/components/pos/virtual-account"
+import { listLocations, listCashiersForLocation, findVirtualAccount } from "@/lib/payments/virtual-accounts"
+import { CalcPopover } from "@/components/pos/calc-popover"
 
 type PaymentMethod = PaymentLine["method"]
 

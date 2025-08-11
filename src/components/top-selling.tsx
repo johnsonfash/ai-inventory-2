@@ -1,4 +1,4 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/src/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 
 const topSelling = [
   { sku: "EL-2109", name: "USB‑C Hub 6‑in‑1", units: 320, revenue: 4000 },

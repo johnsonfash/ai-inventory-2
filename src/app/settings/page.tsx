@@ -1,7 +1,7 @@
 "use client"
 
-import { PageShell } from "@/src/components/page-shell"
-import { Card, CardContent, CardHeader, CardTitle } from "@/src/components/ui/card"
+import { PageShell } from "@/components/page-shell"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import Link from "next/link"
 
 const links = [

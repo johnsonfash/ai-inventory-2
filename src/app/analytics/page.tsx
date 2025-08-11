@@ -1,8 +1,8 @@
 "use client"
 
-import { PageShell } from "@/src/components/page-shell"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/src/components/ui/card"
-import { CategoryBreakdownChart, SalesVsPurchaseChart, StockLevelsChart } from "@/src/components/charts/inventory-charts"
+import { PageShell } from "@/components/page-shell"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { CategoryBreakdownChart, SalesVsPurchaseChart, StockLevelsChart } from "@/components/charts/inventory-charts"
 
 export default function Analytics() {
   return (

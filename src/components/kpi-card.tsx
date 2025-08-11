@@ -1,6 +1,6 @@
 "use client"
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/src/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { ArrowDownRight, ArrowUpRight } from "lucide-react"
 import { ResponsiveContainer, AreaChart, Area, Tooltip } from "recharts"
 import * as React from "react"

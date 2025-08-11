@@ -1,10 +1,10 @@
 "use client"
 
 import * as React from "react"
-import { PageShell } from "@/src/components/page-shell"
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/src/components/ui/card"
-import { Input } from "@/src/components/ui/input"
-import { Button } from "@/src/components/ui/button"
+import { PageShell } from "@/components/page-shell"
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
 import Link from "next/link"
 
 type Msg = { role: "user" | "assistant"; content: string }

@@ -1,11 +1,11 @@
 "use client"
 
-import { PageShell } from "@/src/components/page-shell"
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/src/components/ui/card"
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/src/components/ui/chart"
+import { PageShell } from "@/components/page-shell"
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Legend } from "recharts"
 import Link from "next/link"
-import { Button } from "@/src/components/ui/button"
+import { Button } from "@/components/ui/button"
 
 const volume = [
   { day: "Mon", amount: 1240 },

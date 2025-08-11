@@ -20,8 +20,8 @@ import {
   ChevronDown,
   Receipt,
 } from "lucide-react"
-import { Input } from "@/src/components/ui/input"
-import { cn } from "@/src/lib/utils"
+import { Input } from "@/components/ui/input"
+import { cn } from "@/lib/utils"
 
 type SubItem = { title: string; url: string }
 type Item = { title: string; url?: string; icon: any; sub?: SubItem[] }

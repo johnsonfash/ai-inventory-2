@@ -1,10 +1,10 @@
 "use client"
 
 import * as React from "react"
-import { PageShell } from "@/src/components/page-shell"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/src/components/ui/card"
-import { Button } from "@/src/components/ui/button"
-import { Input } from "@/src/components/ui/input"
+import { PageShell } from "@/components/page-shell"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 
 function buildMonth(date = new Date()) {
   const d = new Date(date.getFullYear(), date.getMonth(), 1)

@@ -1,8 +1,8 @@
 "use client"
 
 import * as React from "react"
-import { useTWTheme } from "@/src/components/tw-theme-provider"
-import { Dropdown, DropdownItem } from "@/src/components/ui/dropdown"
+import { useTWTheme } from "@/components/tw-theme-provider"
+import { Dropdown, DropdownItem } from "@/components/ui/dropdown"
 import { Laptop, Moon, Sun } from "lucide-react"
 
 export function ModeToggle() {

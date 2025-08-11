@@ -2,10 +2,10 @@
 
 import * as React from "react"
 import { useRouter } from "next/navigation"
-import { PageShell } from "@/src/components/page-shell"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/src/components/ui/card"
-import { Button } from "@/src/components/ui/button"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/src/components/ui/table"
+import { PageShell } from "@/components/page-shell"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import {
   getInvoiceByNumber,
   genReturnNumber,
@@ -13,8 +13,8 @@ import {
   saveReturn,
   type ReturnRecord,
   type Invoice,
-} from "@/src/lib/pos/storage"
-import { Input } from "@/src/components/ui/input"
+} from "@/lib/pos/storage"
+import { Input } from "@/components/ui/input"
 
 export default function CreateReturnPage() {
   const router = useRouter()

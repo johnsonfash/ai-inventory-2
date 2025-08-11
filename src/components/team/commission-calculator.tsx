@@ -1,8 +1,8 @@
 "use client"
 
 import * as React from "react"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/src/components/ui/card"
-import { Input } from "@/src/components/ui/input"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
 
 export function CommissionCalculator({ totalRevenue = 0 }: { totalRevenue?: number }) {
   const [rate, setRate] = React.useState(5) // percent

@@ -1,10 +1,10 @@
 "use client"
 
-import { PageShell } from "@/src/components/page-shell"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/src/components/ui/card"
-import { Switch } from "@/src/components/ui/switch"
-import { Label } from "@/src/components/ui/label"
-import { NotificationList } from "@/src/components/notification-list"
+import { PageShell } from "@/components/page-shell"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Switch } from "@/components/ui/switch"
+import { Label } from "@/components/ui/label"
+import { NotificationList } from "@/components/notification-list"
 
 export default function Notifications() {
   return (

@@ -2,11 +2,11 @@
 
 import type * as React from "react"
 import Link from "next/link"
-import { Input } from "@/src/components/ui/input"
-import { ModeToggle } from "@/src/components/mode-toggle"
-import { OrgLocationSwitch } from "@/src/components/org-location-switch"
-import { AppSidebar } from "@/src/components/app-sidebar"
-import { Button } from "@/src/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { ModeToggle } from "@/components/mode-toggle"
+import { OrgLocationSwitch } from "@/components/org-location-switch"
+import { AppSidebar } from "@/components/app-sidebar"
+import { Button } from "@/components/ui/button"
 
 type PageShellProps = {
   title: string

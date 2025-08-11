@@ -1,5 +1,5 @@
 "use client"
-import type { Invoice } from "@/src/lib/pos/storage"
+import type { Invoice } from "@/lib/pos/storage"
 
 export function printInvoiceNode(node: HTMLElement) {
   const win = window.open("", "_blank", "width=720,height=900")

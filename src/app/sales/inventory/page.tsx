@@ -1,10 +1,10 @@
 "use client"
 
-import { PageShell } from "@/src/components/page-shell"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/src/components/ui/card"
-import { loadCatalog } from "@/src/lib/pos/storage"
+import { PageShell } from "@/components/page-shell"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { loadCatalog } from "@/lib/pos/storage"
 import { useMemo, useState } from "react"
-import { Input } from "@/src/components/ui/input"
+import { Input } from "@/components/ui/input"
 
 export default function SalesInventoryPage() {
   const [mode, setMode] = useState<"retail" | "restaurant" | "services" | "auto">("retail")

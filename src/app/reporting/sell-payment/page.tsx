@@ -1,7 +1,7 @@
 "use client"
-import { PageShell } from "@/src/components/page-shell"
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/src/components/ui/card"
-import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/src/components/ui/table"
+import { PageShell } from "@/components/page-shell"
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
+import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table"
 export default function SellPaymentReport() {
   const rows = [{ id: "PAY-5001", customer: "NovaApps", amount: 420, date: "2025-08-05" }]
   return (

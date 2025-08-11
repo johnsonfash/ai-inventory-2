@@ -1,10 +1,10 @@
 "use client"
 
 import Link from "next/link"
-import { PageShell } from "@/src/components/page-shell"
-import { Card, CardHeader, CardContent, CardTitle, CardDescription } from "@/src/components/ui/card"
-import { Button } from "@/src/components/ui/button"
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/src/components/ui/chart"
+import { PageShell } from "@/components/page-shell"
+import { Card, CardHeader, CardContent, CardTitle, CardDescription } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Legend, BarChart, Bar } from "recharts"
 
 const kpis = [

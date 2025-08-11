@@ -2,11 +2,11 @@
 
 import * as React from "react"
 import Link from "next/link"
-import { PageShell } from "@/src/components/page-shell"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/src/components/ui/card"
-import { Button } from "@/src/components/ui/button"
-import { Input } from "@/src/components/ui/input"
-import { Badge } from "@/src/components/ui/badge"
+import { PageShell } from "@/components/page-shell"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Badge } from "@/components/ui/badge"
 
 type Category = "Commerce" | "Shipping" | "Payments" | "Ads" | "Productivity" | "Website" | "Calendar"
 

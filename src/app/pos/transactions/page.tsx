@@ -1,9 +1,9 @@
 "use client"
-import { PageShell } from "@/src/components/page-shell"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/src/components/ui/card"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/src/components/ui/table"
-import { listInvoices, listReturns } from "@/src/lib/pos/storage"
-import { Badge } from "@/src/components/ui/badge"
+import { PageShell } from "@/components/page-shell"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { listInvoices, listReturns } from "@/lib/pos/storage"
+import { Badge } from "@/components/ui/badge"
 
 export default function TransactionsPage() {
   const invoices = listInvoices()

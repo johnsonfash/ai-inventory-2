@@ -1,8 +1,8 @@
 "use client"
 
-import { PageShell } from "@/src/components/page-shell"
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/src/components/ui/card"
-import { Button } from "@/src/components/ui/button"
+import { PageShell } from "@/components/page-shell"
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
 
 const rows = [
   { location: "Main Store", defaultAccount: "VA-001", cashiers: 4 },

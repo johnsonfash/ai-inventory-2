@@ -2,10 +2,10 @@
 
 import * as React from "react"
 import Image from "next/image"
-import type { CatalogItem } from "@/src/lib/pos/storage"
-import { Input } from "@/src/components/ui/input"
-import { Button } from "@/src/components/ui/button"
-import { Badge } from "@/src/components/ui/badge"
+import type { CatalogItem } from "@/lib/pos/storage"
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 
 type Props = {
   catalog: CatalogItem[]

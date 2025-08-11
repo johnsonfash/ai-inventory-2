@@ -1,14 +1,14 @@
 "use client"
 
 import * as React from "react"
-import { PageShell } from "@/src/components/page-shell"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/src/components/ui/card"
-import { Label } from "@/src/components/ui/label"
-import { Input } from "@/src/components/ui/input"
-import { Textarea } from "@/src/components/ui/textarea"
-import { Button } from "@/src/components/ui/button"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/src/components/ui/select"
-import { AddSupplierDialog } from "@/src/components/dialogs/add-supplier-dialog"
+import { PageShell } from "@/components/page-shell"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Label } from "@/components/ui/label"
+import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
+import { Button } from "@/components/ui/button"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { AddSupplierDialog } from "@/components/dialogs/add-supplier-dialog"
 
 export default function NewItemPage() {
   const [suppliers, setSuppliers] = React.useState(["Cobalt", "Delta", "Acme"])

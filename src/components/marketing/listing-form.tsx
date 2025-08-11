@@ -1,11 +1,11 @@
 "use client"
 
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/src/components/ui/card"
-import { Label } from "@/src/components/ui/label"
-import { Input } from "@/src/components/ui/input"
-import { Textarea } from "@/src/components/ui/textarea"
-import { Switch } from "@/src/components/ui/switch"
-import { Button } from "@/src/components/ui/button"
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
+import { Label } from "@/components/ui/label"
+import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
+import { Switch } from "@/components/ui/switch"
+import { Button } from "@/components/ui/button"
 import * as React from "react"
 
 type Channel = "facebook-ads" | "instagram-ads" | "youtube-adsense" | "facebook-marketplace"

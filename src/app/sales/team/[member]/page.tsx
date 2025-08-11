@@ -1,11 +1,11 @@
 "use client"
 
 import { useParams } from "next/navigation"
-import { PageShell } from "@/src/components/page-shell"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/src/components/ui/card"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/src/components/ui/table"
-import { RoleGuard } from "@/src/components/auth/role-guard"
-import { salesForMember } from "@/src/lib/pos/storage"
+import { PageShell } from "@/components/page-shell"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { RoleGuard } from "@/components/auth/role-guard"
+import { salesForMember } from "@/lib/pos/storage"
 
 export default function MemberDetailPage() {
   const params = useParams<{ member: string }>()

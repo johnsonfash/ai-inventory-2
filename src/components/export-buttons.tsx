@@ -1,6 +1,6 @@
 "use client"
 
-import { Button } from "@/src/components/ui/button"
+import { Button } from "@/components/ui/button"
 import jsPDF from "jspdf"
 import html2canvas from "html2canvas"
 

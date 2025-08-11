@@ -1,6 +1,6 @@
 "use client"
-import { PageShell } from "@/src/components/page-shell"
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/src/components/ui/card"
+import { PageShell } from "@/components/page-shell"
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
 
 const activities = [
   { msg: "User A. Larson created Purchase Order PO-1045", at: "2025-08-07 10:24" },

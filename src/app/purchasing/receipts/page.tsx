@@ -1,10 +1,10 @@
 "use client"
 
 import Link from "next/link"
-import { PageShell } from "@/src/components/page-shell"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/src/components/ui/card"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/src/components/ui/table"
-import { Button } from "@/src/components/ui/button"
+import { PageShell } from "@/components/page-shell"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Button } from "@/components/ui/button"
 
 export default function Receipts() {
   const rows = [{ id: "PR-5001", po: "PO-1043", items: 3, status: "Received", date: "2025-08-06" }]

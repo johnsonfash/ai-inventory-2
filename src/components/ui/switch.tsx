@@ -1,5 +1,5 @@
 import type * as React from "react"
-import { cn } from "@/src/lib/utils"
+import { cn } from "@/lib/utils"
 
 type Props = Omit<React.InputHTMLAttributes<HTMLInputElement>, "type"> & { id?: string }
 

@@ -1,9 +1,9 @@
 "use client"
 
 import * as React from "react"
-import { Dialog, DialogContent } from "@/src/components/ui/dialog"
-import { Button } from "@/src/components/ui/button"
-import { listInvoices, listDrafts, listReturns } from "@/src/lib/pos/storage"
+import { Dialog, DialogContent } from "@/components/ui/dialog"
+import { Button } from "@/components/ui/button"
+import { listInvoices, listDrafts, listReturns } from "@/lib/pos/storage"
 
 export function RecentTransactionsDialog() {
   const [open, setOpen] = React.useState(false)

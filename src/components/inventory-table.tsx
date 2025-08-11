@@ -1,8 +1,8 @@
 "use client"
 
-import { Badge } from "@/src/components/ui/badge"
-import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/src/components/ui/table"
-import { Button } from "@/src/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Button } from "@/components/ui/button"
 
 type Item = {
   sku: string

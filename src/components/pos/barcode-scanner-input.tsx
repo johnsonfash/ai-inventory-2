@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { Input } from "@/src/components/ui/input"
+import { Input } from "@/components/ui/input"
 
 type Props = {
   captureGlobal?: boolean

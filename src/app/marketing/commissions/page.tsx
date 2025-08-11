@@ -1,15 +1,15 @@
 "use client"
 
 import * as React from "react"
-import { PageShell } from "@/src/components/page-shell"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/src/components/ui/card"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/src/components/ui/table"
-import { CommissionCalculator } from "@/src/components/team/commission-calculator"
-import { ExportCSVButton, ExportPDFButton } from "@/src/components/export-buttons"
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/src/components/ui/chart"
+import { PageShell } from "@/components/page-shell"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { CommissionCalculator } from "@/components/team/commission-calculator"
+import { ExportCSVButton, ExportPDFButton } from "@/components/export-buttons"
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, XAxis, YAxis } from "recharts"
-import { aggregateSalesBySalesperson } from "@/src/lib/pos/storage"
-import { RoleGuard } from "@/src/components/auth/role-guard"
+import { aggregateSalesBySalesperson } from "@/lib/pos/storage"
+import { RoleGuard } from "@/components/auth/role-guard"
 
 type SpRow = { salesperson: string; sales: number; revenue: number }
 

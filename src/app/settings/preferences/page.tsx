@@ -1,10 +1,10 @@
 "use client"
 
-import { PageShell } from "@/src/components/page-shell"
-import { Card, CardContent, CardHeader, CardTitle } from "@/src/components/ui/card"
-import { Label } from "@/src/components/ui/label"
-import { Switch } from "@/src/components/ui/switch"
-import { Input } from "@/src/components/ui/input"
+import { PageShell } from "@/components/page-shell"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Label } from "@/components/ui/label"
+import { Switch } from "@/components/ui/switch"
+import { Input } from "@/components/ui/input"
 
 export default function Preferences() {
   return (

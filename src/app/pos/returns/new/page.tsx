@@ -2,11 +2,11 @@
 
 import * as React from "react"
 import { useSearchParams, useRouter } from "next/navigation"
-import { PageShell } from "@/src/components/page-shell"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/src/components/ui/card"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/src/components/ui/table"
-import { Input } from "@/src/components/ui/input"
-import { Button } from "@/src/components/ui/button"
+import { PageShell } from "@/components/page-shell"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
 import {
   getInvoiceById,
   getInvoiceByNumber,
@@ -15,7 +15,7 @@ import {
   saveReturn,
   type Invoice,
   type ReturnRecord,
-} from "@/src/lib/pos/storage"
+} from "@/lib/pos/storage"
 
 export default function NewReturnPage() {
   const router = useRouter()

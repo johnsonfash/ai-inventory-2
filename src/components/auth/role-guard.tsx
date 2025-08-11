@@ -1,8 +1,8 @@
 "use client"
 
 import * as React from "react"
-import { currentUser, initAuthDemo } from "@/src/lib/auth/store"
-import { hasPermission, type Permission } from "@/src/lib/auth/rbac"
+import { currentUser, initAuthDemo } from "@/lib/auth/store"
+import { hasPermission, type Permission } from "@/lib/auth/rbac"
 
 export function RoleGuard({
   permission,

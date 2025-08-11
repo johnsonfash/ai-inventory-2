@@ -1,12 +1,12 @@
 "use client"
-import { PageShell } from "@/src/components/page-shell"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/src/components/ui/card"
+import { PageShell } from "@/components/page-shell"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { ArrowDownRight, ArrowUpRight, Package } from "lucide-react"
-import { KpiCard } from "@/src/components/kpi-card"
-import { CategoryBreakdownChart, SalesVsPurchaseChart, StockLevelsChart } from "@/src/components/charts/inventory-charts"
-import { InventoryTable } from "@/src/components/inventory-table"
-import { TopMovers } from "@/src/components/top-movers"
-import { TopSelling } from "@/src/components/top-selling"
+import { KpiCard } from "@/components/kpi-card"
+import { CategoryBreakdownChart, SalesVsPurchaseChart, StockLevelsChart } from "@/components/charts/inventory-charts"
+import { InventoryTable } from "@/components/inventory-table"
+import { TopMovers } from "@/components/top-movers"
+import { TopSelling } from "@/components/top-selling"
 
 export default function Dashboard() {
   return (

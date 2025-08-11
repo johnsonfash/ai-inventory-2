@@ -1,9 +1,9 @@
 "use client"
 
 import Link from "next/link"
-import { PageShell } from "@/src/components/page-shell"
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/src/components/ui/card"
-import { Button } from "@/src/components/ui/button"
+import { PageShell } from "@/components/page-shell"
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
 
 const rows = [
   { id: "VA-001", bank: "Acme Bank", accountNumber: "0321 4482 1023", location: "Main Store", cashier: "Ava" },

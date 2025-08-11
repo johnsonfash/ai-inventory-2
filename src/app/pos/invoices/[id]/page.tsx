@@ -2,11 +2,11 @@
 
 import * as React from "react"
 import { useSearchParams, useParams } from "next/navigation"
-import { PageShell } from "@/src/components/page-shell"
-import { InvoicePreview, printInvoiceNode } from "@/src/components/pos/invoice-print"
-import { Button } from "@/src/components/ui/button"
-import { Card, CardContent } from "@/src/components/ui/card"
-import { getInvoiceById } from "@/src/lib/pos/storage"
+import { PageShell } from "@/components/page-shell"
+import { InvoicePreview, printInvoiceNode } from "@/components/pos/invoice-print"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
+import { getInvoiceById } from "@/lib/pos/storage"
 import { Printer } from "lucide-react"
 
 export default function InvoiceDetailPage() {

@@ -1,7 +1,7 @@
 "use client"
 
-import { PageShell } from "@/src/components/page-shell"
-import { ListingForm } from "@/src/components/marketing/listing-form"
+import { PageShell } from "@/components/page-shell"
+import { ListingForm } from "@/components/marketing/listing-form"
 
 export default function NewListing() {
   return (

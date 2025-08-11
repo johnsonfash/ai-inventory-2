@@ -2,10 +2,10 @@
 
 import * as React from "react"
 import { useParams, useSearchParams } from "next/navigation"
-import { PageShell } from "@/src/components/page-shell"
-import { getReturnById } from "@/src/lib/pos/storage"
-import { Card, CardContent, CardHeader, CardTitle } from "@/src/components/ui/card"
-import { Button } from "@/src/components/ui/button"
+import { PageShell } from "@/components/page-shell"
+import { getReturnById } from "@/lib/pos/storage"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
 import { Printer } from "lucide-react"
 
 export default function ReturnDetailPage() {
