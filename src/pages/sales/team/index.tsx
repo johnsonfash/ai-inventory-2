@@ -1,246 +1,221 @@
-
 import * as React from "react"
-import { PageShell } from "@/components/page-shell"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Input } from "@/components/ui/input"
-import { ExportCSVButton, ExportPDFButton } from "@/components/export-buttons"
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
-import { Bar, BarChart, CartesianGrid, ResponsiveContainer, XAxis, YAxis } from "recharts"
 import { Link } from "react-router-dom"
+import { ChevronRight, DollarSign, MessageSquare, Search, ShoppingCart, Users } from "lucide-react"
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts"
+import { PageShell } from "@/components/page-shell"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { ChartTooltipContent } from "@/components/ui/chart"
+import { useRegisterPageRefresh } from "@/hooks/use-pull-to-refresh"
+import { StatusBadge, type StatusTone } from "@/components/lists/status-badge"
+import { EmptyState } from "@/components/lists/empty-state"
+import { SummaryStrip } from "@/components/lists/summary-strip"
+import { ChartCard } from "@/components/reports/chart-card"
+import { PeriodChips, type Period } from "@/components/reports/period-chips"
 import { RoleGuard } from "@/components/auth/role-guard"
 import { aggregateSalesByChannel, aggregateSalesByLocation, aggregateSalesBySalesperson } from "@/lib/pos/storage"
 import { fetchAnalyticsTeams } from "@/lib/api-mocks/analytics-teams"
 
-type SpRow = { salesperson: string; sales: number; revenue: number; commission?: number }
+type SpRow = { salesperson: string; sales: number; revenue: number }
 type LocRow = { location: string; sales: number; revenue: number }
 type ChRow = { channel: string; sales: number; revenue: number }
-type TeamAPI = { bySalesperson: SpRow[]; byLocation: LocRow[]; byChannel: ChRow[] }
 
-const kpi = (rows: SpRow[]) => {
-  const totalRevenue = rows.reduce((sum, r) => sum + (r.revenue || 0), 0)
-  const totalSales = rows.reduce((sum, r) => sum + (r.sales || 0), 0)
-  const avgOrder = totalSales ? totalRevenue / totalSales : 0
-  return { totalRevenue, totalSales, avgOrder }
+const axisProps = { stroke: "var(--muted-foreground)", fontSize: 11, tickLine: false, axisLine: false } as const
+
+function initialsOf(name: string) {
+  return name.split(/\s+/).slice(0, 2).map((s) => s[0]!.toUpperCase()).join("")
+}
+
+function avatarTint(name: string) {
+  const palette = [
+    "bg-brand/15 text-brand dark:bg-primary/20 dark:text-primary",
+    "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300",
+    "bg-amber-500/15 text-amber-700 dark:text-amber-300",
+    "bg-rose-500/15 text-rose-700 dark:text-rose-300",
+    "bg-sky-500/15 text-sky-700 dark:text-sky-300",
+    "bg-fuchsia-500/15 text-fuchsia-700 dark:text-fuchsia-300",
+  ]
+  let h = 0
+  for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0
+  return palette[h % palette.length]!
 }
 
 export default function TeamPerformancePage() {
-  const [range, setRange] = React.useState<"7" | "30" | "90" | "all">("30")
-  const [commissionRate, setCommissionRate] = React.useState<number>(5) // %
+  const [period, setPeriod] = React.useState<Period>("30d")
+  const [commissionRate, setCommissionRate] = React.useState<number>(5)
+  const [query, setQuery] = React.useState("")
   const [bySp, setBySp] = React.useState<SpRow[]>(aggregateSalesBySalesperson())
   const [byLoc, setByLoc] = React.useState<LocRow[]>(aggregateSalesByLocation())
   const [byCh, setByCh] = React.useState<ChRow[]>(aggregateSalesByChannel())
-  const [loading, setLoading] = React.useState(false)
 
-  // Fetch from API if available; otherwise fallback to local aggregations.
+  useRegisterPageRefresh(React.useCallback(async () => {
+    const d = await fetchAnalyticsTeams(period)
+    if (Array.isArray(d.bySalesperson)) setBySp(d.bySalesperson)
+    if (Array.isArray(d.byLocation)) setByLoc(d.byLocation)
+    if (Array.isArray(d.byChannel)) setByCh(d.byChannel)
+  }, [period]))
+
   React.useEffect(() => {
     let ignore = false
-    async function load() {
-      setLoading(true)
-      try {
-        const data = await fetchAnalyticsTeams(range)
-        if (ignore) return
-        if (Array.isArray(data.bySalesperson)) setBySp(data.bySalesperson)
-        if (Array.isArray(data.byLocation)) setByLoc(data.byLocation)
-        if (Array.isArray(data.byChannel)) setByCh(data.byChannel)
-      } catch {
-        // no-op: fallback already set
-      } finally {
-        if (!ignore) setLoading(false)
-      }
-    }
-    load()
-    return () => {
-      ignore = true
-    }
-  }, [range])
+    fetchAnalyticsTeams(period).then((d) => {
+      if (ignore) return
+      if (Array.isArray(d.bySalesperson)) setBySp(d.bySalesperson)
+      if (Array.isArray(d.byLocation)) setByLoc(d.byLocation)
+      if (Array.isArray(d.byChannel)) setByCh(d.byChannel)
+    })
+    return () => { ignore = true }
+  }, [period])
 
-  // Apply commission rate locally to the salesperson rows.
-  const withCommission: SpRow[] = React.useMemo(
-    () =>
-      bySp.map((r) => ({
-        ...r,
-        commission: Number(((r.revenue || 0) * (commissionRate / 100)).toFixed(2)),
-      })),
-    [bySp, commissionRate],
-  )
+  const filtered = React.useMemo(() => {
+    const q = query.trim().toLowerCase()
+    if (!q) return bySp
+    return bySp.filter((r) => r.salesperson.toLowerCase().includes(q))
+  }, [bySp, query])
 
-  const { totalRevenue, totalSales, avgOrder } = kpi(bySp)
+  const sorted = React.useMemo(() => [...filtered].sort((a, b) => b.revenue - a.revenue), [filtered])
+
+  const totalRevenue = bySp.reduce((s, r) => s + r.revenue, 0)
+  const totalSales = bySp.reduce((s, r) => s + r.sales, 0)
+  const avgOrder = totalSales ? totalRevenue / totalSales : 0
+  const winner = sorted[0]
+  const topRevenue = winner?.revenue ?? 1
 
   return (
     <RoleGuard permission="view:team">
-      <PageShell title="Sales — Team Performance" withToolbar>
-        <div className="mb-3 flex flex-wrap items-center gap-2">
-          {/* Time range quick filter */}
-          <label className="text-sm text-muted-foreground">Range</label>
-          <select
-            className="h-9 rounded-md border bg-background px-2 text-sm"
-            value={range}
-            onChange={(e) => setRange(e.target.value as any)}
-          >
-            <option value="7">Last 7 days</option>
-            <option value="30">Last 30 days</option>
-            <option value="90">Last 90 days</option>
-            <option value="all">All time</option>
-          </select>
+      <PageShell title="Team performance" withToolbar>
+        <div className="flex flex-col gap-4">
+          <SummaryStrip
+            tiles={[
+              { label: "Revenue", value: `$${totalRevenue.toLocaleString()}`, tone: "brand", hint: "team total" },
+              { label: "Sales", value: String(totalSales), tone: "info", hint: "this period" },
+              { label: "Avg order", value: `$${avgOrder.toFixed(2)}`, tone: "success", hint: "per sale" },
+              { label: "Top rep", value: winner?.salesperson?.split(" ")[0] ?? "—", tone: "warning", hint: winner ? `$${winner.revenue.toLocaleString()}` : "no data" },
+            ]}
+          />
 
-          {/* Commission rate control */}
-          <div className="ml-auto flex items-center gap-2">
-            <label htmlFor="commission" className="text-sm text-muted-foreground">
-              Commission %
-            </label>
-            <Input
-              id="commission"
-              value={commissionRate}
-              onChange={(e) => setCommissionRate(Number(e.target.value || 0))}
-              className="w-20"
-              type="number"
-              step="0.5"
-              min={0}
-            />
-            <ExportCSVButton data={withCommission} filename="team-performance.csv" />
-            <ExportPDFButton selector="#team-report" filename="team-report.pdf" />
+          <PeriodChips value={period} onChange={setPeriod} />
+
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="relative min-w-[180px] flex-1">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search reps…" className="pl-9" />
+            </div>
+            <div className="inline-flex items-center gap-2 rounded-lg border border-input bg-background px-3 py-1.5 text-sm">
+              <span className="text-xs text-muted-foreground">Commission</span>
+              <Input
+                type="number"
+                value={commissionRate}
+                onChange={(e) => setCommissionRate(Math.max(0, Number(e.target.value) || 0))}
+                className="h-7 w-14 border-0 bg-transparent p-0 text-right text-sm focus-visible:ring-0"
+              />
+              <span className="text-xs text-muted-foreground">%</span>
+            </div>
+            <Link to="/sales/team/chat">
+              <Button variant="outline"><MessageSquare className="h-4 w-4" /> Team chat</Button>
+            </Link>
           </div>
-        </div>
 
-        {/* KPIs */}
-        <div className="grid gap-4 md:grid-cols-3">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle>Total Revenue</CardTitle>
-              <CardDescription>{range === "all" ? "All time" : `Last ${range} days`}</CardDescription>
-            </CardHeader>
-            <CardContent className="text-2xl font-semibold tabular-nums">${totalRevenue.toFixed(2)}</CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle>Total Sales</CardTitle>
-              <CardDescription>Invoices counted</CardDescription>
-            </CardHeader>
-            <CardContent className="text-2xl font-semibold tabular-nums">{totalSales}</CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle>Avg. Order</CardTitle>
-              <CardDescription>Revenue per sale</CardDescription>
-            </CardHeader>
-            <CardContent className="text-2xl font-semibold tabular-nums">${avgOrder.toFixed(2)}</CardContent>
-          </Card>
-        </div>
+          {/* Leaderboard */}
+          {sorted.length === 0 ? (
+            <EmptyState Icon={Users} title="No reps yet" description="Sales attributed to reps will appear here." />
+          ) : (
+            <section className="flex flex-col gap-2">
+              <h3 className="text-base font-semibold tracking-tight md:text-lg">Leaderboard</h3>
+              <ul className="space-y-2">
+                {sorted.map((r, idx) => {
+                  const pct = (r.revenue / topRevenue) * 100
+                  const commission = r.revenue * (commissionRate / 100)
+                  const tier: StatusTone = idx === 0 ? "brand" : idx <= 2 ? "info" : "neutral"
+                  return (
+                    <li key={r.salesperson}>
+                      <Link
+                        to={`/sales/team/${encodeURIComponent(r.salesperson)}`}
+                        className="flex items-start gap-3 rounded-2xl border border-border bg-card p-3 transition-colors hover:border-brand/40"
+                      >
+                        <div className="flex h-12 w-12 shrink-0 flex-col items-center justify-center rounded-xl bg-muted text-xs">
+                          <span className="text-[9px] uppercase text-muted-foreground">Rank</span>
+                          <span className="text-base font-bold tabular-nums leading-tight">{idx + 1}</span>
+                        </div>
+                        <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-xs font-bold ${avatarTint(r.salesperson)}`}>
+                          {initialsOf(r.salesperson)}
+                        </span>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center justify-between gap-2">
+                            <p className="truncate text-sm font-semibold">{r.salesperson}</p>
+                            <p className="shrink-0 text-sm font-bold tabular-nums">${r.revenue.toLocaleString()}</p>
+                          </div>
+                          <p className="mt-0.5 text-[11px] text-muted-foreground">{r.sales} sales · ${commission.toFixed(0)} commission</p>
+                          <div className="mt-1.5 flex items-center gap-2">
+                            <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
+                              <div className="h-1.5 rounded-full bg-gradient-to-r from-brand via-fuchsia-500 to-emerald-500" style={{ width: `${pct}%` }} />
+                            </div>
+                            <StatusBadge tone={tier}>{idx === 0 ? "leader" : idx <= 2 ? "podium" : "rest"}</StatusBadge>
+                          </div>
+                        </div>
+                        <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+                      </Link>
+                    </li>
+                  )
+                })}
+              </ul>
+            </section>
+          )}
 
-        <div id="team-report" className="mt-4 grid gap-4 lg:grid-cols-2">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle>Revenue by Salesperson</CardTitle>
-              <CardDescription>Performance ranking</CardDescription>
-            </CardHeader>
-            <CardContent className="h-[320px]">
-              <ChartContainer
-                config={{ revenue: { label: "Revenue", color: "hsl(var(--chart-1))" } }}
-                className="h-full"
-              >
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={bySp}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="salesperson" />
-                    <YAxis />
-                    <ChartTooltip content={<ChartTooltipContent />} />
-                    <Bar dataKey="revenue" fill="var(--color-revenue)" radius={[4, 4, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </ChartContainer>
-            </CardContent>
-          </Card>
+          {/* Charts */}
+          <div className="grid gap-4 lg:grid-cols-2">
+            <ChartCard title="Revenue by rep" description="Comparative performance">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={sorted.map((r) => ({ rep: r.salesperson.split(" ")[0], revenue: r.revenue }))} margin={{ top: 10, right: 6, left: 0, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" strokeOpacity={0.5} />
+                  <XAxis dataKey="rep" {...axisProps} />
+                  <YAxis {...axisProps} tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`} />
+                  <Tooltip content={<ChartTooltipContent labelKey="rep" />} cursor={{ fill: "var(--muted)", fillOpacity: 0.35 }} />
+                  <Bar dataKey="revenue" fill="var(--chart-1)" radius={[6, 6, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </ChartCard>
 
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle>Revenue by Location</CardTitle>
-              <CardDescription>Where sales happen</CardDescription>
-            </CardHeader>
-            <CardContent className="h-[320px]">
-              <ChartContainer
-                config={{ revenue: { label: "Revenue", color: "hsl(var(--chart-2))" } }}
-                className="h-full"
-              >
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={byLoc}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="location" />
-                    <YAxis />
-                    <ChartTooltip content={<ChartTooltipContent />} />
-                    <Bar dataKey="revenue" fill="var(--color-revenue)" radius={[4, 4, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </ChartContainer>
-            </CardContent>
-          </Card>
+            <ChartCard title="Revenue by channel" description="Where the money came from">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={byCh.map((r) => ({ channel: r.channel, revenue: r.revenue }))} margin={{ top: 10, right: 6, left: 0, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" strokeOpacity={0.5} />
+                  <XAxis dataKey="channel" {...axisProps} />
+                  <YAxis {...axisProps} tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`} />
+                  <Tooltip content={<ChartTooltipContent labelKey="channel" />} cursor={{ fill: "var(--muted)", fillOpacity: 0.35 }} />
+                  <Bar dataKey="revenue" fill="var(--chart-2)" radius={[6, 6, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </ChartCard>
+          </div>
 
-          <Card className="lg:col-span-2">
-            <CardHeader className="pb-2">
-              <CardTitle>Revenue by Channel</CardTitle>
-              <CardDescription>Sales source overview</CardDescription>
-            </CardHeader>
-            <CardContent className="h-[320px]">
-              <ChartContainer
-                config={{ revenue: { label: "Revenue", color: "hsl(var(--chart-3))" } }}
-                className="h-full"
-              >
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={byCh}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="channel" />
-                    <YAxis />
-                    <ChartTooltip content={<ChartTooltipContent />} />
-                    <Bar dataKey="revenue" fill="var(--color-revenue)" radius={[4, 4, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </ChartContainer>
-            </CardContent>
-          </Card>
-
-          <Card className="lg:col-span-2">
-            <CardHeader className="pb-2">
-              <CardTitle>Team Table</CardTitle>
-              <CardDescription>Sales, revenue and commission</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="overflow-auto rounded-lg border">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Salesperson</TableHead>
-                      <TableHead className="text-right">Sales</TableHead>
-                      <TableHead className="text-right">Revenue</TableHead>
-                      <TableHead className="text-right">Commission</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {withCommission.map((row) => (
-                      <TableRow key={row.salesperson}>
-                        <TableCell className="font-medium">{row.salesperson}</TableCell>
-                        <TableCell className="text-right tabular-nums">{row.sales}</TableCell>
-                        <TableCell className="text-right tabular-nums">${row.revenue.toFixed(2)}</TableCell>
-                        <TableCell className="text-right tabular-nums">${row.commission?.toFixed(2)}</TableCell>
-                        <TableCell className="text-right">
-                          <Link to={`/sales/team/${encodeURIComponent(row.salesperson)}`}>
-                            <span className="rounded border px-2 py-1 text-sm hover:bg-accent">View</span>
-                          </Link>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                    {withCommission.length === 0 && (
-                      <TableRow>
-                        <TableCell colSpan={5} className="text-center text-muted-foreground">
-                          {loading ? "Loading..." : "No data yet."}
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
-            </CardContent>
-          </Card>
+          {/* Locations breakdown */}
+          {byLoc.length > 0 && (
+            <section className="flex flex-col gap-2">
+              <h3 className="text-base font-semibold tracking-tight md:text-lg">By location</h3>
+              <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                {byLoc.map((r) => (
+                  <li key={r.location} className="flex items-center gap-3 rounded-2xl border border-border bg-card p-3">
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-300">
+                      <DollarSign className="h-4 w-4" />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-semibold">{r.location}</p>
+                      <p className="text-[11px] text-muted-foreground">{r.sales} sales · <span className="font-bold tabular-nums text-foreground">${r.revenue.toLocaleString()}</span></p>
+                    </div>
+                    <ShoppingCart className="h-4 w-4 text-muted-foreground" />
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
         </div>
       </PageShell>
     </RoleGuard>

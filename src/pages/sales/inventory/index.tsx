@@ -1,69 +1,135 @@
-
+import * as React from "react"
+import { Boxes, Package, PackageX, Search } from "lucide-react"
 import { PageShell } from "@/components/page-shell"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { loadCatalog } from "@/lib/pos/storage"
-import { useMemo, useState } from "react"
 import { Input } from "@/components/ui/input"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useRegisterPageRefresh } from "@/hooks/use-pull-to-refresh"
+import { EmptyState } from "@/components/lists/empty-state"
+import { StatusBadge, type StatusTone } from "@/components/lists/status-badge"
+import { SummaryStrip } from "@/components/lists/summary-strip"
+import { loadCatalog, type CatalogItem } from "@/lib/pos/storage"
+import { cn } from "@/lib/utils"
+
+type Mode = "retail" | "restaurant" | "services" | "auto"
+
+function severity(stock: number): { tone: StatusTone; label: string } {
+  if (stock <= 0) return { tone: "danger", label: "Out" }
+  if (stock <= 5) return { tone: "danger", label: "Critical" }
+  if (stock <= 15) return { tone: "warning", label: "Low" }
+  return { tone: "success", label: "OK" }
+}
 
 export default function SalesInventoryPage() {
-  const [mode, setMode] = useState<"retail" | "restaurant" | "services" | "auto">("retail")
-  const [q, setQ] = useState("")
-  const catalog = useMemo(() => loadCatalog(mode), [mode])
-  const filtered = catalog.filter(
-    (c) =>
-      c.name.toLowerCase().includes(q.toLowerCase()) ||
-      c.sku.toLowerCase().includes(q.toLowerCase()) ||
-      (c.category || "").toLowerCase().includes(q.toLowerCase()),
-  )
+  const [mode, setMode] = React.useState<Mode>("retail")
+  const [query, setQuery] = React.useState("")
+  const [filter, setFilter] = React.useState<"all" | "low" | "out">("all")
+  const catalog = React.useMemo(() => loadCatalog(mode), [mode])
+
+  useRegisterPageRefresh(React.useCallback(async () => { await new Promise((r) => setTimeout(r, 400)) }, []))
+
+  const filtered = React.useMemo(() => {
+    let list: CatalogItem[] = catalog
+    const q = query.trim().toLowerCase()
+    if (q) {
+      list = list.filter(
+        (c) => c.name.toLowerCase().includes(q) || c.sku.toLowerCase().includes(q) || (c.category ?? "").toLowerCase().includes(q),
+      )
+    }
+    if (filter === "low") list = list.filter((c) => (c.stock ?? 0) > 0 && (c.stock ?? 0) <= 15)
+    if (filter === "out") list = list.filter((c) => (c.stock ?? 0) <= 0)
+    return list
+  }, [catalog, query, filter])
+
+  const total = catalog.length
+  const low = catalog.filter((c) => (c.stock ?? 0) > 0 && (c.stock ?? 0) <= 15).length
+  const out = catalog.filter((c) => (c.stock ?? 0) <= 0).length
+  const totalValue = catalog.reduce((s, c) => s + (c.stock ?? 0) * c.price, 0)
 
   return (
-    <PageShell title="Sales — Live Inventory" withToolbar>
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle>Inventory</CardTitle>
-          <CardDescription>Real-time stock overview for sales</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <div className="flex flex-wrap items-center gap-2">
-            <label className="text-sm">
-              <span className="mr-2 text-muted-foreground">Mode</span>
-              <select
-                className="h-9 rounded-md border bg-background px-2 text-sm"
-                value={mode}
-                onChange={(e) => setMode(e.target.value as any)}
-              >
-                <option value="retail">Retail</option>
-                <option value="restaurant">Restaurant</option>
-                <option value="services">Services</option>
-                <option value="auto">Auto</option>
-              </select>
-            </label>
-            <Input
-              placeholder="Search name/SKU/category"
-              className="w-72"
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-            />
+    <PageShell title="Live inventory" withToolbar>
+      <div className="flex flex-col gap-4">
+        <SummaryStrip
+          tiles={[
+            { label: "SKUs", value: total.toLocaleString(), tone: "brand", hint: "available" },
+            { label: "Low stock", value: String(low), tone: "warning", hint: "watch" },
+            { label: "Out of stock", value: String(out), tone: "danger", hint: "act now" },
+            { label: "Stock value", value: `$${Math.round(totalValue).toLocaleString()}`, tone: "success", hint: "at retail" },
+          ]}
+        />
+
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="relative min-w-[180px] flex-1">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search items / SKU / category…" className="pl-9" />
           </div>
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {filtered.map((c) => (
-              <div key={c.sku} className="rounded-lg border p-3">
-                <div className="text-sm font-medium">{c.name}</div>
-                <div className="text-xs text-muted-foreground">{c.sku}</div>
-                <div className="mt-2 flex items-center justify-between text-sm">
-                  <span>Price</span>
-                  <span className="tabular-nums">${c.price.toFixed(2)}</span>
+          <Select value={mode} onValueChange={(v) => v && setMode(v as Mode)}>
+            <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="retail">Retail</SelectItem>
+              <SelectItem value="restaurant">Restaurant</SelectItem>
+              <SelectItem value="services">Services</SelectItem>
+              <SelectItem value="auto">Auto</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Filter pills */}
+        <div className="-mx-4 flex gap-1.5 overflow-x-auto px-4 pb-1 scrollbar-hide md:mx-0 md:px-0">
+          {(["all", "low", "out"] as const).map((f) => (
+            <button
+              key={f}
+              type="button"
+              onClick={() => setFilter(f)}
+              className={cn(
+                "shrink-0 rounded-full border px-3 py-1.5 text-xs font-medium capitalize transition-colors",
+                filter === f
+                  ? "border-transparent bg-brand text-brand-foreground dark:bg-primary dark:text-primary-foreground"
+                  : "border-border bg-card text-muted-foreground hover:bg-accent hover:text-foreground",
+              )}
+            >
+              {f === "all" ? "All items" : f === "low" ? "Low stock" : "Out of stock"}
+            </button>
+          ))}
+        </div>
+
+        {filtered.length === 0 ? (
+          <EmptyState
+            Icon={out > 0 && filter === "out" ? PackageX : Boxes}
+            title="No items match"
+            description="Try adjusting the search or stock filter."
+          />
+        ) : (
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+            {filtered.map((it) => {
+              const s = severity(it.stock ?? 0)
+              return (
+                <div key={it.id} className="overflow-hidden rounded-2xl border border-border bg-card">
+                  <div className="relative aspect-square overflow-hidden bg-muted">
+                    <img
+                      src={it.image || "/placeholder.svg"}
+                      alt={it.name}
+                      loading="lazy"
+                      className="absolute inset-0 h-full w-full object-cover"
+                    />
+                    <span className="absolute right-2 top-2"><StatusBadge tone={s.tone} withDot>{s.label}</StatusBadge></span>
+                  </div>
+                  <div className="p-3">
+                    <p className="truncate text-sm font-semibold">{it.name}</p>
+                    <p className="truncate font-mono text-[11px] text-muted-foreground">{it.sku}</p>
+                    <div className="mt-2 flex items-baseline justify-between gap-2">
+                      <span className="text-sm font-bold tabular-nums">${it.price.toFixed(2)}</span>
+                      <span className="text-[11px] tabular-nums text-muted-foreground">
+                        <Package className="mr-0.5 inline h-3 w-3" />
+                        {it.stock ?? 0}
+                      </span>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span>Stock</span>
-                  <span className="tabular-nums">{c.stock ?? "-"}</span>
-                </div>
-              </div>
-            ))}
-            {filtered.length === 0 && <div className="text-sm text-muted-foreground">No items.</div>}
+              )
+            })}
           </div>
-        </CardContent>
-      </Card>
+        )}
+      </div>
     </PageShell>
   )
 }
