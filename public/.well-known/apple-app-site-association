@@ -1,0 +1,70 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": [
+          "TEAMID.app.pallio"
+        ],
+        "components": [
+          {
+            "/": "/pos/*",
+            "comment": "POS routes — invoices, drafts, transactions"
+          },
+          {
+            "/": "/inventory/*",
+            "comment": "Inventory + sub-pages"
+          },
+          {
+            "/": "/sales/*",
+            "comment": "Sales + customers + invoices + team"
+          },
+          {
+            "/": "/purchasing/*",
+            "comment": "POs + bills + vendors + receipts"
+          },
+          {
+            "/": "/reporting/*",
+            "comment": "Reports surface"
+          },
+          {
+            "/": "/accounting/*",
+            "comment": "Balance sheet + financial reports"
+          },
+          {
+            "/": "/marketing/*",
+            "comment": "Ad channels + listings"
+          },
+          {
+            "/": "/settings/*",
+            "comment": "All settings"
+          },
+          {
+            "/": "/integrations/*",
+            "comment": "Website widget + connectors"
+          },
+          {
+            "/": "/ai/*",
+            "comment": "AI assistant"
+          },
+          {
+            "/": "/notifications"
+          },
+          {
+            "/": "/expenses/*"
+          },
+          {
+            "/": "/appointments/*"
+          },
+          {
+            "/": "/"
+          }
+        ]
+      }
+    ]
+  },
+  "webcredentials": {
+    "apps": [
+      "TEAMID.app.pallio"
+    ]
+  }
+}
