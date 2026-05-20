@@ -129,6 +129,7 @@ export const routes: RouteObject[] = [
   { path: "/settings/printers", Component: page(() => import("./pages/settings/printers")) },
   { path: "/settings/roles", Component: page(() => import("./pages/settings/roles")) },
   { path: "/settings/roles/new", Component: page(() => import("./pages/settings/roles/new")) },
+  { path: "/settings/security", Component: page(() => import("./pages/settings/security")) },
   { path: "/settings/taxes", Component: page(() => import("./pages/settings/taxes")) },
   { path: "/settings/users", Component: page(() => import("./pages/settings/users")) },
   { path: "/settings/users/new", Component: page(() => import("./pages/settings/users/new")) },

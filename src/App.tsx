@@ -9,6 +9,7 @@ import { PageRefreshProvider } from "@/hooks/use-pull-to-refresh"
 import { RouteTransition } from "@/components/route-transition"
 import { PWAInstaller } from "@/components/pwa-installer"
 import { NetworkBanner } from "@/components/network-banner"
+import { BiometricGate } from "@/components/biometric-gate"
 import { useNative } from "@/hooks/use-native"
 import { useBackButton } from "@/hooks/use-back-button"
 import { useDeepLinks } from "@/hooks/use-deep-links"
@@ -88,11 +89,13 @@ export default function App() {
         <BrowserRouter>
           <NativeBootstrap />
           <RouterBootstrap />
-          <NetworkBanner />
-          <PageRefreshProvider>
-            <AppRoutes />
-          </PageRefreshProvider>
-          <PWAInstaller />
+          <BiometricGate>
+            <NetworkBanner />
+            <PageRefreshProvider>
+              <AppRoutes />
+            </PageRefreshProvider>
+            <PWAInstaller />
+          </BiometricGate>
           <Toaster position="bottom-right" richColors closeButton />
         </BrowserRouter>
       </QueryClientProvider>

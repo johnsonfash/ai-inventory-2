@@ -13,6 +13,7 @@ import {
   KeyRound,
   Languages,
   MapPin,
+  Lock,
   Printer,
   Puzzle,
   ScanLine,
@@ -63,6 +64,7 @@ const GROUPS: { title: string; description: string; tiles: Tile[] }[] = [
     tiles: [
       { href: "/settings/users", title: "Users", description: "Invite team members, manage active sessions.", Icon: Users, tone: "violet" },
       { href: "/settings/roles", title: "Roles & permissions", description: "Per-role access scopes and policies.", Icon: ShieldCheck, tone: "rose" },
+      { href: "/settings/security", title: "Security", description: "Biometric unlock, account password, sessions.", Icon: Lock, tone: "emerald" },
     ],
   },
   {
