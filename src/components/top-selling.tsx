@@ -1,5 +1,6 @@
 import { Trophy } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { useCurrency } from "@/contexts/currency"
 
 const topSelling = [
   { sku: "EL-2109", name: "USB‑C Hub 6‑in‑1", units: 320, revenue: 4000 },
@@ -16,6 +17,7 @@ const rankClasses = [
 ]
 
 export function TopSelling() {
+  const { formatCompact } = useCurrency()
   return (
     <Card className="overflow-hidden">
       <CardHeader className="pb-3">
@@ -49,7 +51,7 @@ export function TopSelling() {
             <div className="shrink-0 text-right">
               <div className="text-sm font-semibold tabular-nums">{i.units}</div>
               <div className="text-[11px] tabular-nums text-muted-foreground">
-                ${i.revenue.toLocaleString()}
+                {formatCompact(i.revenue)}
               </div>
             </div>
           </div>

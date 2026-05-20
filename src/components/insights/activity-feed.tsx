@@ -12,6 +12,7 @@ import {
   type LucideIcon,
 } from "lucide-react"
 import { InfoTooltip } from "@/components/info-tooltip"
+import { formatPriceFor } from "@/contexts/currency"
 import { cn } from "@/lib/utils"
 
 type ActivityKind =
@@ -39,10 +40,10 @@ type ActivityEntry = {
 // api.get<Paginated<ActivityEntry>>('/activity'). Order matters —
 // most recent first.
 const ENTRIES: ActivityEntry[] = [
-  { id: "a1", kind: "sale",        text: "Mia closed a $86 sale to Aisha N.",                   minutesAgo: 2,   href: "/pos/transactions" },
+  { id: "a1", kind: "sale",        text: `Mia closed a ${formatPriceFor(86_000)} sale to Aisha N.`,                   minutesAgo: 2,   href: "/pos/transactions" },
   { id: "a2", kind: "low-stock",   text: "USB-C Hub crossed reorder threshold (18 left)",       minutesAgo: 14,  href: "/inventory" },
   { id: "a3", kind: "po-received", text: "PO‑1042 received in full from Cobalt (8 lines)",      minutesAgo: 38,  href: "/purchasing/pos" },
-  { id: "a4", kind: "refund",      text: "Refund $24 issued on RT‑121 (defective)",             minutesAgo: 56,  href: "/pos/returns" },
+  { id: "a4", kind: "refund",      text: `Refund ${formatPriceFor(24_000)} issued on RT‑121 (defective)`,             minutesAgo: 56,  href: "/pos/returns" },
   { id: "a5", kind: "campaign",    text: "Holiday Tee Reel campaign hit 4.2× ROAS",             minutesAgo: 82,  href: "/marketing/instagram-ads" },
   { id: "a6", kind: "customer",    text: "New customer: BrightLane (Wholesale tier)",           minutesAgo: 140, href: "/sales/customers" },
   { id: "a7", kind: "restock",     text: "Adjusted +24 units on EL-1001 (manual recount)",      minutesAgo: 220, href: "/inventory/adjustments" },

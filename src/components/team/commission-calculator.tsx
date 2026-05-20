@@ -2,6 +2,7 @@
 import * as React from "react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
+import { useCurrency } from "@/contexts/currency"
 
 export function CommissionCalculator({ totalRevenue = 0 }: { totalRevenue?: number }) {
   const [rate, setRate] = React.useState(5) // percent
@@ -9,6 +10,7 @@ export function CommissionCalculator({ totalRevenue = 0 }: { totalRevenue?: numb
   const [bonus, setBonus] = React.useState(250)
   const commission = Math.round(totalRevenue * (rate / 100) * 100) / 100
   const total = commission + (totalRevenue >= bonusThreshold ? bonus : 0)
+  const { formatPrice } = useCurrency()
 
   return (
     <Card>
@@ -42,15 +44,15 @@ export function CommissionCalculator({ totalRevenue = 0 }: { totalRevenue?: numb
         <div className="rounded-md border p-3">
           <div className="flex items-center justify-between text-sm">
             <span className="text-muted-foreground">Commission</span>
-            <span className="tabular-nums">${commission.toFixed(2)}</span>
+            <span className="tabular-nums">{formatPrice(commission)}</span>
           </div>
           <div className="flex items-center justify-between text-sm">
             <span className="text-muted-foreground">Bonus</span>
-            <span className="tabular-nums">${totalRevenue >= bonusThreshold ? bonus.toFixed(2) : "0.00"}</span>
+            <span className="tabular-nums">{formatPrice(totalRevenue >= bonusThreshold ? bonus : 0)}</span>
           </div>
           <div className="mt-1 flex items-center justify-between text-base font-semibold">
             <span>Total Payout</span>
-            <span className="tabular-nums">${total.toFixed(2)}</span>
+            <span className="tabular-nums">{formatPrice(total)}</span>
           </div>
         </div>
       </CardContent>

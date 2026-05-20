@@ -1,4 +1,5 @@
 import type { Insight } from "./types"
+import { formatPriceCompact, formatPriceFor } from "@/contexts/currency"
 
 // Rule-based "AI" insight generator. While the backend is dummy
 // data, we synthesise insights that LOOK like ML output:
@@ -102,7 +103,7 @@ export function generateInsights(): Insight[] {
     // -- Cashflow --
     i({
       title: "AP runway looks healthy through next pay cycle",
-      body: "$48,210 sits in operating + savings. Outstanding bills totalling $28,400 are spread across the next 30 days — no negative balance days forecast.",
+      body: `${formatPriceFor(48_210_000)} sits in operating + savings. Outstanding bills totalling ${formatPriceFor(28_400_000)} are spread across the next 30 days — no negative balance days forecast.`,
       category: "cashflow",
       severity: "good",
       metric: "30d safe",
@@ -112,7 +113,7 @@ export function generateInsights(): Insight[] {
     // -- Team --
     i({
       title: "Mia Chen on track for a record month",
-      body: "Mia is currently 28% ahead of her best month with 9 selling days left. Commission at the current 5% rate trends toward $1,420.",
+      body: `Mia is currently 28% ahead of her best month with 9 selling days left. Commission at the current 5% rate trends toward ${formatPriceFor(1_420_000)}.`,
       category: "team",
       severity: "good",
       metric: "+28%",
@@ -121,11 +122,11 @@ export function generateInsights(): Insight[] {
 
     // -- Forecast --
     i({
-      title: "Next 7 days: forecast revenue $19.4k ± $1.8k",
+      title: `Next 7 days: forecast revenue ${formatPriceCompact(19_400_000)} ± ${formatPriceCompact(1_800_000)}`,
       body: "Based on the rolling 30-day trend + day-of-week seasonality. Confidence band is tight (±9%) — no anomalies detected in upcoming inputs.",
       category: "forecast",
       severity: "info",
-      metric: "$19.4k",
+      metric: formatPriceCompact(19_400_000),
       sparkline: [2700, 2900, 2600, 3100, 2800, 3000, 2300],
     }),
   ]

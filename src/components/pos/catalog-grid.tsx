@@ -2,6 +2,7 @@ import * as React from "react"
 import { Plus, Search } from "lucide-react"
 import type { CartItem, CatalogItem } from "@/lib/pos/storage"
 import { Input } from "@/components/ui/input"
+import { useCurrency } from "@/contexts/currency"
 import { cn } from "@/lib/utils"
 
 type Props = {
@@ -18,6 +19,7 @@ type Props = {
 export function CatalogGrid({ catalog, onAdd, cart }: Props) {
   const [q, setQ] = React.useState("")
   const [category, setCategory] = React.useState<string>("All")
+  const { formatPrice } = useCurrency()
 
   const categories = React.useMemo(
     () => ["All", ...Array.from(new Set(catalog.map((c) => c.category).filter(Boolean) as string[]))],
@@ -109,7 +111,7 @@ export function CatalogGrid({ catalog, onAdd, cart }: Props) {
                   <span className="font-mono">{p.sku}</span>
                   {p.category && <> · {p.category}</>}
                 </span>
-                <span className="mt-1 text-sm font-bold tabular-nums">${p.price.toFixed(2)}</span>
+                <span className="mt-1 text-sm font-bold tabular-nums">{formatPrice(p.price)}</span>
               </div>
             </button>
           )

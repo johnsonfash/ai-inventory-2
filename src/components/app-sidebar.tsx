@@ -178,6 +178,7 @@ const nav: Item[] = [
       { title: "Payment Settings", url: "/settings/payments" },
       { title: "Preferences", url: "/settings/preferences" },
       { title: "Business Settings", url: "/settings/business" },
+      { title: "Currency", url: "/settings/currency" },
       { title: "Business Location", url: "/settings/locations" },
       { title: "Invoice Settings", url: "/settings/invoice" },
       { title: "Barcode Settings", url: "/settings/barcodes" },

@@ -9,10 +9,7 @@ import { StatusBadge } from "@/components/lists/status-badge"
 import { EmptyState } from "@/components/lists/empty-state"
 import { useRegisterPageRefresh } from "@/hooks/use-pull-to-refresh"
 import { getInvoice, getReceipt } from "@/lib/sales/data"
-
-function fmtMoney(n: number): string {
-  return `$${n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-}
+import { useCurrency } from "@/contexts/currency"
 function fmtDate(iso: string): string {
   return new Date(iso).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })
 }
@@ -21,6 +18,7 @@ export default function ReceiptDetail() {
   const params = useParams<{ id: string }>()
   const receipt = getReceipt(params.id ?? "")
   const invoice = receipt ? getInvoice(receipt.invoiceId) : undefined
+  const { formatPrice: fmtMoney } = useCurrency()
   useRegisterPageRefresh(React.useCallback(async () => { await new Promise((r) => setTimeout(r, 300)) }, []))
 
   if (!receipt || !invoice) {

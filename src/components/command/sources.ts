@@ -128,6 +128,7 @@ const NAVIGATE: CommandItem[] = [
 // --- Settings: the most-asked-for settings pages. ---
 const SETTINGS_SHORTCUTS: CommandItem[] = [
   { id: "set-business",   group: "Settings", title: "Business settings",   subtitle: "/settings/business",       Icon: Store,         href: "/settings/business",       searchTerms: "business org profile branding" },
+  { id: "set-currency",   group: "Settings", title: "Currency",            subtitle: "/settings/currency",       Icon: DollarSign,    href: "/settings/currency",       searchTerms: "currency naira ngn usd dollar pound symbol money" },
   { id: "set-warehouses", group: "Settings", title: "Warehouses + locations", subtitle: "/settings/warehouses", Icon: Warehouse,      href: "/settings/warehouses",     searchTerms: "warehouses locations stores" },
   { id: "set-users",      group: "Settings", title: "Users & roles",       subtitle: "/settings/users",          Icon: Users,         href: "/settings/users",          searchTerms: "users roles team invites permissions staff" },
   { id: "set-roles",      group: "Settings", title: "Roles & permissions", subtitle: "/settings/roles",          Icon: ShieldCheck,   href: "/settings/roles",          searchTerms: "roles permissions access scopes" },

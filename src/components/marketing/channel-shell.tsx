@@ -7,6 +7,7 @@ import { useRegisterPageRefresh } from "@/hooks/use-pull-to-refresh"
 import { SummaryStrip, type SummaryTile } from "@/components/lists/summary-strip"
 import { StatusBadge, type StatusTone } from "@/components/lists/status-badge"
 import { EmptyState } from "@/components/lists/empty-state"
+import { useCurrency } from "@/contexts/currency"
 import { cn } from "@/lib/utils"
 
 export type Campaign = {
@@ -49,6 +50,7 @@ const TONES = {
 // channel pages. Renders a brand hero + KPI strip + campaign list.
 export function ChannelShell({ title, description, Icon, tone, campaigns, newCampaignHref, newListingHref }: Props) {
   useRegisterPageRefresh(React.useCallback(async () => { await new Promise((r) => setTimeout(r, 400)) }, []))
+  const { formatPrice, formatCompact } = useCurrency()
 
   const totalSpend = campaigns.reduce((s, c) => s + c.spend, 0)
   const totalClicks = campaigns.reduce((s, c) => s + c.clicks, 0)
@@ -61,7 +63,7 @@ export function ChannelShell({ title, description, Icon, tone, campaigns, newCam
   const ctr = totalImpr > 0 ? (totalClicks / totalImpr) * 100 : 0
 
   const tiles: SummaryTile[] = [
-    { label: "Spend (30d)", value: `$${totalSpend.toLocaleString()}`, tone: "brand", hint: "this period" },
+    { label: "Spend (30d)", value: formatCompact(totalSpend), tone: "brand", hint: "this period" },
     { label: "Impressions", value: totalImpr >= 1000 ? `${(totalImpr / 1000).toFixed(1)}k` : String(totalImpr), tone: "info", hint: `CTR ${ctr.toFixed(1)}%` },
     { label: "Conversions", value: String(totalConv), tone: "success", hint: `ROAS ${blendedRoas.toFixed(1)}×` },
     { label: "Active", value: String(active), tone: "warning", hint: `of ${campaigns.length}` },
@@ -140,7 +142,7 @@ export function ChannelShell({ title, description, Icon, tone, campaigns, newCam
                       </p>
                     </div>
                     <div className="grid grid-cols-4 gap-2 md:contents">
-                      <DataCell label="Spend" value={`$${c.spend.toLocaleString()}`} />
+                      <DataCell label="Spend" value={formatPrice(c.spend)} />
                       <DataCell label="Impr." value={c.impressions >= 1000 ? `${(c.impressions / 1000).toFixed(1)}k` : String(c.impressions)} />
                       <DataCell label="Clicks" value={c.clicks.toLocaleString()} />
                       <DataCell

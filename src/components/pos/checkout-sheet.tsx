@@ -13,6 +13,7 @@ import type { PaymentLine } from "@/lib/pos/storage"
 import { BottomSheet } from "@/components/mobile/bottom-sheet"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { useCurrency } from "@/contexts/currency"
 import { cn } from "@/lib/utils"
 
 type PaymentMethod = PaymentLine["method"]
@@ -56,6 +57,7 @@ export function CheckoutSheet({
   const remaining = Math.max(0, Math.round((total - paid) * 100) / 100)
   const change = Math.max(0, Math.round((paid - total) * 100) / 100)
   const fullyPaid = paid >= total
+  const { formatPrice, symbol } = useCurrency()
 
   const setQuick = (amount: number) => {
     // Fill the first cash line, or add one if none exists.
@@ -76,7 +78,7 @@ export function CheckoutSheet({
       open={open}
       onClose={onClose}
       title="Checkout"
-      description={`Total $${total.toFixed(2)}`}
+      description={`Total ${formatPrice(total)}`}
       maxHeightVh={92}
       footer={
         <div className="flex flex-col gap-2">
@@ -85,7 +87,7 @@ export function CheckoutSheet({
               {remaining > 0 ? "Remaining" : change > 0 ? "Change due" : "Settled"}
             </span>
             <span className={cn("text-base font-bold tabular-nums", remaining > 0 ? "text-amber-600 dark:text-amber-400" : change > 0 ? "text-emerald-600 dark:text-emerald-400" : "")}>
-              ${remaining > 0 ? remaining.toFixed(2) : change.toFixed(2)}
+              {formatPrice(remaining > 0 ? remaining : change)}
             </span>
           </div>
           <Button type="button" onClick={onConfirm} disabled={!fullyPaid} className="w-full">
@@ -109,7 +111,7 @@ export function CheckoutSheet({
                 onClick={() => setQuick(amount)}
                 className="rounded-xl border border-border bg-card py-2.5 text-sm font-semibold tabular-nums transition-colors hover:border-brand/40 hover:bg-accent"
               >
-                ${amount}
+                {formatPrice(amount)}
               </button>
             ))}
             <button
@@ -117,7 +119,7 @@ export function CheckoutSheet({
               onClick={() => setQuick(total)}
               className="col-span-3 rounded-xl border border-brand/30 bg-brand-soft py-2.5 text-sm font-semibold tabular-nums text-brand transition-colors hover:bg-brand/10 dark:bg-primary/15 dark:text-primary"
             >
-              Exact ${total.toFixed(2)}
+              Exact {formatPrice(total)}
             </button>
           </div>
         </div>
@@ -163,7 +165,7 @@ export function CheckoutSheet({
                 </div>
                 <div className="mt-2 flex items-center gap-2">
                   <div className="flex h-10 flex-1 items-center rounded-lg border border-input bg-background pl-3">
-                    <span className="text-sm text-muted-foreground">$</span>
+                    <span className="text-sm text-muted-foreground">{symbol}</span>
                     <input
                       type="number"
                       value={p.amount}

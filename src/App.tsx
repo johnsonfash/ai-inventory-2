@@ -14,6 +14,7 @@ import { AppFrame } from "@/components/app-frame"
 import { MarketingFrame } from "@/components/marketing/marketing-frame"
 import { CommandPalette } from "@/components/command/command-palette"
 import { CommandPaletteProvider } from "@/contexts/command-palette"
+import { CurrencyProvider } from "@/contexts/currency"
 import { PageMetaProvider } from "@/contexts/page-meta"
 import { useNative } from "@/hooks/use-native"
 import { useBackButton } from "@/hooks/use-back-button"
@@ -135,10 +136,12 @@ export default function App() {
           <RouterBootstrap />
           <BiometricGate>
             <NetworkBanner />
-            <CommandPaletteProvider>
-              <ShellRouter />
-              <CommandPalette />
-            </CommandPaletteProvider>
+            <CurrencyProvider>
+              <CommandPaletteProvider>
+                <ShellRouter />
+                <CommandPalette />
+              </CommandPaletteProvider>
+            </CurrencyProvider>
             <PWAInstaller />
           </BiometricGate>
           <Toaster position="bottom-right" richColors closeButton />

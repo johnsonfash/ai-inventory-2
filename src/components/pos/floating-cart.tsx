@@ -1,5 +1,6 @@
 import { AnimatePresence, motion } from "framer-motion"
 import { ChevronUp, ShoppingCart } from "lucide-react"
+import { useCurrency } from "@/contexts/currency"
 
 type Props = {
   itemCount: number
@@ -11,6 +12,7 @@ type Props = {
 // running total. Sits above the mobile bottom nav (visible only on
 // <md). Hidden when the cart is empty.
 export function FloatingCart({ itemCount, total, onOpen }: Props) {
+  const { formatPrice } = useCurrency()
   return (
     <AnimatePresence>
       {itemCount > 0 && (
@@ -32,7 +34,7 @@ export function FloatingCart({ itemCount, total, onOpen }: Props) {
             <span className="flex-1 text-left">
               <span className="block text-[11px] uppercase tracking-wider opacity-80">View cart</span>
               <span className="block text-sm font-semibold">
-                {itemCount} {itemCount === 1 ? "item" : "items"} · ${total.toFixed(2)}
+                {itemCount} {itemCount === 1 ? "item" : "items"} · {formatPrice(total)}
               </span>
             </span>
             <ChevronUp className="h-4 w-4 opacity-90" />

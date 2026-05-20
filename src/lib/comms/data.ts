@@ -1,4 +1,11 @@
 import type { EmailMessage, EmailTemplate } from "./types"
+import { formatPriceFor } from "@/contexts/currency"
+
+const sampleAmount = formatPriceFor(120_000)
+const sampleRefund = formatPriceFor(24_000)
+const samplePayout = formatPriceFor(14_280_000)
+const sampleSalesTotal = formatPriceFor(14_280_000)
+const sampleCommission = formatPriceFor(714_000)
 
 // Seed email templates. Tokens use {{double-brace}} syntax that
 // interpolate() (below) replaces. Keep the bodies in plain HTML so
@@ -25,7 +32,7 @@ export const TEMPLATES: EmailTemplate[] = [
     `,
     tokens: [
       { key: "invoice_number",     label: "Invoice number",   sample: "INV-2174" },
-      { key: "amount",             label: "Amount",           sample: "$120.00" },
+      { key: "amount",             label: "Amount",           sample: sampleAmount },
       { key: "customer_first_name",label: "Customer first name", sample: "Aisha" },
       { key: "business_name",      label: "Business",         sample: "Acme Co" },
       { key: "sender_name",        label: "Your name",        sample: "Mia Chen" },
@@ -47,7 +54,7 @@ export const TEMPLATES: EmailTemplate[] = [
     `,
     tokens: [
       { key: "invoice_number",     label: "Invoice number", sample: "INV-2174" },
-      { key: "amount",             label: "Amount",         sample: "$120.00" },
+      { key: "amount",             label: "Amount",         sample: sampleAmount },
       { key: "customer_first_name",label: "First name",     sample: "Aisha" },
       { key: "business_name",      label: "Business",       sample: "Acme Co" },
       { key: "sender_name",        label: "Sender",         sample: "Mia Chen" },
@@ -69,7 +76,7 @@ export const TEMPLATES: EmailTemplate[] = [
     `,
     tokens: [
       { key: "invoice_number",     label: "Invoice number", sample: "INV-2174" },
-      { key: "amount",             label: "Refund amount",  sample: "$24.00" },
+      { key: "amount",             label: "Refund amount",  sample: sampleRefund },
       { key: "customer_first_name",label: "First name",     sample: "Aisha" },
       { key: "reason",             label: "Reason",         sample: "Defective item" },
       { key: "sender_name",        label: "Sender",         sample: "Mia Chen" },
@@ -180,9 +187,9 @@ export const TEMPLATES: EmailTemplate[] = [
     tokens: [
       { key: "sender_name",   label: "Recipient",   sample: "Mia Chen" },
       { key: "period",        label: "Period",      sample: "October" },
-      { key: "sales_total",   label: "Sales total", sample: "$14,280" },
+      { key: "sales_total",   label: "Sales total", sample: sampleSalesTotal },
       { key: "rate",          label: "Rate",        sample: "5%" },
-      { key: "amount",        label: "Amount",      sample: "$714" },
+      { key: "amount",        label: "Amount",      sample: sampleCommission },
       { key: "payout_date",   label: "Payout date", sample: "Nov 5" },
     ],
     builtin: true,
@@ -225,9 +232,9 @@ export const MESSAGES: EmailMessage[] = [
     folder: "inbox",
     from: { name: "Stripe Receipts", email: "receipts@stripe.com" },
     to: [{ name: "Mia Chen", email: "mia@acme.co" }],
-    subject: "Your payout of $14,280 is on the way",
+    subject: `Your payout of ${samplePayout} is on the way`,
     preview: "We initiated a transfer to your bank account ending in 1023.",
-    body: `<p>Hi Acme Co,</p><p>We initiated a transfer of <strong>$14,280</strong> to your bank account ending in 1023. It should land in 1–2 business days.</p>`,
+    body: `<p>Hi Acme Co,</p><p>We initiated a transfer of <strong>${samplePayout}</strong> to your bank account ending in 1023. It should land in 1–2 business days.</p>`,
     sentAt: minutesAgoISO(15),
     read: false,
   },
@@ -259,8 +266,8 @@ export const MESSAGES: EmailMessage[] = [
     from: { name: "Mia Chen", email: "mia@acme.co" },
     to: [{ name: "Aisha N.", email: "aisha@walkin.local" }],
     subject: "Invoice INV-2174 from Acme Co",
-    preview: "Thanks for your purchase. Your invoice INV-2174 for $120.00 is ready.",
-    body: `<p>Hi Aisha, thanks for your purchase. Your invoice <strong>INV-2174</strong> for <strong>$120.00</strong> is ready.</p>`,
+    preview: `Thanks for your purchase. Your invoice INV-2174 for ${sampleAmount} is ready.`,
+    body: `<p>Hi Aisha, thanks for your purchase. Your invoice <strong>INV-2174</strong> for <strong>${sampleAmount}</strong> is ready.</p>`,
     sentAt: minutesAgoISO(60 * 2),
     templateId: "tpl-invoice",
   },

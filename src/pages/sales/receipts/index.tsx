@@ -9,6 +9,7 @@ import { EmptyState } from "@/components/lists/empty-state"
 import { InfoTooltip } from "@/components/info-tooltip"
 import { useRegisterPageRefresh } from "@/hooks/use-pull-to-refresh"
 import { RECEIPTS } from "@/lib/sales/data"
+import { useCurrency } from "@/contexts/currency"
 
 function fmtDate(iso: string): string {
   return new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })
@@ -17,6 +18,7 @@ function fmtDate(iso: string): string {
 export default function ReceiptsList() {
   useRegisterPageRefresh(React.useCallback(async () => { await new Promise((r) => setTimeout(r, 300)) }, []))
   const [query, setQuery] = React.useState("")
+  const { formatPrice, formatCompact } = useCurrency()
 
   const filtered = React.useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -37,7 +39,7 @@ export default function ReceiptsList() {
         <SummaryStrip
           tiles={[
             { label: "Receipts (30d)", value: String(RECEIPTS.length), tone: "brand", hint: "issued" },
-            { label: "Total",         value: `$${totalIssued.toLocaleString()}`, tone: "success", hint: "across all" },
+            { label: "Total",         value: formatCompact(totalIssued), tone: "success", hint: "across all" },
             { label: "Emailed",       value: String(RECEIPTS.filter((r) => r.emailedAt).length), tone: "info", hint: "delivered" },
             { label: "Manual print",  value: String(RECEIPTS.filter((r) => !r.emailedAt).length), tone: "warning", hint: "no email yet" },
           ]}
@@ -70,7 +72,7 @@ export default function ReceiptsList() {
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <p className="truncate text-sm font-semibold">{r.customer.name}</p>
-                      <p className="shrink-0 text-sm font-bold tabular-nums">${r.amountUsd.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
+                      <p className="shrink-0 text-sm font-bold tabular-nums">{formatPrice(r.amountUsd)}</p>
                     </div>
                     <p className="font-mono text-[11px] text-muted-foreground">{r.number}</p>
                     <div className="mt-1 flex flex-wrap items-center justify-between gap-2 text-[11px] text-muted-foreground">

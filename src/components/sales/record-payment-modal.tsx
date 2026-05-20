@@ -117,12 +117,12 @@ export function RecordPaymentModal({ open, invoice, onClose, onRecord }: Props) 
           >
             {/* Header */}
             <header className="relative overflow-hidden border-b border-border bg-gradient-to-br from-brand-soft via-card to-emerald-50/40 px-5 py-4 dark:from-primary/10 dark:to-emerald-950/15">
-              <div className="absolute -right-10 -top-10 h-28 w-28 rounded-full bg-brand/30 blur-3xl dark:bg-primary/30" aria-hidden />
+              <div className="pointer-events-none absolute -right-10 -top-10 h-28 w-28 rounded-full bg-brand/30 blur-3xl dark:bg-primary/30" aria-hidden />
               <button
                 type="button"
                 onClick={onClose}
                 aria-label="Close"
-                className="absolute right-3 top-3 inline-flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-card/80 hover:text-foreground"
+                className="absolute right-3 top-3 z-10 inline-flex h-8 w-8 items-center justify-center rounded-full bg-card/60 text-muted-foreground backdrop-blur-sm transition-colors hover:bg-card hover:text-foreground"
               >
                 <X className="h-4 w-4" />
               </button>

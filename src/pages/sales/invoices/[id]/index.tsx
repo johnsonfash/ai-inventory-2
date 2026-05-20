@@ -29,6 +29,7 @@ import { RecordPaymentModal } from "@/components/sales/record-payment-modal"
 import { getInvoice, getOrder, getReceipt } from "@/lib/sales/data"
 import type { Invoice, Payment } from "@/lib/sales/types"
 import { useRegisterPageRefresh } from "@/hooks/use-pull-to-refresh"
+import { useCurrency } from "@/contexts/currency"
 import { cn } from "@/lib/utils"
 
 const STATUS_TONE: Record<Invoice["status"], StatusTone> = {
@@ -48,9 +49,6 @@ const METHOD_ICON: Record<Payment["method"], React.ElementType> = {
   "store-credit": Tag,
 }
 
-function fmtMoney(n: number): string {
-  return `$${n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-}
 function fmtDate(iso: string): string {
   return new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })
 }
@@ -73,6 +71,7 @@ export default function SalesInvoiceDetail() {
   // touching the import. A real backend would do this server-side.
   const [invoice, setInvoice] = React.useState<Invoice | undefined>(initial)
   const [modalOpen, setModalOpen] = React.useState(false)
+  const { formatPrice: fmtMoney } = useCurrency()
 
   if (!invoice) {
     return (

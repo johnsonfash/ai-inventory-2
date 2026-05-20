@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom"
 import { ArrowRight, FileText, Truck } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { useCurrency } from "@/contexts/currency"
 import { cn } from "@/lib/utils"
 
 type PO = {
@@ -26,6 +27,7 @@ const statusUI = {
 } as const
 
 export function OpenPosCard() {
+  const { formatCompact } = useCurrency()
   return (
     <Card className="overflow-hidden">
       <CardHeader className="pb-3">
@@ -59,7 +61,7 @@ export function OpenPosCard() {
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center justify-between gap-2">
                     <p className="truncate text-sm font-medium">{p.vendor}</p>
-                    <p className="shrink-0 text-sm font-semibold tabular-nums">${p.total.toLocaleString()}</p>
+                    <p className="shrink-0 text-sm font-semibold tabular-nums">{formatCompact(p.total)}</p>
                   </div>
                   <div className="mt-0.5 flex items-center justify-between gap-2 text-[11px] text-muted-foreground">
                     <span className="truncate font-mono">{p.id}</span>

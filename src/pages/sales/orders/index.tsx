@@ -20,6 +20,7 @@ import { useRegisterPageRefresh } from "@/hooks/use-pull-to-refresh"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { INVOICES, ORDERS, invoiceByOrder } from "@/lib/sales/data"
 import type { Order, OrderStatus } from "@/lib/sales/types"
+import { useCurrency } from "@/contexts/currency"
 import { cn } from "@/lib/utils"
 
 const STEPS: { key: OrderStatus | "paid"; label: string }[] = [
@@ -56,9 +57,6 @@ function stepReached(order: Order, step: (typeof STEPS)[number]["key"]): boolean
   }
 }
 
-function fmtMoney(n: number): string {
-  return `$${n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-}
 function fmtDate(iso: string): string {
   return new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric" })
 }
@@ -68,6 +66,7 @@ export default function SalesOrders() {
   const isMobile = useIsMobile()
   const [query, setQuery] = React.useState("")
   const [statusFilter, setStatusFilter] = React.useState<OrderStatus | "all">("all")
+  const { formatPrice: fmtMoney, formatCompact } = useCurrency()
 
   const filtered = React.useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -90,7 +89,7 @@ export default function SalesOrders() {
             { label: "Orders",     value: String(ORDERS.length),         tone: "brand",   hint: "all time" },
             { label: "Drafts",     value: String(drafts),                tone: "warning", hint: "in progress" },
             { label: "Invoiced",   value: String(invoiced),              tone: "info",    hint: "billed out" },
-            { label: "Open total", value: `$${total.toLocaleString()}`,  tone: "success", hint: "across pipeline" },
+            { label: "Open total", value: formatCompact(total),  tone: "success", hint: "across pipeline" },
           ]}
         />
 

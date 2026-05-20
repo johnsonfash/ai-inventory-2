@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom"
 import { ArrowRight, CheckCircle2, Clock, CreditCard, XCircle } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { useCurrency } from "@/contexts/currency"
 import { cn } from "@/lib/utils"
 
 type Sale = {
@@ -34,6 +35,7 @@ function relTime(min: number) {
 }
 
 export function RecentSalesCard() {
+  const { formatPrice } = useCurrency()
   return (
     <Card className="overflow-hidden">
       <CardHeader className="pb-3">
@@ -74,7 +76,7 @@ export function RecentSalesCard() {
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center justify-between gap-2">
                       <p className="truncate text-sm font-medium">{s.customer}</p>
-                      <p className="shrink-0 text-sm font-semibold tabular-nums">${s.amount.toFixed(2)}</p>
+                      <p className="shrink-0 text-sm font-semibold tabular-nums">{formatPrice(s.amount)}</p>
                     </div>
                     <div className="mt-0.5 flex items-center justify-between gap-2 text-[11px] text-muted-foreground">
                       <span className="truncate capitalize">

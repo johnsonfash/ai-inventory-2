@@ -19,6 +19,7 @@ import { InfoTooltip } from "@/components/info-tooltip"
 import { useRegisterPageRefresh } from "@/hooks/use-pull-to-refresh"
 import { generateInsights } from "@/lib/insights/engine"
 import { GettingStarted } from "@/components/onboarding/getting-started"
+import { useCurrency } from "@/contexts/currency"
 
 // Spark series — tiny mock data per KPI. Replace with real series
 // from the analytics endpoint once the backend lands.
@@ -50,6 +51,7 @@ export default function Dashboard() {
   )
 
   const insights = React.useMemo(() => generateInsights().slice(0, 6), [])
+  const { formatPrice } = useCurrency()
 
   return (
     <PageShell title="Dashboard" withToolbar>
@@ -74,18 +76,18 @@ export default function Dashboard() {
                 Sales are <span className="text-brand dark:text-primary">trending up</span> 12%
               </h2>
               <p className="mt-0.5 text-sm text-muted-foreground">
-                $2,840 in revenue across 36 orders so far · vs. $2,535 yesterday
+                {formatPrice(2_840_000)} in revenue across 36 orders so far · vs. {formatPrice(2_535_000)} yesterday
               </p>
             </div>
             <div className="flex items-center gap-3 text-right tabular-nums">
               <div>
                 <div className="text-[11px] uppercase tracking-wider text-muted-foreground">Today</div>
-                <div className="text-lg font-bold">$2,840</div>
+                <div className="text-lg font-bold">{formatPrice(2_840_000)}</div>
               </div>
               <div className="h-8 w-px bg-border" aria-hidden />
               <div>
                 <div className="text-[11px] uppercase tracking-wider text-muted-foreground">MTD</div>
-                <div className="text-lg font-bold">$54,210</div>
+                <div className="text-lg font-bold">{formatPrice(54_210_000)}</div>
               </div>
             </div>
           </div>
@@ -125,7 +127,7 @@ export default function Dashboard() {
         <div data-tour="kpis">
           <KpiCarousel
             items={[
-              { title: "Revenue (7d)",   value: "$18,420", delta: "+12.4%", trend: "up",   caption: "vs last week",         Icon: DollarSign,   tone: "violet",  data: sparkRevenue },
+              { title: "Revenue (7d)",   value: formatPrice(18_420_000), delta: "+12.4%", trend: "up",   caption: "vs last week",         Icon: DollarSign,   tone: "violet",  data: sparkRevenue },
               { title: "Units in stock", value: "15,940",  delta: "+1.1%",  trend: "up",   caption: "across 4 locations",   Icon: Layers,       tone: "emerald", data: sparkUnits },
               { title: "Open orders",    value: "87",      delta: "+5.6%",  trend: "up",   caption: "pending fulfillment",  Icon: ShoppingCart, tone: "sky",     data: sparkOrders },
               { title: "Out of stock",   value: "12",      delta: "−4 SKUs", trend: "down", caption: "improving",           Icon: Package,      tone: "rose",    data: sparkOOS },

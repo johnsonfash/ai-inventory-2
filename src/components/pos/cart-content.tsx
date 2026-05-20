@@ -2,6 +2,7 @@ import * as React from "react"
 import { Minus, Plus, Trash2 } from "lucide-react"
 import type { CartItem } from "@/lib/pos/storage"
 import { Input } from "@/components/ui/input"
+import { useCurrency } from "@/contexts/currency"
 import { cn } from "@/lib/utils"
 
 type Totals = {
@@ -52,6 +53,7 @@ export function CartContent({
   className,
 }: Props) {
   const [showExtras, setShowExtras] = React.useState(false)
+  const { formatPrice, symbol } = useCurrency()
 
   return (
     <div className={cn("flex flex-col gap-3", className)}>
@@ -105,8 +107,8 @@ export function CartContent({
                   </button>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm font-semibold tabular-nums">${(c.qty * c.price).toFixed(2)}</p>
-                  <p className="text-[10px] tabular-nums text-muted-foreground">${c.price.toFixed(2)} ea</p>
+                  <p className="text-sm font-semibold tabular-nums">{formatPrice(c.qty * c.price)}</p>
+                  <p className="text-[10px] tabular-nums text-muted-foreground">{formatPrice(c.price)} ea</p>
                 </div>
               </div>
             </li>
@@ -116,7 +118,7 @@ export function CartContent({
 
       {/* Totals */}
       <div className="rounded-xl border border-border bg-background p-3">
-        <Row label="Subtotal" value={`$${totals.subtotal.toFixed(2)}`} muted />
+        <Row label="Subtotal" value={formatPrice(totals.subtotal)} muted />
 
         {/* Discount inline */}
         <div className="mt-2 flex items-center justify-between gap-2">
@@ -131,7 +133,7 @@ export function CartContent({
                   discountType === "flat" ? "bg-accent font-semibold" : "text-muted-foreground",
                 )}
               >
-                $
+                {symbol}
               </button>
               <button
                 type="button"
@@ -156,9 +158,9 @@ export function CartContent({
         </div>
 
         {totals.discountValue > 0 && (
-          <Row label="Discount applied" value={`−$${totals.discountValue.toFixed(2)}`} muted />
+          <Row label="Discount applied" value={`−${formatPrice(totals.discountValue)}`} muted />
         )}
-        <Row label="Item tax" value={`$${totals.itemTax.toFixed(2)}`} muted />
+        <Row label="Item tax" value={formatPrice(totals.itemTax)} muted />
 
         <button
           type="button"
@@ -178,14 +180,14 @@ export function CartContent({
             />
             <ExtraRow
               label="Shipping"
-              prefix="$"
+              prefix={symbol}
               value={shipping}
               onChange={(v) => onShippingChange(Math.max(0, v))}
               step="0.01"
             />
             <ExtraRow
               label="Service fee"
-              prefix="$"
+              prefix={symbol}
               value={serviceFee}
               onChange={(v) => onServiceFeeChange(Math.max(0, v))}
               step="0.01"
@@ -195,7 +197,7 @@ export function CartContent({
 
         <div className="mt-3 flex items-baseline justify-between border-t border-border pt-2.5">
           <span className="text-sm font-semibold">Total</span>
-          <span className="text-xl font-bold tabular-nums">${totals.total.toFixed(2)}</span>
+          <span className="text-xl font-bold tabular-nums">{formatPrice(totals.total)}</span>
         </div>
       </div>
     </div>

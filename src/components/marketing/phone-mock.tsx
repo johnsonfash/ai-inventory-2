@@ -22,7 +22,7 @@ export function PhoneDashboardMock() {
           <Sparkles className="h-2.5 w-2.5" /> Today
         </p>
         <p className="mt-0.5 text-[11px] font-bold leading-tight">
-          Sales <span className="text-brand dark:text-primary">+12%</span> · $2,840
+          Sales <span className="text-brand dark:text-primary">+12%</span> · ₦4.2M
         </p>
         <p className="text-[9px] text-muted-foreground">36 orders so far</p>
       </div>
@@ -30,7 +30,7 @@ export function PhoneDashboardMock() {
       {/* KPI mini-tiles */}
       <div className="grid grid-cols-2 gap-1.5 px-2">
         {[
-          { v: "$18.4k", l: "Revenue 7d", t: "violet" },
+          { v: "₦18.4M", l: "Revenue 7d", t: "violet" },
           { v: "15,940", l: "Units", t: "emerald" },
           { v: "87", l: "Orders", t: "sky" },
           { v: "12", l: "Out of stock", t: "rose" },

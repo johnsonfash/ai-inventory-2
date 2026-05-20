@@ -4,6 +4,7 @@ import type { CartItem } from "@/lib/pos/storage"
 import { BottomSheet } from "@/components/mobile/bottom-sheet"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { useCurrency } from "@/contexts/currency"
 import { CartContent } from "./cart-content"
 
 type Totals = {
@@ -66,6 +67,7 @@ export function CartSheet({
   onCharge,
 }: Props) {
   const [showCustomer, setShowCustomer] = React.useState(false)
+  const { formatPrice } = useCurrency()
 
   return (
     <BottomSheet
@@ -100,7 +102,7 @@ export function CartSheet({
             disabled={cart.length === 0}
             className="flex-1"
           >
-            Charge ${totals.total.toFixed(2)} <ArrowRight className="h-4 w-4" />
+            Charge {formatPrice(totals.total)} <ArrowRight className="h-4 w-4" />
           </Button>
         </div>
       }

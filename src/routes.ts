@@ -119,6 +119,7 @@ export const routes: RouteObject[] = [
   { path: "/settings", Component: page(() => import("./pages/settings")) },
   { path: "/settings/barcodes", Component: page(() => import("./pages/settings/barcodes")) },
   { path: "/settings/business", Component: page(() => import("./pages/settings/business")) },
+  { path: "/settings/currency", Component: page(() => import("./pages/settings/currency")) },
   { path: "/settings/integrations", Component: page(() => import("./pages/settings/integrations")) },
   { path: "/settings/integrations/calendar", Component: page(() => import("./pages/settings/integrations/calendar")) },
   { path: "/settings/integrations/easypost", Component: page(() => import("./pages/settings/integrations/easypost")) },

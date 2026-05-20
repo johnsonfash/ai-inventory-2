@@ -78,7 +78,7 @@ export function DesktopDashboardMock() {
               <Sparkles className="h-2 w-2" /> Today
             </p>
             <p className="mt-0.5 text-[11px] font-bold leading-tight">
-              Sales <span className="text-brand dark:text-primary">+12%</span> · $2,840
+              Sales <span className="text-brand dark:text-primary">+12%</span> · ₦4.2M
             </p>
           </div>
 
@@ -104,7 +104,7 @@ export function DesktopDashboardMock() {
           {/* KPI row */}
           <div className="mt-2 grid grid-cols-4 gap-1.5">
             {[
-              { v: "$18.4k", l: "Revenue 7d" },
+              { v: "₦18.4M", l: "Revenue 7d" },
               { v: "15,940", l: "Units" },
               { v: "87",     l: "Orders" },
               { v: "12",     l: "OOS" },
@@ -146,7 +146,7 @@ export function DesktopDashboardMock() {
             <p className="flex items-center gap-1 text-[6px] uppercase tracking-wider text-muted-foreground">
               <Layers className="h-2 w-2" /> Activity
             </p>
-            <p className="mt-0.5 text-[7px]">Mia closed a $86 sale · USB‑C Hub crossed reorder threshold · PO‑1042 received in full</p>
+            <p className="mt-0.5 text-[7px]">Mia closed a ₦86,000 sale · USB‑C Hub crossed reorder threshold · PO‑1042 received in full</p>
           </div>
         </div>
       </div>

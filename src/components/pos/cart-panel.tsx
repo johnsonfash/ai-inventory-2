@@ -3,6 +3,7 @@ import type { CartItem } from "@/lib/pos/storage"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
+import { useCurrency } from "@/contexts/currency"
 import { CartContent } from "./cart-content"
 
 type Totals = {
@@ -52,6 +53,7 @@ export function CartPanel({
   ...rest
 }: Props) {
   const itemCount = cart.reduce((s, c) => s + c.qty, 0)
+  const { formatPrice } = useCurrency()
 
   return (
     <div className="sticky top-20 flex flex-col gap-3">
@@ -113,7 +115,7 @@ export function CartPanel({
           <Save className="h-4 w-4" /> Hold
         </Button>
         <Button type="button" onClick={onCharge} disabled={cart.length === 0} className="flex-[2]">
-          Charge ${totals.total.toFixed(2)} <ArrowRight className="h-4 w-4" />
+          Charge {formatPrice(totals.total)} <ArrowRight className="h-4 w-4" />
         </Button>
       </div>
     </div>
