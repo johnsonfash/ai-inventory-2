@@ -11,6 +11,7 @@ import { EmptyState } from "@/components/lists/empty-state"
 import { SwipeableRow } from "@/components/mobile/swipeable-row"
 import { SummaryStrip } from "@/components/lists/summary-strip"
 import { StatusBadge, type StatusTone } from "@/components/lists/status-badge"
+import { useCurrency } from "@/contexts/currency"
 
 type Row = {
   name: string
@@ -52,6 +53,7 @@ function avatarTint(name: string) {
 export default function Suppliers() {
   const isMobile = useIsMobile()
   const [query, setQuery] = React.useState("")
+  const { formatPrice } = useCurrency()
 
   useRegisterPageRefresh(React.useCallback(async () => { await new Promise((r) => setTimeout(r, 400)) }, []))
 
@@ -77,7 +79,7 @@ export default function Suppliers() {
             { label: "Suppliers", value: String(rows.length), tone: "brand", hint: "tracked" },
             { label: "Preferred", value: String(preferred), tone: "info", hint: "tier 1" },
             { label: "Active POs", value: String(totalActive), tone: "warning", hint: "in flight" },
-            { label: "Lifetime spend", value: `$${lifetimeSpend.toLocaleString()}`, tone: "success", hint: "to date" },
+            { label: "Lifetime spend", value: formatPrice(lifetimeSpend), tone: "success", hint: "to date" },
           ]}
         />
 
@@ -116,7 +118,7 @@ export default function Suppliers() {
                       </div>
                       <p className="truncate text-[11px] text-muted-foreground">{r.email}</p>
                       <p className="mt-0.5 text-[11px] text-muted-foreground">
-                        {r.activePOs} active POs · ${r.lifetime.toLocaleString()} lifetime
+                        {r.activePOs} active POs · {formatPrice(r.lifetime)} lifetime
                       </p>
                     </div>
                     <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
@@ -152,7 +154,7 @@ export default function Suppliers() {
                     <td className="px-3 py-2.5 text-muted-foreground">{r.email}</td>
                     <td className="px-3 py-2.5 text-muted-foreground">{r.phone}</td>
                     <td className="px-3 py-2.5 text-right tabular-nums">{r.activePOs}</td>
-                    <td className="px-3 py-2.5 text-right tabular-nums">${r.lifetime.toLocaleString()}</td>
+                    <td className="px-3 py-2.5 text-right tabular-nums">{formatPrice(r.lifetime)}</td>
                     <td className="px-3 py-2.5"><StatusBadge tone={tierTone[r.tier]} withDot>{r.tier}</StatusBadge></td>
                   </tr>
                 ))}

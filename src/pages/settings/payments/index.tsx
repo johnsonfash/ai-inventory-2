@@ -17,6 +17,7 @@ import { useRegisterPageRefresh } from "@/hooks/use-pull-to-refresh"
 import { StatusBadge, type StatusTone } from "@/components/lists/status-badge"
 import { SummaryStrip } from "@/components/lists/summary-strip"
 import { cn } from "@/lib/utils"
+import { useCurrency } from "@/contexts/currency"
 
 type Method = {
   href?: string
@@ -47,6 +48,7 @@ const methods: Method[] = [
 const statusTone: Record<Method["status"], StatusTone> = { connected: "success", available: "neutral", off: "danger" }
 
 export default function PaymentsSettings() {
+  const { formatPrice } = useCurrency()
   useRegisterPageRefresh(React.useCallback(async () => { await new Promise((r) => setTimeout(r, 400)) }, []))
 
   const connected = methods.filter((m) => m.status === "connected").length
@@ -57,9 +59,9 @@ export default function PaymentsSettings() {
         <SummaryStrip
           tiles={[
             { label: "Active", value: String(connected), tone: "success", hint: "accepted" },
-            { label: "Volume (30d)", value: "$48,210", tone: "brand", hint: "this period" },
+            { label: "Volume (30d)", value: formatPrice(48210), tone: "brand", hint: "this period" },
             { label: "Avg fees", value: "1.4%", tone: "warning", hint: "blended" },
-            { label: "Refunds", value: "$420", tone: "info", hint: "this period" },
+            { label: "Refunds", value: formatPrice(420), tone: "info", hint: "this period" },
           ]}
         />
 

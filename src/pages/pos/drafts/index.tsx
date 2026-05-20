@@ -11,6 +11,7 @@ import { StatusBadge } from "@/components/lists/status-badge"
 import { SummaryStrip } from "@/components/lists/summary-strip"
 import { SwipeableRow } from "@/components/mobile/swipeable-row"
 import { deleteDraft, listDrafts, type Draft } from "@/lib/pos/storage"
+import { useCurrency } from "@/contexts/currency"
 
 function relTime(ms: number) {
   const diff = Date.now() - ms
@@ -26,6 +27,7 @@ export default function DraftsPage() {
   const isMobile = useIsMobile()
   const [drafts, setDrafts] = React.useState<Draft[]>(() => listDrafts())
   const [query, setQuery] = React.useState("")
+  const { formatPrice } = useCurrency()
 
   useRegisterPageRefresh(
     React.useCallback(async () => {
@@ -58,7 +60,7 @@ export default function DraftsPage() {
           tiles={[
             { label: "Drafts", value: String(drafts.length), tone: "brand", hint: "held" },
             { label: "Items queued", value: String(totalItems), tone: "info", hint: "across drafts" },
-            { label: "Pending value", value: `$${totalValue.toFixed(0)}`, tone: "warning", hint: "if all charged" },
+            { label: "Pending value", value: formatPrice(totalValue), tone: "warning", hint: "if all charged" },
             { label: "Oldest", value: drafts.length ? relTime(Math.min(...drafts.map((d) => d.createdAt))) : "—", tone: "neutral", hint: "since saved" },
           ]}
         />
@@ -100,7 +102,7 @@ export default function DraftsPage() {
                           <p className="truncate text-sm font-semibold">
                             {d.customer?.name || d.note || "Held sale"}
                           </p>
-                          <p className="shrink-0 text-sm font-semibold tabular-nums">${value.toFixed(2)}</p>
+                          <p className="shrink-0 text-sm font-semibold tabular-nums">{formatPrice(value)}</p>
                         </div>
                         <p className="mt-0.5 text-[11px] text-muted-foreground">
                           {d.items.length} {d.items.length === 1 ? "item" : "items"} · {relTime(d.createdAt)}
@@ -141,7 +143,7 @@ export default function DraftsPage() {
                         {d.meta?.location ? <StatusBadge tone="info">{d.meta.location}</StatusBadge> : <span className="text-muted-foreground">—</span>}
                       </td>
                       <td className="px-3 py-2.5 text-right tabular-nums">{d.items.length}</td>
-                      <td className="px-3 py-2.5 text-right tabular-nums">${value.toFixed(2)}</td>
+                      <td className="px-3 py-2.5 text-right tabular-nums">{formatPrice(value)}</td>
                       <td className="px-3 py-2.5 text-right">
                         <div className="inline-flex items-center gap-1">
                           <Button size="sm" onClick={() => restore(d.id)}>

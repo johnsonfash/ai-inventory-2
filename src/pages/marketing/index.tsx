@@ -18,6 +18,7 @@ import { useRegisterPageRefresh } from "@/hooks/use-pull-to-refresh"
 import { StatusBadge, type StatusTone } from "@/components/lists/status-badge"
 import { SummaryStrip } from "@/components/lists/summary-strip"
 import { cn } from "@/lib/utils"
+import { useCurrency } from "@/contexts/currency"
 
 type Channel = {
   href: string
@@ -46,6 +47,7 @@ const TONES = {
 } as const
 
 export default function Marketing() {
+  const { formatPrice } = useCurrency()
   useRegisterPageRefresh(React.useCallback(async () => { await new Promise((r) => setTimeout(r, 400)) }, []))
 
   const totalSpend = CHANNELS.reduce((s, c) => s + c.spend30d, 0)
@@ -69,7 +71,7 @@ export default function Marketing() {
                 <Sparkles className="h-3.5 w-3.5" /> Performance
               </p>
               <h2 className="mt-1 text-xl font-bold tracking-tight md:text-2xl">
-                ${totalSpend.toLocaleString()} spent across {connectedCount} channels
+                {formatPrice(totalSpend)} spent across {connectedCount} channels
               </h2>
               <p className="mt-0.5 text-sm text-muted-foreground">
                 Blended ROAS: <span className="font-semibold text-foreground">{blendedRoas.toFixed(1)}×</span>
@@ -90,7 +92,7 @@ export default function Marketing() {
 
         <SummaryStrip
           tiles={[
-            { label: "Spend (30d)", value: `$${totalSpend.toLocaleString()}`, tone: "brand", hint: "across channels" },
+            { label: "Spend (30d)", value: formatPrice(totalSpend), tone: "brand", hint: "across channels" },
             { label: "Campaigns", value: String(totalCampaigns), tone: "info", hint: "active" },
             { label: "Blended ROAS", value: `${blendedRoas.toFixed(1)}×`, tone: blendedRoas >= 3 ? "success" : "warning", hint: blendedRoas >= 3 ? "healthy" : "needs review" },
             { label: "Channels", value: String(connectedCount), tone: "warning", hint: "connected" },
@@ -128,7 +130,7 @@ export default function Marketing() {
                       {c.status === "connected" ? (
                         <>
                           <p className="mt-0.5 text-[11px] text-muted-foreground">
-                            {c.campaigns} campaigns · ${c.spend30d.toLocaleString()} (30d)
+                            {c.campaigns} campaigns · {formatPrice(c.spend30d)} (30d)
                           </p>
                           <div className="mt-2 flex items-baseline justify-between">
                             <span className="text-[11px] text-muted-foreground">ROAS</span>

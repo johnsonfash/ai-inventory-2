@@ -11,9 +11,11 @@ import { FormFooter } from "@/components/forms/form-footer"
 import { FormAside } from "@/components/forms/form-aside"
 import { InputAddon } from "@/components/forms/input-addon"
 import { SwitchField } from "@/components/forms/switch-field"
+import { useCurrency, formatPriceFor } from "@/contexts/currency"
 
 export default function NewVendorCredit() {
   const [submitting, setSubmitting] = React.useState(false)
+  const { symbol } = useCurrency()
   return (
     <FormShell
       title="New vendor credit"
@@ -64,7 +66,7 @@ export default function NewVendorCredit() {
       <FormSection title="Amount + apply" Icon={Wallet}>
         <FormGrid cols={3}>
           <FormField label="Credit amount" required>
-            <InputAddon leading="$">
+            <InputAddon leading={symbol}>
               <input type="number" step="0.01" placeholder="0.00" required />
             </InputAddon>
           </FormField>
@@ -72,9 +74,9 @@ export default function NewVendorCredit() {
             <Select>
               <SelectTrigger><SelectValue placeholder="(vendor balance)" /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="BILL-9001">BILL-9001 · $4,820</SelectItem>
-                <SelectItem value="BILL-9002">BILL-9002 · $1,240</SelectItem>
-                <SelectItem value="BILL-9003">BILL-9003 · $920</SelectItem>
+                <SelectItem value="BILL-9001">BILL-9001 · {formatPriceFor(4820)}</SelectItem>
+                <SelectItem value="BILL-9002">BILL-9002 · {formatPriceFor(1240)}</SelectItem>
+                <SelectItem value="BILL-9003">BILL-9003 · {formatPriceFor(920)}</SelectItem>
               </SelectContent>
             </Select>
           </FormField>

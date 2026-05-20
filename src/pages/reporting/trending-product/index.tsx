@@ -17,6 +17,7 @@ import { StatusBadge } from "@/components/lists/status-badge"
 import { ChartTooltipContent } from "@/components/ui/chart"
 import { useRegisterPageRefresh } from "@/hooks/use-pull-to-refresh"
 import { type Period } from "@/components/reports/period-chips"
+import { useCurrency } from "@/contexts/currency"
 
 type Trending = {
   sku: string
@@ -51,6 +52,7 @@ const axisProps = { stroke: "var(--muted-foreground)", fontSize: 11, tickLine: f
 
 export default function TrendingProduct() {
   const [period, setPeriod] = React.useState<Period>("30d")
+  const { formatPrice } = useCurrency()
   useRegisterPageRefresh(
     React.useCallback(async () => {
       await new Promise((r) => setTimeout(r, 400))
@@ -84,7 +86,7 @@ export default function TrendingProduct() {
         items={[
           { title: "Top SKU", value: winner.name.split(" ")[0] ?? winner.name, delta: `+${winner.deltaPct}%`, trend: "up", caption: winner.sku, Icon: Flame, tone: "amber", data: winner.series.map((y, i) => ({ x: i, y })) },
           { title: "Units sold", value: totalUnits.toLocaleString(), delta: "+18%", trend: "up", Icon: ShoppingCart, tone: "violet", data: aggregateSeries.map((d, i) => ({ x: i, y: d.units })) },
-          { title: "Revenue", value: `$${totalRevenue.toLocaleString()}`, delta: "+22%", trend: "up", Icon: TrendingUp, tone: "emerald" },
+          { title: "Revenue", value: formatPrice(totalRevenue), delta: "+22%", trend: "up", Icon: TrendingUp, tone: "emerald" },
           { title: "Avg uplift", value: `+${Math.round(trending.reduce((s, t) => s + t.deltaPct, 0) / trending.length)}%`, caption: "across top 5", Icon: Sparkles, tone: "fuchsia" },
         ]}
       />
@@ -137,7 +139,7 @@ export default function TrendingProduct() {
               id: t.sku,
               primary: t.name,
               secondary: `${t.sku} · ${t.category}`,
-              value: `$${t.revenue.toLocaleString()}`,
+              value: formatPrice(t.revenue),
               fraction: t.revenue / Math.max(...trending.map((x) => x.revenue)),
             }))}
         />

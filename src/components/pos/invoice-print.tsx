@@ -1,4 +1,5 @@
 import type { Invoice } from "@/lib/pos/storage"
+import { formatPriceFor } from "@/contexts/currency"
 
 export function printInvoiceNode(node: HTMLElement) {
   const win = window.open("", "_blank", "width=720,height=900")
@@ -64,21 +65,21 @@ export function InvoicePreview({ invoice }: { invoice: Invoice }) {
                 <div className="muted">{it.sku}</div>
               </td>
               <td className="right">{it.qty}</td>
-              <td className="right">${it.price.toFixed(2)}</td>
-              <td className="right">${(it.qty * it.price).toFixed(2)}</td>
+              <td className="right">{formatPriceFor(it.price)}</td>
+              <td className="right">{formatPriceFor(it.qty * it.price)}</td>
             </tr>
           ))}
           <tr className="totals">
             <td colSpan={2} />
             <td className="right">{"Subtotal"}</td>
-            <td className="right">${invoice.subtotal.toFixed(2)}</td>
+            <td className="right">{formatPriceFor(invoice.subtotal)}</td>
           </tr>
           {invoice.discount ? (
             <tr className="totals">
               <td colSpan={2} />
               <td className="right">{"Discount"}</td>
               <td className="right">
-                {invoice.discountType === "percent" ? `${invoice.discount}%` : `$${invoice.discount.toFixed(2)}`}
+                {invoice.discountType === "percent" ? `${invoice.discount}%` : formatPriceFor(invoice.discount)}
               </td>
             </tr>
           ) : null}
@@ -86,26 +87,26 @@ export function InvoicePreview({ invoice }: { invoice: Invoice }) {
             <tr className="totals">
               <td colSpan={2} />
               <td className="right">{"Shipping"}</td>
-              <td className="right">${invoice.shipping.toFixed(2)}</td>
+              <td className="right">{formatPriceFor(invoice.shipping)}</td>
             </tr>
           ) : null}
           {invoice.serviceFee ? (
             <tr className="totals">
               <td colSpan={2} />
               <td className="right">{"Service Fee"}</td>
-              <td className="right">${invoice.serviceFee.toFixed(2)}</td>
+              <td className="right">{formatPriceFor(invoice.serviceFee)}</td>
             </tr>
           ) : null}
           <tr className="totals">
             <td colSpan={2} />
             <td className="right">{"Item Tax"}</td>
-            <td className="right">${invoice.itemTax.toFixed(2)}</td>
+            <td className="right">{formatPriceFor(invoice.itemTax)}</td>
           </tr>
           {invoice.orderTaxPercent ? (
             <tr className="totals">
               <td colSpan={2} />
               <td className="right">{`Order Tax (${invoice.orderTaxPercent}%)`}</td>
-              <td className="right">${invoice.orderTax.toFixed(2)}</td>
+              <td className="right">{formatPriceFor(invoice.orderTax)}</td>
             </tr>
           ) : null}
           <tr className="totals">
@@ -114,7 +115,7 @@ export function InvoicePreview({ invoice }: { invoice: Invoice }) {
               {"Total"}
             </td>
             <td className="right" style={{ fontWeight: 700 }}>
-              ${invoice.total.toFixed(2)}
+              {formatPriceFor(invoice.total)}
             </td>
           </tr>
         </tbody>
@@ -123,7 +124,7 @@ export function InvoicePreview({ invoice }: { invoice: Invoice }) {
         {"Payments: "}
         {invoice.payments.map((p, i) => (
           <span key={i} className="badge" style={{ marginRight: 6 }}>
-            {p.method.toUpperCase()} ${p.amount.toFixed(2)}
+            {p.method.toUpperCase()} {formatPriceFor(p.amount)}
             {p.reference ? ` • ${p.reference}` : ""}
           </span>
         ))}
@@ -157,7 +158,7 @@ export function ReceiptPreview({ invoice }: { invoice: Invoice }) {
             <tr key={it.sku}>
               <td>{it.name}</td>
               <td className="right">{it.qty}</td>
-              <td className="right">${(it.qty * it.price).toFixed(2)}</td>
+              <td className="right">{formatPriceFor(it.qty * it.price)}</td>
             </tr>
           ))}
           <tr className="totals">
@@ -166,7 +167,7 @@ export function ReceiptPreview({ invoice }: { invoice: Invoice }) {
               {"Total"}
             </td>
             <td className="right" style={{ fontWeight: 700 }}>
-              ${invoice.total.toFixed(2)}
+              {formatPriceFor(invoice.total)}
             </td>
           </tr>
         </tbody>
@@ -175,7 +176,7 @@ export function ReceiptPreview({ invoice }: { invoice: Invoice }) {
         {"Payments: "}
         {invoice.payments.map((p, i) => (
           <span key={i} className="badge" style={{ marginRight: 6 }}>
-            {p.method.toUpperCase()} ${p.amount.toFixed(2)}
+            {p.method.toUpperCase()} {formatPriceFor(p.amount)}
           </span>
         ))}
       </div>

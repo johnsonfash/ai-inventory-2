@@ -39,6 +39,7 @@ import {
 } from "@/lib/team/data"
 import type { RoleKey } from "@/lib/team/types"
 import { cn } from "@/lib/utils"
+import { useCurrency, formatPriceFor } from "@/contexts/currency"
 
 const ROLE_TONE: Record<RoleKey, StatusTone> = {
   owner: "brand",
@@ -85,13 +86,13 @@ function rel(iso?: string): string {
 // would come from an audit log filtered by memberId.
 const ACTIVITY_BY_MEMBER: Record<string, { text: string; minutesAgo: number; kind: "sale" | "edit" | "auth" | "refund" }[]> = {
   "m-1": [
-    { text: "Closed sale INV-2174 ($120 — Aisha N.)", minutesAgo: 2,   kind: "sale" },
+    { text: `Closed sale INV-2174 (${formatPriceFor(120)} — Aisha N.)`, minutesAgo: 2,   kind: "sale" },
     { text: "Edited stock on EL-2109 (+24)",          minutesAgo: 60,  kind: "edit" },
     { text: "Signed in from MacBook · Chrome",        minutesAgo: 120, kind: "auth" },
-    { text: "Refunded RT-118 ($24)",                  minutesAgo: 540, kind: "refund" },
+    { text: `Refunded RT-118 (${formatPriceFor(24)})`,                  minutesAgo: 540, kind: "refund" },
   ],
   "m-2": [
-    { text: "Closed sale INV-2168 ($86 — Wholesale)", minutesAgo: 45, kind: "sale" },
+    { text: `Closed sale INV-2168 (${formatPriceFor(86)} — Wholesale)`, minutesAgo: 45, kind: "sale" },
     { text: "Added customer BrightLane",              minutesAgo: 200,kind: "edit" },
   ],
 }
@@ -100,6 +101,7 @@ export default function MemberDetail() {
   const params = useParams<{ id: string }>()
   const id = params.id ?? ""
   const member = getMemberById(id)
+  const { formatPrice } = useCurrency()
   useRegisterPageRefresh(React.useCallback(async () => { await new Promise((r) => setTimeout(r, 300)) }, []))
 
   if (!member) {
@@ -203,13 +205,13 @@ export default function MemberDetail() {
             isAffiliate
               ? [
                   { label: "Referral clicks", value: (member.affiliateClicks ?? 0).toLocaleString(), tone: "info",    hint: "all-time" },
-                  { label: "MTD sales",       value: `$${(member.mtdSalesUsd ?? 0).toLocaleString()}`, tone: "brand",   hint: "attributed" },
-                  { label: "Commission",      value: `$${(member.mtdCommissionUsd ?? 0).toLocaleString()}`, tone: "success", hint: "this month" },
+                  { label: "MTD sales",       value: formatPrice(member.mtdSalesUsd ?? 0), tone: "brand",   hint: "attributed" },
+                  { label: "Commission",      value: formatPrice(member.mtdCommissionUsd ?? 0), tone: "success", hint: "this month" },
                   { label: "Code",            value: member.affiliateCode ?? "—", tone: "warning", hint: "their link" },
                 ]
               : [
-                  { label: "MTD sales",       value: `$${(member.mtdSalesUsd ?? 0).toLocaleString()}`, tone: "brand",   hint: "this month" },
-                  { label: "Commission",      value: `$${(member.mtdCommissionUsd ?? 0).toLocaleString()}`, tone: "success", hint: "at current rate" },
+                  { label: "MTD sales",       value: formatPrice(member.mtdSalesUsd ?? 0), tone: "brand",   hint: "this month" },
+                  { label: "Commission",      value: formatPrice(member.mtdCommissionUsd ?? 0), tone: "success", hint: "at current rate" },
                   { label: "Sessions",        value: String(sessions.length), tone: "info", hint: "active devices" },
                   { label: "Status",          value: member.status, tone: member.status === "active" ? "success" : "danger", hint: "" },
                 ]

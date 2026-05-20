@@ -23,6 +23,7 @@ import { FilterButton } from "@/components/lists/filter-button"
 import { FilterPillGroup, FilterSection, FilterSheet } from "@/components/lists/filter-sheet"
 import { SummaryStrip } from "@/components/lists/summary-strip"
 import { SwipeableRow } from "@/components/mobile/swipeable-row"
+import { useCurrency } from "@/contexts/currency"
 
 type Status = "paid" | "unpaid" | "partial" | "overdue"
 type Row = { id: string; order: string; customer: string; amount: number; status: Status; date: string; due: string }
@@ -53,6 +54,7 @@ const statusTone: Record<Status, StatusTone> = {
 export default function Invoices() {
   const isMobile = useIsMobile()
   const [query, setQuery] = React.useState("")
+  const { formatPrice } = useCurrency()
   const [filterOpen, setFilterOpen] = React.useState(false)
   const [statuses, setStatuses] = React.useState<Status[]>([])
   const [stagedStatuses, setStagedStatuses] = React.useState<Status[]>([])
@@ -96,9 +98,9 @@ export default function Invoices() {
       <div className="flex flex-col gap-4">
         <SummaryStrip
           tiles={[
-            { label: "Outstanding", value: `$${totalOutstanding.toLocaleString()}`, tone: "warning", hint: "owed" },
-            { label: "Overdue", value: String(overdue.length), tone: "danger", hint: `$${overdue.reduce((s, r) => s + r.amount, 0).toLocaleString()}` },
-            { label: "Paid", value: `$${paidThis.toLocaleString()}`, tone: "success", hint: "this period" },
+            { label: "Outstanding", value: formatPrice(totalOutstanding), tone: "warning", hint: "owed" },
+            { label: "Overdue", value: String(overdue.length), tone: "danger", hint: formatPrice(overdue.reduce((s, r) => s + r.amount, 0)) },
+            { label: "Paid", value: formatPrice(paidThis), tone: "success", hint: "this period" },
             { label: "Invoices", value: String(rows.length), tone: "brand", hint: "total" },
           ]}
         />
@@ -120,7 +122,7 @@ export default function Invoices() {
 
         {overdue.length > 0 && (
           <div className="rounded-xl border border-rose-500/30 bg-rose-500/10 p-3 text-xs text-rose-800 dark:text-rose-200">
-            <span className="font-semibold">{overdue.length} overdue {overdue.length === 1 ? "invoice" : "invoices"}</span> — ${overdue.reduce((s, r) => s + r.amount, 0).toLocaleString()} aged past due. Consider sending reminders.
+            <span className="font-semibold">{overdue.length} overdue {overdue.length === 1 ? "invoice" : "invoices"}</span> — {formatPrice(overdue.reduce((s, r) => s + r.amount, 0))} aged past due. Consider sending reminders.
           </div>
         )}
 
@@ -142,7 +144,7 @@ export default function Invoices() {
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center justify-between gap-2">
                         <p className="truncate text-sm font-semibold">{r.customer}</p>
-                        <p className="shrink-0 text-sm font-semibold tabular-nums">${r.amount.toFixed(2)}</p>
+                        <p className="shrink-0 text-sm font-semibold tabular-nums">{formatPrice(r.amount)}</p>
                       </div>
                       <div className="mt-0.5 flex items-center justify-between gap-2 text-[11px] text-muted-foreground">
                         <span className="truncate"><span className="font-mono">{r.id}</span> · {r.order}</span>
@@ -178,7 +180,7 @@ export default function Invoices() {
                     <td className="px-3 py-2.5 font-mono text-xs">{r.id}</td>
                     <td className="px-3 py-2.5 font-mono text-xs text-muted-foreground">{r.order}</td>
                     <td className="px-3 py-2.5 font-medium">{r.customer}</td>
-                    <td className="px-3 py-2.5 text-right tabular-nums">${r.amount.toFixed(2)}</td>
+                    <td className="px-3 py-2.5 text-right tabular-nums">{formatPrice(r.amount)}</td>
                     <td className="px-3 py-2.5"><StatusBadge tone={statusTone[r.status]} withDot>{r.status}</StatusBadge></td>
                     <td className="px-3 py-2.5 text-muted-foreground">{r.due}</td>
                     <td className="px-3 py-2.5 text-right">

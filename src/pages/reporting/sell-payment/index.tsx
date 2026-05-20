@@ -6,6 +6,7 @@ import { DataTable, type Column } from "@/components/reports/data-table"
 import { StatusBadge, type StatusTone } from "@/components/lists/status-badge"
 import { useRegisterPageRefresh } from "@/hooks/use-pull-to-refresh"
 import { type Period } from "@/components/reports/period-chips"
+import { useCurrency, formatPriceFor } from "@/contexts/currency"
 
 type Status = "settled" | "partial" | "pending" | "refunded"
 type Row = { id: string; customer: string; amount: number; date: string; method: "card" | "cash" | "transfer"; status: Status }
@@ -25,12 +26,13 @@ const cols: Column<Row>[] = [
   { key: "customer", header: "Customer", primary: true },
   { key: "method", header: "Method", hideOnMobile: true, render: (_, v) => <span className="capitalize">{v as string}</span> },
   { key: "date", header: "Date", hideOnMobile: true },
-  { key: "amount", header: "Amount", align: "right", render: (_, v) => `$${(v as number).toFixed(2)}` },
+  { key: "amount", header: "Amount", align: "right", render: (_, v) => formatPriceFor(v as number) },
   { key: "status", header: "Status", render: (r) => <StatusBadge tone={tone[r.status]} withDot>{r.status}</StatusBadge> },
 ]
 
 export default function SellPaymentReport() {
   const [period, setPeriod] = React.useState<Period>("30d")
+  const { formatPrice } = useCurrency()
   useRegisterPageRefresh(React.useCallback(async () => { await new Promise((r) => setTimeout(r, 400)) }, []))
 
   const settled = rows.filter((r) => r.status === "settled").reduce((s, r) => s + r.amount, 0)
@@ -48,10 +50,10 @@ export default function SellPaymentReport() {
     >
       <KpiBand
         items={[
-          { title: "Settled", value: `$${settled.toLocaleString()}`, Icon: HandCoins, tone: "emerald" },
-          { title: "Pending", value: `$${pending.toLocaleString()}`, Icon: Clock, tone: "amber" },
-          { title: "Refunded", value: `$${refunded.toLocaleString()}`, Icon: CreditCard, tone: "rose" },
-          { title: "Total volume", value: `$${rows.reduce((s, r) => s + r.amount, 0).toLocaleString()}`, Icon: DollarSign, tone: "violet" },
+          { title: "Settled", value: formatPrice(settled), Icon: HandCoins, tone: "emerald" },
+          { title: "Pending", value: formatPrice(pending), Icon: Clock, tone: "amber" },
+          { title: "Refunded", value: formatPrice(refunded), Icon: CreditCard, tone: "rose" },
+          { title: "Total volume", value: formatPrice(rows.reduce((s, r) => s + r.amount, 0)), Icon: DollarSign, tone: "violet" },
         ]}
       />
       <div className="rounded-2xl border border-border bg-card">

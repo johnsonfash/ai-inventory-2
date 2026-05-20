@@ -28,6 +28,7 @@ import { Area, AreaChart, ResponsiveContainer } from "recharts"
 import { PageShell } from "@/components/page-shell"
 import { cn } from "@/lib/utils"
 import { useRegisterPageRefresh } from "@/hooks/use-pull-to-refresh"
+import { formatPriceFor, formatPriceCompact } from "@/contexts/currency"
 
 type ReportCard = {
   href: string
@@ -55,23 +56,23 @@ const GROUPS: { title: string; description: string; cards: ReportCard[] }[] = [
     title: "Sales",
     description: "Revenue, profitability, and trending products",
     cards: [
-      { href: "/reporting/profit-loss", title: "Profit & Loss", description: "Net profit trend by period", metric: "$33,400", delta: "+12%", trend: "up", Icon: LineChart, tone: "violet", spark: [22, 28, 24, 31, 36, 38, 42] },
-      { href: "/reporting/purchase-sale", title: "Purchase & Sale", description: "Inflow vs outflow comparison", metric: "$54k / $38k", delta: "+8%", trend: "up", Icon: BarChart3, tone: "emerald", spark: [18, 21, 19, 24, 27, 28, 32] },
+      { href: "/reporting/profit-loss", title: "Profit & Loss", description: "Net profit trend by period", metric: formatPriceFor(33400), delta: "+12%", trend: "up", Icon: LineChart, tone: "violet", spark: [22, 28, 24, 31, 36, 38, 42] },
+      { href: "/reporting/purchase-sale", title: "Purchase & Sale", description: "Inflow vs outflow comparison", metric: `${formatPriceCompact(54000)} / ${formatPriceCompact(38000)}`, delta: "+8%", trend: "up", Icon: BarChart3, tone: "emerald", spark: [18, 21, 19, 24, 27, 28, 32] },
       { href: "/reporting/trending-product", title: "Trending Products", description: "Best-sellers this period", metric: "USB-C Hub", delta: "+42%", trend: "up", Icon: Flame, tone: "amber", spark: [10, 14, 17, 22, 26, 30, 36] },
       { href: "/reporting/product-sell", title: "Product Sell", description: "Per-product sales breakdown", metric: "1,284 SKUs", Icon: Trophy, tone: "fuchsia", spark: [12, 14, 13, 16, 18, 17, 20] },
-      { href: "/reporting/sales-representatives", title: "Sales Reps", description: "Team performance ranking", metric: "Mia · $12.4k", delta: "+18%", trend: "up", Icon: Users, tone: "sky", spark: [8, 10, 9, 13, 14, 16, 17] },
-      { href: "/reporting/sell-payment", title: "Sell Payment", description: "Payment collection status", metric: "$48.2k", Icon: HandCoins, tone: "emerald", spark: [22, 24, 22, 26, 27, 28, 30] },
+      { href: "/reporting/sales-representatives", title: "Sales Reps", description: "Team performance ranking", metric: `Mia · ${formatPriceCompact(12400)}`, delta: "+18%", trend: "up", Icon: Users, tone: "sky", spark: [8, 10, 9, 13, 14, 16, 17] },
+      { href: "/reporting/sell-payment", title: "Sell Payment", description: "Payment collection status", metric: formatPriceCompact(48200), Icon: HandCoins, tone: "emerald", spark: [22, 24, 22, 26, 27, 28, 30] },
     ],
   },
   {
     title: "Inventory",
     description: "Stock health, expiry, and item movement",
     cards: [
-      { href: "/reporting/stock", title: "Stock", description: "On-hand and value by item", metric: "$182k", delta: "+1.1%", trend: "up", Icon: Boxes, tone: "violet", spark: [42, 44, 43, 46, 47, 49, 50] },
+      { href: "/reporting/stock", title: "Stock", description: "On-hand and value by item", metric: formatPriceCompact(182000), delta: "+1.1%", trend: "up", Icon: Boxes, tone: "violet", spark: [42, 44, 43, 46, 47, 49, 50] },
       { href: "/reporting/stock-expiry", title: "Stock Expiry", description: "Items expiring soon", metric: "14 items", delta: "−3", trend: "down", Icon: PackageMinus, tone: "rose", spark: [22, 20, 19, 17, 16, 15, 14] },
       { href: "/reporting/stock-adjustment", title: "Stock Adjustments", description: "Manual reconciliations", metric: "23 entries", Icon: Package, tone: "amber", spark: [3, 5, 4, 6, 5, 7, 6] },
       { href: "/reporting/item", title: "Items", description: "Per-item full statistics", metric: "1,284 SKUs", Icon: ClipboardList, tone: "sky", spark: [12, 13, 13, 14, 15, 15, 16] },
-      { href: "/reporting/product-purchase", title: "Product Purchase", description: "Item-level inbound history", metric: "$54k", Icon: Receipt, tone: "fuchsia", spark: [18, 17, 19, 22, 23, 25, 27] },
+      { href: "/reporting/product-purchase", title: "Product Purchase", description: "Item-level inbound history", metric: formatPriceCompact(54000), Icon: Receipt, tone: "fuchsia", spark: [18, 17, 19, 22, 23, 25, 27] },
     ],
   },
   {
@@ -79,10 +80,10 @@ const GROUPS: { title: string; description: string; cards: ReportCard[] }[] = [
     description: "Customers, taxes, registers, and activity",
     cards: [
       { href: "/reporting/customer-group", title: "Customer Group", description: "Aggregated buyer segments", metric: "8 groups", Icon: Users, tone: "violet", spark: [4, 5, 5, 6, 7, 7, 8] },
-      { href: "/reporting/supplier-customer", title: "Supplier & Customer", description: "Two-sided ledger", metric: "$92k / $54k", Icon: Wallet, tone: "emerald", spark: [22, 24, 25, 27, 28, 30, 32] },
-      { href: "/reporting/tax", title: "Tax", description: "Collected vs payable breakdown", metric: "$8,420", delta: "+6%", trend: "up", Icon: Calculator, tone: "amber", spark: [6, 6.5, 7, 7.4, 7.8, 8.1, 8.4] },
-      { href: "/reporting/expense", title: "Expenses", description: "Operating cost breakdown", metric: "$12.6k", delta: "−4%", trend: "down", Icon: PiggyBank, tone: "rose", spark: [15, 14, 14, 13, 13, 12, 12] },
-      { href: "/reporting/purchase-payment", title: "Purchase Payment", description: "Vendor payment status", metric: "$28.4k", Icon: CreditCard, tone: "sky", spark: [10, 12, 13, 14, 15, 16, 17] },
+      { href: "/reporting/supplier-customer", title: "Supplier & Customer", description: "Two-sided ledger", metric: `${formatPriceCompact(92000)} / ${formatPriceCompact(54000)}`, Icon: Wallet, tone: "emerald", spark: [22, 24, 25, 27, 28, 30, 32] },
+      { href: "/reporting/tax", title: "Tax", description: "Collected vs payable breakdown", metric: formatPriceFor(8420), delta: "+6%", trend: "up", Icon: Calculator, tone: "amber", spark: [6, 6.5, 7, 7.4, 7.8, 8.1, 8.4] },
+      { href: "/reporting/expense", title: "Expenses", description: "Operating cost breakdown", metric: formatPriceCompact(12600), delta: "−4%", trend: "down", Icon: PiggyBank, tone: "rose", spark: [15, 14, 14, 13, 13, 12, 12] },
+      { href: "/reporting/purchase-payment", title: "Purchase Payment", description: "Vendor payment status", metric: formatPriceCompact(28400), Icon: CreditCard, tone: "sky", spark: [10, 12, 13, 14, 15, 16, 17] },
       { href: "/reporting/register", title: "Register", description: "Cash register sessions", metric: "12 sessions", Icon: DollarSign, tone: "emerald", spark: [3, 4, 3, 5, 4, 5, 6] },
       { href: "/reporting/activity-log", title: "Activity Log", description: "Audit trail of user actions", metric: "284 events", Icon: Activity, tone: "fuchsia", spark: [22, 26, 30, 34, 36, 40, 42] },
     ],

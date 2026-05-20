@@ -11,6 +11,7 @@ import { FormField } from "@/components/forms/form-field"
 import { FormFooter } from "@/components/forms/form-footer"
 import { FormAside } from "@/components/forms/form-aside"
 import { InputAddon } from "@/components/forms/input-addon"
+import { useCurrency } from "@/contexts/currency"
 
 type Line = { id: string; sku: string; qty: number; cost: number }
 
@@ -20,6 +21,7 @@ const newLine = (): Line => ({ id: `L-${++lineSeq}`, sku: "", qty: 1, cost: 0 })
 export default function NewPO() {
   const [lines, setLines] = React.useState<Line[]>([newLine()])
   const [submitting, setSubmitting] = React.useState(false)
+  const { formatPrice, symbol } = useCurrency()
 
   const subtotal = lines.reduce((s, l) => s + l.qty * l.cost, 0)
   const tax = subtotal * 0.075
@@ -40,15 +42,15 @@ export default function NewPO() {
           <dl className="space-y-2 text-sm">
             <div className="flex justify-between">
               <dt className="text-muted-foreground">Subtotal</dt>
-              <dd className="font-medium tabular-nums">${subtotal.toFixed(2)}</dd>
+              <dd className="font-medium tabular-nums">{formatPrice(subtotal)}</dd>
             </div>
             <div className="flex justify-between">
               <dt className="text-muted-foreground">Tax (7.5%)</dt>
-              <dd className="font-medium tabular-nums">${tax.toFixed(2)}</dd>
+              <dd className="font-medium tabular-nums">{formatPrice(tax)}</dd>
             </div>
             <div className="mt-2 flex items-baseline justify-between border-t border-border pt-2">
               <dt className="font-semibold">Total</dt>
-              <dd className="text-lg font-bold tabular-nums">${total.toFixed(2)}</dd>
+              <dd className="text-lg font-bold tabular-nums">{formatPrice(total)}</dd>
             </div>
             <p className="pt-3 text-[11px] text-muted-foreground">
               Vendor default terms apply on save. Items aren't deducted from stock until the PO is marked received.
@@ -156,7 +158,7 @@ export default function NewPO() {
                   />
                 </FormField>
                 <FormField label="Unit cost" required>
-                  <InputAddon leading="$">
+                  <InputAddon leading={symbol}>
                     <input
                       type="number"
                       step="0.01"
@@ -168,7 +170,7 @@ export default function NewPO() {
                 </FormField>
                 <FormField label="Line total" span={2}>
                   <div className="flex h-10 items-center rounded-lg border border-input bg-muted/40 px-3 text-sm font-semibold tabular-nums">
-                    ${(l.qty * l.cost).toFixed(2)}
+                    {formatPrice(l.qty * l.cost)}
                   </div>
                 </FormField>
               </FormGrid>

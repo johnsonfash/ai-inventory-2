@@ -17,6 +17,7 @@ import { StatusBadge, type StatusTone } from "@/components/lists/status-badge"
 import { useRegisterPageRefresh } from "@/hooks/use-pull-to-refresh"
 import { type Period } from "@/components/reports/period-chips"
 import { cn } from "@/lib/utils"
+import { formatPriceFor } from "@/contexts/currency"
 
 type Severity = "info" | "success" | "warning" | "danger"
 
@@ -31,10 +32,10 @@ type Event = {
 }
 
 const events: Event[] = [
-  { id: "ev-001", actor: "Mia Chen", message: "Fulfilled order SO-7842 (4 items, $420)", category: "Order", severity: "success", Icon: CheckCircle2, agoMinutes: 8 },
+  { id: "ev-001", actor: "Mia Chen", message: `Fulfilled order SO-7842 (4 items, ${formatPriceFor(420)})`, category: "Order", severity: "success", Icon: CheckCircle2, agoMinutes: 8 },
   { id: "ev-002", actor: "Alex Larson", message: "Created purchase order PO-1045", category: "PO", severity: "info", Icon: Truck, agoMinutes: 22 },
   { id: "ev-003", actor: "system", message: "Stock received: 20 × EL-2109 to WH-A", category: "Stock", severity: "info", Icon: Package, agoMinutes: 41 },
-  { id: "ev-004", actor: "Priya Patel", message: "Recorded payment $1,284 (INV-2039)", category: "Payment", severity: "success", Icon: CreditCard, agoMinutes: 58 },
+  { id: "ev-004", actor: "Priya Patel", message: `Recorded payment ${formatPriceFor(1284)} (INV-2039)`, category: "Payment", severity: "success", Icon: CreditCard, agoMinutes: 58 },
   { id: "ev-005", actor: "system", message: "Low stock alert: BT-9091 (5/15)", category: "Stock", severity: "warning", Icon: AlertTriangle, agoMinutes: 90 },
   { id: "ev-006", actor: "Daniel Kim", message: "Cancelled order SO-7833", category: "Order", severity: "danger", Icon: ClipboardList, agoMinutes: 124 },
   { id: "ev-007", actor: "Mia Chen", message: "Created customer record: NovaApps", category: "User", severity: "info", Icon: User, agoMinutes: 180 },

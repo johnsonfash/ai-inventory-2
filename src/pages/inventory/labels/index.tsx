@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useRegisterPageRefresh } from "@/hooks/use-pull-to-refresh"
 import { SummaryStrip } from "@/components/lists/summary-strip"
 import { cn } from "@/lib/utils"
+import { useCurrency } from "@/contexts/currency"
 
 type Item = { sku: string; name: string; price: number; checked: boolean; qty: number }
 
@@ -22,6 +23,7 @@ export default function LabelPrint() {
   const [items, setItems] = React.useState<Item[]>(seed)
   const [query, setQuery] = React.useState("")
   const [template, setTemplate] = React.useState<"standard" | "minimal" | "full">("standard")
+  const { formatPrice } = useCurrency()
 
   useRegisterPageRefresh(React.useCallback(async () => { await new Promise((r) => setTimeout(r, 400)) }, []))
 
@@ -90,7 +92,7 @@ export default function LabelPrint() {
               </span>
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-semibold">{i.name}</p>
-                <p className="font-mono text-[11px] text-muted-foreground">{i.sku} · ${i.price.toFixed(2)}</p>
+                <p className="font-mono text-[11px] text-muted-foreground">{i.sku} · {formatPrice(i.price)}</p>
               </div>
               <div className="flex shrink-0 items-center gap-1.5">
                 <span className="text-[10px] uppercase text-muted-foreground">Qty</span>

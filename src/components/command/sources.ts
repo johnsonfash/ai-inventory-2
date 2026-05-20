@@ -40,6 +40,7 @@ import {
 } from "lucide-react"
 import { loadCatalog } from "@/lib/pos/storage"
 import { resetOnboarding } from "@/components/onboarding/getting-started"
+import { formatPriceFor } from "@/contexts/currency"
 
 // One command in the palette. `id` is stable across renders for
 // React keys + recent-history matching; `group` puts it under the
@@ -194,7 +195,7 @@ function getInventoryItems(): CommandItem[] {
     id: `item-${it.id}`,
     group: "Inventory" as const,
     title: it.name,
-    subtitle: `${it.sku} · $${it.price.toFixed(2)}${it.stock != null ? ` · ${it.stock} in stock` : ""}`,
+    subtitle: `${it.sku} · ${formatPriceFor(it.price)}${it.stock != null ? ` · ${it.stock} in stock` : ""}`,
     Icon: Package2,
     href: "/inventory",
     searchTerms: `${it.name} ${it.sku} ${it.category ?? ""}`,

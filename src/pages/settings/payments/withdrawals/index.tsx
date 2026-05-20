@@ -9,6 +9,7 @@ import { useRegisterPageRefresh } from "@/hooks/use-pull-to-refresh"
 import { EmptyState } from "@/components/lists/empty-state"
 import { StatusBadge, type StatusTone } from "@/components/lists/status-badge"
 import { SummaryStrip } from "@/components/lists/summary-strip"
+import { useCurrency } from "@/contexts/currency"
 
 type Status = "settled" | "in-progress" | "failed"
 type Row = { id: string; amount: number; bank: string; reference: string; date: string; status: Status }
@@ -29,6 +30,7 @@ const statusTone: Record<Status, StatusTone> = {
 
 export default function Withdrawals() {
   const [query, setQuery] = React.useState("")
+  const { formatPrice } = useCurrency()
   useRegisterPageRefresh(React.useCallback(async () => { await new Promise((r) => setTimeout(r, 400)) }, []))
 
   const filtered = React.useMemo(() => {
@@ -48,8 +50,8 @@ export default function Withdrawals() {
       <div className="flex flex-col gap-4">
         <SummaryStrip
           tiles={[
-            { label: "Settled (30d)", value: `$${settled.toLocaleString()}`, tone: "success", hint: "landed" },
-            { label: "In progress", value: `$${inProgress.toLocaleString()}`, tone: "info", hint: "pending" },
+            { label: "Settled (30d)", value: formatPrice(settled), tone: "success", hint: "landed" },
+            { label: "In progress", value: formatPrice(inProgress), tone: "info", hint: "pending" },
             { label: "Failed", value: String(failed), tone: "danger", hint: failed > 0 ? "investigate" : "all good" },
             { label: "Payouts", value: String(rows.length), tone: "brand", hint: "this period" },
           ]}
@@ -79,7 +81,7 @@ export default function Withdrawals() {
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center justify-between gap-2">
                     <p className="truncate text-sm font-semibold">{r.reference}</p>
-                    <p className="shrink-0 text-sm font-bold tabular-nums">${r.amount.toLocaleString()}</p>
+                    <p className="shrink-0 text-sm font-bold tabular-nums">{formatPrice(r.amount)}</p>
                   </div>
                   <p className="mt-0.5 inline-flex items-center gap-1 text-[11px] text-muted-foreground">
                     <Building2 className="h-3 w-3" /> {r.bank}

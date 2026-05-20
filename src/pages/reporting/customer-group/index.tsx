@@ -6,6 +6,7 @@ import { DataTable, type Column } from "@/components/reports/data-table"
 import { StatusBadge } from "@/components/lists/status-badge"
 import { useRegisterPageRefresh } from "@/hooks/use-pull-to-refresh"
 import { type Period } from "@/components/reports/period-chips"
+import { useCurrency, formatPriceFor } from "@/contexts/currency"
 
 type Row = { group: string; customers: number; revenue: number; avgOrder: number; tier: "VIP" | "Regular" | "New" | "Lapsed" }
 
@@ -22,13 +23,14 @@ const tierTone = { VIP: "brand", Regular: "info", New: "success", Lapsed: "warni
 const cols: Column<Row>[] = [
   { key: "group", header: "Group", primary: true },
   { key: "customers", header: "Customers", align: "right" },
-  { key: "revenue", header: "Revenue", align: "right", render: (_, v) => `$${(v as number).toLocaleString()}` },
-  { key: "avgOrder", header: "Avg order", align: "right", hideOnMobile: true, render: (_, v) => `$${v}` },
+  { key: "revenue", header: "Revenue", align: "right", render: (_, v) => formatPriceFor(v as number) },
+  { key: "avgOrder", header: "Avg order", align: "right", hideOnMobile: true, render: (_, v) => formatPriceFor(v as number) },
   { key: "tier", header: "Tier", render: (r) => <StatusBadge tone={tierTone[r.tier]}>{r.tier}</StatusBadge> },
 ]
 
 export default function CustomerGroup() {
   const [period, setPeriod] = React.useState<Period>("30d")
+  const { formatPrice } = useCurrency()
   useRegisterPageRefresh(React.useCallback(async () => { await new Promise((r) => setTimeout(r, 400)) }, []))
 
   const totalRevenue = rows.reduce((s, r) => s + r.revenue, 0)
@@ -48,8 +50,8 @@ export default function CustomerGroup() {
         items={[
           { title: "Groups", value: String(rows.length), Icon: Layers, tone: "violet" },
           { title: "Total customers", value: totalCustomers.toLocaleString(), Icon: Users, tone: "sky" },
-          { title: "Revenue", value: `$${totalRevenue.toLocaleString()}`, Icon: DollarSign, tone: "emerald" },
-          { title: "Top group", value: top.group, caption: `$${top.revenue.toLocaleString()}`, Icon: Trophy, tone: "amber" },
+          { title: "Revenue", value: formatPrice(totalRevenue), Icon: DollarSign, tone: "emerald" },
+          { title: "Top group", value: top.group, caption: formatPrice(top.revenue), Icon: Trophy, tone: "amber" },
         ]}
       />
       <div className="rounded-2xl border border-border bg-card">

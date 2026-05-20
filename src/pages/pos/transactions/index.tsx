@@ -9,6 +9,7 @@ import { StatusBadge } from "@/components/lists/status-badge"
 import { SummaryStrip } from "@/components/lists/summary-strip"
 import { listInvoices, listReturns } from "@/lib/pos/storage"
 import { cn } from "@/lib/utils"
+import { useCurrency } from "@/contexts/currency"
 
 type Row = {
   type: "invoice" | "return"
@@ -33,6 +34,7 @@ export default function TransactionsPage() {
   const [query, setQuery] = React.useState("")
   const [filter, setFilter] = React.useState<"all" | "invoice" | "return">("all")
   const [rows, setRows] = React.useState<Row[]>(() => loadRows())
+  const { formatPrice } = useCurrency()
 
   useRegisterPageRefresh(
     React.useCallback(async () => {
@@ -62,9 +64,9 @@ export default function TransactionsPage() {
       <div className="flex flex-col gap-4">
         <SummaryStrip
           tiles={[
-            { label: "Gross sales", value: `$${sales.toFixed(0)}`, tone: "success", hint: "this period" },
-            { label: "Refunds", value: `$${refunds.toFixed(0)}`, tone: "danger", hint: "this period" },
-            { label: "Net", value: `$${net.toFixed(0)}`, tone: "brand", hint: "after returns" },
+            { label: "Gross sales", value: formatPrice(sales), tone: "success", hint: "this period" },
+            { label: "Refunds", value: formatPrice(refunds), tone: "danger", hint: "this period" },
+            { label: "Net", value: formatPrice(net), tone: "brand", hint: "after returns" },
             { label: "Transactions", value: String(rows.length), tone: "info", hint: "total" },
           ]}
         />
@@ -127,7 +129,7 @@ export default function TransactionsPage() {
                           "shrink-0 text-sm font-bold tabular-nums",
                           isInvoice ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400",
                         )}>
-                          {isInvoice ? "+" : "−"}${Math.abs(r.total).toFixed(2)}
+                          {isInvoice ? "+" : "−"}{formatPrice(Math.abs(r.total))}
                         </p>
                       </div>
                       <div className="mt-0.5 flex items-center justify-between gap-2 text-[11px] text-muted-foreground">

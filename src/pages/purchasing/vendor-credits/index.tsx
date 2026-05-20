@@ -9,6 +9,7 @@ import { useRegisterPageRefresh } from "@/hooks/use-pull-to-refresh"
 import { EmptyState } from "@/components/lists/empty-state"
 import { StatusBadge, type StatusTone } from "@/components/lists/status-badge"
 import { SummaryStrip } from "@/components/lists/summary-strip"
+import { useCurrency } from "@/contexts/currency"
 
 type Status = "open" | "applied" | "expired"
 type Row = { id: string; vendor: string; amount: number; reason: string; date: string; status: Status }
@@ -28,6 +29,7 @@ const statusTone: Record<Status, StatusTone> = {
 
 export default function VendorCredits() {
   const [query, setQuery] = React.useState("")
+  const { formatPrice } = useCurrency()
   useRegisterPageRefresh(React.useCallback(async () => { await new Promise((r) => setTimeout(r, 400)) }, []))
 
   const filtered = React.useMemo(() => {
@@ -47,8 +49,8 @@ export default function VendorCredits() {
         <SummaryStrip
           tiles={[
             { label: "Credits", value: String(rows.length), tone: "brand", hint: "total" },
-            { label: "Open balance", value: `$${openTotal.toLocaleString()}`, tone: "warning", hint: "to apply" },
-            { label: "Applied", value: `$${applied.toLocaleString()}`, tone: "success", hint: "this period" },
+            { label: "Open balance", value: formatPrice(openTotal), tone: "warning", hint: "to apply" },
+            { label: "Applied", value: formatPrice(applied), tone: "success", hint: "this period" },
             { label: "Vendors", value: String(new Set(rows.map((r) => r.vendor)).size), tone: "info", hint: "covered" },
           ]}
         />
@@ -78,7 +80,7 @@ export default function VendorCredits() {
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center justify-between gap-2">
                       <p className="truncate text-sm font-semibold">{r.vendor}</p>
-                      <p className="shrink-0 text-sm font-bold tabular-nums">${r.amount.toLocaleString()}</p>
+                      <p className="shrink-0 text-sm font-bold tabular-nums">{formatPrice(r.amount)}</p>
                     </div>
                     <p className="mt-0.5 text-[11px] text-muted-foreground">{r.reason}</p>
                     <div className="mt-1 flex items-center justify-between gap-2 text-[11px] text-muted-foreground">

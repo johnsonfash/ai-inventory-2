@@ -17,6 +17,7 @@ import { useRegisterPageRefresh } from "@/hooks/use-pull-to-refresh"
 import { StatusBadge, type StatusTone } from "@/components/lists/status-badge"
 import { SummaryStrip } from "@/components/lists/summary-strip"
 import { ChartCard } from "@/components/reports/chart-card"
+import { useCurrency } from "@/contexts/currency"
 
 type Listing = {
   id: string
@@ -54,6 +55,7 @@ const statusTone: Record<Listing["status"], StatusTone> = {
 }
 
 export default function FacebookMarketplace() {
+  const { formatPrice } = useCurrency()
   useRegisterPageRefresh(React.useCallback(async () => { await new Promise((r) => setTimeout(r, 400)) }, []))
 
   const totalViews = listings.reduce((s, l) => s + l.views, 0)
@@ -145,7 +147,7 @@ export default function FacebookMarketplace() {
                     <p className="mt-0.5 text-[11px] text-muted-foreground"><span className="font-mono">{l.id}</span></p>
                   </div>
                   <div className="md:text-right">
-                    <p className="text-sm font-semibold tabular-nums">${l.price.toFixed(2)}</p>
+                    <p className="text-sm font-semibold tabular-nums">{formatPrice(l.price)}</p>
                   </div>
                   <div className="inline-flex items-center gap-1.5 md:justify-end">
                     <Eye className="h-3 w-3 text-muted-foreground md:hidden" />

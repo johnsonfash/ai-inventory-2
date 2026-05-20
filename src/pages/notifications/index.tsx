@@ -19,6 +19,7 @@ import { EmptyState } from "@/components/lists/empty-state"
 import { StatusBadge, type StatusTone } from "@/components/lists/status-badge"
 import { SwitchField } from "@/components/forms/switch-field"
 import { cn } from "@/lib/utils"
+import { formatPriceFor } from "@/contexts/currency"
 
 type Level = "info" | "success" | "warning" | "error"
 type Category = "Stock" | "Orders" | "Purchases" | "Billing" | "System"
@@ -38,7 +39,7 @@ const seed: Notification[] = [
   { id: "n2", title: "PO-1045 received", description: "20 units of EL-2109 added to WH-A", category: "Purchases", level: "success", agoMinutes: 56, read: false },
   { id: "n3", title: "Invoice INV-3310 overdue", description: "BrightLane · 5 days past due", category: "Billing", level: "error", agoMinutes: 124, read: false },
   { id: "n4", title: "New analytics reports", description: "Trending Products + Stock Expiry now under Reports", category: "System", level: "info", agoMinutes: 180, read: true },
-  { id: "n5", title: "Order SO-7846 fulfilled", description: "Daniel K. · $1,284 · 6 items", category: "Orders", level: "success", agoMinutes: 240, read: true },
+  { id: "n5", title: "Order SO-7846 fulfilled", description: `Daniel K. · ${formatPriceFor(1284)} · 6 items`, category: "Orders", level: "success", agoMinutes: 240, read: true },
   { id: "n6", title: "Stock adjustment ADJ-104", description: "−8 units of EL-2109 (damaged)", category: "Stock", level: "warning", agoMinutes: 360, read: true },
 ]
 

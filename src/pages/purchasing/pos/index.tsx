@@ -25,6 +25,7 @@ import {
 } from "@/components/lists/filter-sheet"
 import { SwipeableRow } from "@/components/mobile/swipeable-row"
 import { cn } from "@/lib/utils"
+import { useCurrency } from "@/contexts/currency"
 
 type POStatus = "draft" | "pending" | "partial" | "received" | "cancelled"
 
@@ -92,6 +93,7 @@ export default function PurchaseOrders() {
   const [filterOpen, setFilterOpen] = React.useState(false)
   const [statuses, setStatuses] = React.useState<POStatus[]>([])
   const [stagedStatuses, setStagedStatuses] = React.useState<POStatus[]>([])
+  const { formatPrice } = useCurrency()
 
   React.useEffect(() => {
     if (filterOpen) setStagedStatuses(statuses)
@@ -145,7 +147,7 @@ export default function PurchaseOrders() {
             { label: "Open POs", value: String(openCount), tone: "info" as StatusTone, hint: "awaiting" },
             { label: "Overdue", value: String(overdueCount), tone: "danger" as StatusTone, hint: "act now" },
             { label: "Received", value: String(receivedCount), tone: "success" as StatusTone, hint: "closed" },
-            { label: "Open value", value: `$${totalOpenValue.toLocaleString()}`, tone: "brand" as StatusTone, hint: "in flight" },
+            { label: "Open value", value: formatPrice(totalOpenValue), tone: "brand" as StatusTone, hint: "in flight" },
           ].map((t) => (
             <div
               key={t.label}
@@ -211,7 +213,7 @@ export default function PurchaseOrders() {
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center justify-between gap-2">
                         <p className="truncate text-sm font-semibold">{p.vendor}</p>
-                        <p className="shrink-0 text-sm font-semibold tabular-nums">${p.total.toLocaleString()}</p>
+                        <p className="shrink-0 text-sm font-semibold tabular-nums">{formatPrice(p.total)}</p>
                       </div>
                       <div className="mt-0.5 flex items-center justify-between gap-2 text-[11px] text-muted-foreground">
                         <span className="truncate">
@@ -263,7 +265,7 @@ export default function PurchaseOrders() {
                       </div>
                     </td>
                     <td className="px-3 py-2.5 text-right tabular-nums">{p.items}</td>
-                    <td className="px-3 py-2.5 text-right tabular-nums">${p.total.toLocaleString()}</td>
+                    <td className="px-3 py-2.5 text-right tabular-nums">{formatPrice(p.total)}</td>
                     <td className="px-3 py-2.5">
                       <StatusBadge tone={statusTone[p.status]} withDot>
                         {p.status}

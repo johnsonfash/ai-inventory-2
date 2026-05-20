@@ -11,6 +11,7 @@ import { FormField } from "@/components/forms/form-field"
 import { FormFooter } from "@/components/forms/form-footer"
 import { FormAside } from "@/components/forms/form-aside"
 import { InputAddon } from "@/components/forms/input-addon"
+import { useCurrency, formatPriceFor } from "@/contexts/currency"
 
 type Component = { id: string; sku: string; qty: number }
 
@@ -18,16 +19,17 @@ let lineSeq = 0
 const newComponent = (): Component => ({ id: `C-${++lineSeq}`, sku: "", qty: 1 })
 
 const skuOptions = [
-  { value: "EL-2109", label: "USB‑C Hub 6‑in‑1 ($28.50)" },
-  { value: "EL-1001", label: "Wireless Mouse ($22.00)" },
-  { value: "HM-2205", label: "Ceramic Mug 12oz ($8.00)" },
-  { value: "AP-4012", label: "Cotton Tee — Black ($12.00)" },
-  { value: "BT-9091", label: "Hydrating Serum ($18.95)" },
+  { value: "EL-2109", label: `USB‑C Hub 6‑in‑1 (${formatPriceFor(28.5)})` },
+  { value: "EL-1001", label: `Wireless Mouse (${formatPriceFor(22)})` },
+  { value: "HM-2205", label: `Ceramic Mug 12oz (${formatPriceFor(8)})` },
+  { value: "AP-4012", label: `Cotton Tee — Black (${formatPriceFor(12)})` },
+  { value: "BT-9091", label: `Hydrating Serum (${formatPriceFor(18.95)})` },
 ]
 
 export default function NewComposite() {
   const [components, setComponents] = React.useState<Component[]>([newComponent()])
   const [submitting, setSubmitting] = React.useState(false)
+  const { symbol } = useCurrency()
 
   const remove = (id: string) => setComponents((p) => p.filter((c) => c.id !== id))
   const update = (id: string, patch: Partial<Component>) =>
@@ -118,12 +120,12 @@ export default function NewComposite() {
       <FormSection title="Pricing" Icon={Tag}>
         <FormGrid cols={2}>
           <FormField label="Sell price" required>
-            <InputAddon leading="$">
+            <InputAddon leading={symbol}>
               <input type="number" step="0.01" placeholder="0.00" required />
             </InputAddon>
           </FormField>
           <FormField label="Wholesale price">
-            <InputAddon leading="$">
+            <InputAddon leading={symbol}>
               <input type="number" step="0.01" placeholder="0.00" />
             </InputAddon>
           </FormField>

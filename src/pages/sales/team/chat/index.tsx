@@ -10,6 +10,7 @@ import { kvJson } from "@/lib/storage/kv"
 import { EmptyState } from "@/components/lists/empty-state"
 import { RoleGuard } from "@/components/auth/role-guard"
 import { cn } from "@/lib/utils"
+import { formatPriceFor } from "@/contexts/currency"
 
 type Message = { id: string; author: string; text: string; ts: number; channel: string }
 
@@ -33,7 +34,7 @@ function setMessagesStorage(msgs: Message[]) {
 
 const seed: Message[] = [
   { id: "m1", author: "Mia Chen", text: "POS-1042 partial just arrived — needs scanning before 5pm.", ts: Date.now() - 120000, channel: "ops" },
-  { id: "m2", author: "Alex Larson", text: "Closing $14k week on Wholesale. New record 🎉", ts: Date.now() - 360000, channel: "sales" },
+  { id: "m2", author: "Alex Larson", text: `Closing ${formatPriceFor(14000)} week on Wholesale. New record 🎉`, ts: Date.now() - 360000, channel: "sales" },
   { id: "m3", author: "Mia Chen", text: "Anyone in storefront? Customer asking about the USB-C Hub.", ts: Date.now() - 1800000, channel: "general" },
   { id: "m4", author: "Priya Patel", text: "IG Reels campaign live — first 24h CTR 6.2%.", ts: Date.now() - 86_400_000, channel: "marketing" },
 ]

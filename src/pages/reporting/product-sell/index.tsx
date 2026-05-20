@@ -5,6 +5,7 @@ import { KpiBand } from "@/components/reports/kpi-band"
 import { DataTable, type Column } from "@/components/reports/data-table"
 import { useRegisterPageRefresh } from "@/hooks/use-pull-to-refresh"
 import { type Period } from "@/components/reports/period-chips"
+import { useCurrency, formatPriceFor } from "@/contexts/currency"
 
 type Row = { sku: string; name: string; qty: number; amount: number; avgPrice: number }
 
@@ -20,12 +21,13 @@ const cols: Column<Row>[] = [
   { key: "sku", header: "SKU", render: (_, v) => <span className="font-mono text-xs">{v as string}</span> },
   { key: "name", header: "Product", primary: true },
   { key: "qty", header: "Units sold", align: "right" },
-  { key: "avgPrice", header: "Avg price", align: "right", hideOnMobile: true, render: (_, v) => `$${(v as number).toFixed(2)}` },
-  { key: "amount", header: "Revenue", align: "right", render: (_, v) => `$${(v as number).toLocaleString()}` },
+  { key: "avgPrice", header: "Avg price", align: "right", hideOnMobile: true, render: (_, v) => formatPriceFor(v as number) },
+  { key: "amount", header: "Revenue", align: "right", render: (_, v) => formatPriceFor(v as number) },
 ]
 
 export default function ProductSell() {
   const [period, setPeriod] = React.useState<Period>("30d")
+  const { formatPrice } = useCurrency()
   useRegisterPageRefresh(React.useCallback(async () => { await new Promise((r) => setTimeout(r, 400)) }, []))
 
   const totalUnits = rows.reduce((s, r) => s + r.qty, 0)
@@ -45,7 +47,7 @@ export default function ProductSell() {
         items={[
           { title: "Best seller", value: (winner.name.split(" ")[0] ?? winner.name), caption: winner.sku, Icon: Trophy, tone: "amber" },
           { title: "Units sold", value: totalUnits.toLocaleString(), Icon: ShoppingCart, tone: "violet" },
-          { title: "Revenue", value: `$${totalRevenue.toLocaleString()}`, delta: "+22%", trend: "up", Icon: DollarSign, tone: "emerald" },
+          { title: "Revenue", value: formatPrice(totalRevenue), delta: "+22%", trend: "up", Icon: DollarSign, tone: "emerald" },
           { title: "SKUs sold", value: String(rows.length), Icon: Package, tone: "sky" },
         ]}
       />

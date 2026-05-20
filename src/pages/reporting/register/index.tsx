@@ -6,6 +6,7 @@ import { DataTable, type Column } from "@/components/reports/data-table"
 import { StatusBadge } from "@/components/lists/status-badge"
 import { useRegisterPageRefresh } from "@/hooks/use-pull-to-refresh"
 import { type Period } from "@/components/reports/period-chips"
+import { useCurrency, formatPriceFor } from "@/contexts/currency"
 
 type Row = { id: string; openedBy: string; openedAt: string; closedAt: string; opening: number; closing: number; sales: number; status: "open" | "closed" | "discrepancy" }
 
@@ -21,7 +22,7 @@ const cols: Column<Row>[] = [
   { key: "openedBy", header: "Opened by", primary: true },
   { key: "openedAt", header: "Opened", hideOnMobile: true },
   { key: "closedAt", header: "Closed", hideOnMobile: true },
-  { key: "sales", header: "Sales", align: "right", render: (_, v) => `$${(v as number).toLocaleString()}` },
+  { key: "sales", header: "Sales", align: "right", render: (_, v) => formatPriceFor(v as number) },
   {
     key: "status",
     header: "Status",
@@ -35,6 +36,7 @@ const cols: Column<Row>[] = [
 
 export default function RegisterReport() {
   const [period, setPeriod] = React.useState<Period>("7d")
+  const { formatPrice } = useCurrency()
   useRegisterPageRefresh(React.useCallback(async () => { await new Promise((r) => setTimeout(r, 400)) }, []))
 
   const totalSales = rows.reduce((s, r) => s + r.sales, 0)
@@ -53,7 +55,7 @@ export default function RegisterReport() {
       <KpiBand
         items={[
           { title: "Sessions", value: String(rows.length), Icon: Hash, tone: "violet" },
-          { title: "Total sales", value: `$${totalSales.toLocaleString()}`, Icon: DollarSign, tone: "emerald" },
+          { title: "Total sales", value: formatPrice(totalSales), Icon: DollarSign, tone: "emerald" },
           { title: "Open now", value: String(openCount), Icon: Clock, tone: "amber" },
           { title: "Discrepancies", value: String(discrepancyCount), Icon: Banknote, tone: discrepancyCount > 0 ? "rose" : "sky" },
         ]}

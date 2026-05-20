@@ -15,6 +15,7 @@ import { StatusBadge, type StatusTone } from "@/components/lists/status-badge"
 import { ChartTooltipContent } from "@/components/ui/chart"
 import { useRegisterPageRefresh } from "@/hooks/use-pull-to-refresh"
 import { type Period } from "@/components/reports/period-chips"
+import { useCurrency } from "@/contexts/currency"
 
 type StockRow = {
   sku: string
@@ -48,6 +49,7 @@ const PIE_COLORS = ["var(--chart-1)", "var(--chart-2)", "var(--chart-3)", "var(-
 
 export default function StockReport() {
   const [period, setPeriod] = React.useState<Period>("30d")
+  const { formatPrice } = useCurrency()
   useRegisterPageRefresh(
     React.useCallback(async () => {
       await new Promise((r) => setTimeout(r, 400))
@@ -86,7 +88,7 @@ export default function StockReport() {
       key: "cost",
       header: "Value",
       align: "right",
-      render: (r) => `$${(r.stock * r.cost).toFixed(2)}`,
+      render: (r) => formatPrice(r.stock * r.cost),
     },
     {
       key: "status",
@@ -123,7 +125,7 @@ export default function StockReport() {
       <KpiBand
         items={[
           { title: "Total units", value: totalStock.toLocaleString(), Icon: Boxes, tone: "violet" },
-          { title: "Stock value", value: `$${Math.round(totalValue).toLocaleString()}`, delta: "+1.1%", trend: "up", caption: "vs last period", Icon: DollarSign, tone: "emerald" },
+          { title: "Stock value", value: formatPrice(Math.round(totalValue)), delta: "+1.1%", trend: "up", caption: "vs last period", Icon: DollarSign, tone: "emerald" },
           { title: "Low / critical", value: String(lowCount), delta: "−2", trend: "down", Icon: AlertTriangle, tone: "amber" },
           { title: "Out of stock", value: String(oosCount), Icon: PackageMinus, tone: "rose" },
         ]}

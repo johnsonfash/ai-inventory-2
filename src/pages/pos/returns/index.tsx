@@ -14,6 +14,7 @@ import {
   type Invoice,
 } from "@/lib/pos/storage"
 import { Input } from "@/components/ui/input"
+import { useCurrency } from "@/contexts/currency"
 
 export default function CreateReturnPage() {
   const navigate = useNavigate()
@@ -22,6 +23,7 @@ export default function CreateReturnPage() {
   const [qtys, setQtys] = React.useState<Record<string, number>>({})
   const [method, setMethod] = React.useState<ReturnRecord["method"]>("cash")
   const [reference, setReference] = React.useState("")
+  const { formatPrice } = useCurrency()
 
   const lookup = () => {
     const inv = getInvoiceByNumber(number.trim())
@@ -130,25 +132,25 @@ export default function CreateReturnPage() {
                               }
                             />
                           </TableCell>
-                          <TableCell className="text-right tabular-nums">${it.price.toFixed(2)}</TableCell>
-                          <TableCell className="text-right tabular-nums">${line.toFixed(2)}</TableCell>
+                          <TableCell className="text-right tabular-nums">{formatPrice(it.price)}</TableCell>
+                          <TableCell className="text-right tabular-nums">{formatPrice(line)}</TableCell>
                         </TableRow>
                       )
                     })}
                     <TableRow>
                       <TableCell colSpan={3} />
                       <TableCell className="text-right font-medium">Subtotal</TableCell>
-                      <TableCell className="text-right tabular-nums">${subtotal.toFixed(2)}</TableCell>
+                      <TableCell className="text-right tabular-nums">{formatPrice(subtotal)}</TableCell>
                     </TableRow>
                     <TableRow>
                       <TableCell colSpan={3} />
                       <TableCell className="text-right font-medium">Tax</TableCell>
-                      <TableCell className="text-right tabular-nums">${tax.toFixed(2)}</TableCell>
+                      <TableCell className="text-right tabular-nums">{formatPrice(tax)}</TableCell>
                     </TableRow>
                     <TableRow>
                       <TableCell colSpan={3} />
                       <TableCell className="text-right font-semibold">Refund Total</TableCell>
-                      <TableCell className="text-right font-semibold tabular-nums">${total.toFixed(2)}</TableCell>
+                      <TableCell className="text-right font-semibold tabular-nums">{formatPrice(total)}</TableCell>
                     </TableRow>
                   </TableBody>
                 </Table>

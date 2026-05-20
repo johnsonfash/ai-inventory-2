@@ -42,6 +42,7 @@ import {
   type PaymentLine,
 } from "@/lib/pos/storage"
 import { cn } from "@/lib/utils"
+import { useCurrency } from "@/contexts/currency"
 
 type Mode = "retail" | "restaurant" | "services" | "auto"
 
@@ -50,6 +51,7 @@ export default function PointOfSale() {
   const [search] = useSearchParams()
   const draftIdFromUrl = search.get("draftId")
   const isMobile = useIsMobile()
+  const { formatPrice } = useCurrency()
 
   React.useEffect(() => {
     seedPosDemo()
@@ -199,7 +201,7 @@ export default function PointOfSale() {
     const augmented: PaymentLine[] = payments.map((p) => ({ ...p }))
     if (change > 0) {
       const cashIdx = augmented.findIndex((p) => p.method === "cash")
-      if (cashIdx >= 0) augmented[cashIdx]!.reference = `Change: $${change.toFixed(2)}`
+      if (cashIdx >= 0) augmented[cashIdx]!.reference = `Change: ${formatPrice(change)}`
     }
     const invoice: Invoice = {
       id: genId("inv"),

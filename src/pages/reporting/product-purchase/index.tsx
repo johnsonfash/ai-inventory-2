@@ -5,6 +5,7 @@ import { KpiBand } from "@/components/reports/kpi-band"
 import { DataTable, type Column } from "@/components/reports/data-table"
 import { useRegisterPageRefresh } from "@/hooks/use-pull-to-refresh"
 import { type Period } from "@/components/reports/period-chips"
+import { useCurrency, formatPriceFor } from "@/contexts/currency"
 
 type Row = { sku: string; name: string; vendor: string; qty: number; amount: number; lastReceived: string }
 
@@ -21,12 +22,13 @@ const cols: Column<Row>[] = [
   { key: "name", header: "Item", primary: true },
   { key: "vendor", header: "Vendor" },
   { key: "qty", header: "Qty", align: "right" },
-  { key: "amount", header: "Amount", align: "right", render: (_, v) => `$${(v as number).toLocaleString()}` },
+  { key: "amount", header: "Amount", align: "right", render: (_, v) => formatPriceFor(v as number) },
   { key: "lastReceived", header: "Last received", hideOnMobile: true },
 ]
 
 export default function ProductPurchase() {
   const [period, setPeriod] = React.useState<Period>("30d")
+  const { formatPrice } = useCurrency()
   useRegisterPageRefresh(React.useCallback(async () => { await new Promise((r) => setTimeout(r, 400)) }, []))
 
   const totalQty = rows.reduce((s, r) => s + r.qty, 0)
@@ -44,7 +46,7 @@ export default function ProductPurchase() {
     >
       <KpiBand
         items={[
-          { title: "Total spend", value: `$${totalAmount.toLocaleString()}`, delta: "+8%", trend: "up", caption: "vs last period", Icon: DollarSign, tone: "violet" },
+          { title: "Total spend", value: formatPrice(totalAmount), delta: "+8%", trend: "up", caption: "vs last period", Icon: DollarSign, tone: "violet" },
           { title: "Units received", value: totalQty.toLocaleString(), Icon: Package, tone: "emerald" },
           { title: "Distinct vendors", value: String(vendors), Icon: Truck, tone: "amber" },
           { title: "Line items", value: String(rows.length), Icon: Receipt, tone: "sky" },

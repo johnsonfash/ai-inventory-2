@@ -4,6 +4,7 @@ import { ReportShell } from "@/components/reports/report-shell"
 import { KpiBand } from "@/components/reports/kpi-band"
 import { useRegisterPageRefresh } from "@/hooks/use-pull-to-refresh"
 import { type Period } from "@/components/reports/period-chips"
+import { useCurrency } from "@/contexts/currency"
 
 const assets: { name: string; amount: number; sub: string }[] = [
   { name: "Cash", amount: 120000, sub: "Operating + savings" },
@@ -29,6 +30,7 @@ const sum = (xs: { amount: number }[]) => xs.reduce((s, x) => s + x.amount, 0)
 
 export default function BalanceSheet() {
   const [period, setPeriod] = React.useState<Period>("ytd")
+  const { formatPrice } = useCurrency()
   useRegisterPageRefresh(React.useCallback(async () => { await new Promise((r) => setTimeout(r, 400)) }, []))
 
   const totalAssets = sum(assets)
@@ -55,28 +57,28 @@ export default function BalanceSheet() {
     >
       <KpiBand
         items={[
-          { title: "Total assets", value: `$${totalAssets.toLocaleString()}`, Icon: Wallet, tone: "violet" },
-          { title: "Total liabilities", value: `$${totalLiab.toLocaleString()}`, Icon: CreditCard, tone: "rose" },
-          { title: "Total equity", value: `$${totalEquity.toLocaleString()}`, Icon: TrendingUp, tone: "emerald" },
+          { title: "Total assets", value: formatPrice(totalAssets), Icon: Wallet, tone: "violet" },
+          { title: "Total liabilities", value: formatPrice(totalLiab), Icon: CreditCard, tone: "rose" },
+          { title: "Total equity", value: formatPrice(totalEquity), Icon: TrendingUp, tone: "emerald" },
           { title: "Assets ÷ liab.", value: `${ratio}×`, caption: balanced ? "balanced" : "off by 1+", Icon: Scale, tone: balanced ? "emerald" : "amber" },
         ]}
       />
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <Block title="Assets" Icon={Banknote} rows={assets} total={totalAssets} accent="emerald" />
-        <Block title="Liabilities" Icon={ClipboardList} rows={liabilities} total={totalLiab} accent="rose" />
-        <Block title="Equity" Icon={Building2} rows={equity} total={totalEquity} accent="violet" />
+        <Block title="Assets" Icon={Banknote} rows={assets} total={totalAssets} accent="emerald" formatPrice={formatPrice} />
+        <Block title="Liabilities" Icon={ClipboardList} rows={liabilities} total={totalLiab} accent="rose" formatPrice={formatPrice} />
+        <Block title="Equity" Icon={Building2} rows={equity} total={totalEquity} accent="violet" formatPrice={formatPrice} />
 
         <div className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-4 lg:col-span-1">
           <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Check</p>
-          <Row label="Total assets" value={totalAssets} bold />
-          <Row label="Total liabilities + equity" value={totalLE} bold />
+          <Row label="Total assets" value={totalAssets} bold formatPrice={formatPrice} />
+          <Row label="Total liabilities + equity" value={totalLE} bold formatPrice={formatPrice} />
           <div className="mt-1 rounded-xl border border-dashed border-border p-3 text-center text-sm">
             {balanced ? (
               <span className="font-semibold text-emerald-600 dark:text-emerald-400">Balanced ✓</span>
             ) : (
               <span className="font-semibold text-rose-600 dark:text-rose-400">
-                Difference of ${(totalAssets - totalLE).toLocaleString()}
+                Difference of {formatPrice(totalAssets - totalLE)}
               </span>
             )}
           </div>
@@ -95,12 +97,14 @@ function Block({
   rows,
   total,
   accent,
+  formatPrice,
 }: {
   title: string
   Icon: React.ElementType
   rows: { name: string; amount: number; sub: string }[]
   total: number
   accent: "emerald" | "rose" | "violet"
+  formatPrice: (n: number | null | undefined) => string
 }) {
   const cls = {
     emerald: "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-300",
@@ -125,23 +129,23 @@ function Block({
               <p className="truncate text-sm">{r.name}</p>
               <p className="truncate text-[11px] text-muted-foreground">{r.sub}</p>
             </div>
-            <p className="shrink-0 text-sm font-semibold tabular-nums">${r.amount.toLocaleString()}</p>
+            <p className="shrink-0 text-sm font-semibold tabular-nums">{formatPrice(r.amount)}</p>
           </li>
         ))}
         <li className="flex items-center justify-between gap-3 bg-muted/40 px-4 py-3">
           <p className="text-sm font-bold">Total</p>
-          <p className="text-base font-bold tabular-nums">${total.toLocaleString()}</p>
+          <p className="text-base font-bold tabular-nums">{formatPrice(total)}</p>
         </li>
       </ul>
     </div>
   )
 }
 
-function Row({ label, value, bold }: { label: string; value: number; bold?: boolean }) {
+function Row({ label, value, bold, formatPrice }: { label: string; value: number; bold?: boolean; formatPrice: (n: number | null | undefined) => string }) {
   return (
     <div className="flex items-center justify-between">
       <span className={bold ? "text-sm font-semibold" : "text-xs text-muted-foreground"}>{label}</span>
-      <span className={bold ? "text-base font-bold tabular-nums" : "text-sm tabular-nums"}>${value.toLocaleString()}</span>
+      <span className={bold ? "text-base font-bold tabular-nums" : "text-sm tabular-nums"}>{formatPrice(value)}</span>
     </div>
   )
 }

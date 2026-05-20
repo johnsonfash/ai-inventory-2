@@ -17,6 +17,7 @@ import { StatusBadge } from "@/components/lists/status-badge"
 import { ChartTooltipContent } from "@/components/ui/chart"
 import { useRegisterPageRefresh } from "@/hooks/use-pull-to-refresh"
 import { type Period } from "@/components/reports/period-chips"
+import { useCurrency } from "@/contexts/currency"
 
 type Row = { period: string; collected: number; paid: number; balance: number }
 
@@ -32,6 +33,7 @@ const axisProps = { stroke: "var(--muted-foreground)", fontSize: 11, tickLine: f
 
 export default function TaxReport() {
   const [period, setPeriod] = React.useState<Period>("ytd")
+  const { formatPrice, symbol } = useCurrency()
   useRegisterPageRefresh(
     React.useCallback(async () => {
       await new Promise((r) => setTimeout(r, 400))
@@ -45,15 +47,15 @@ export default function TaxReport() {
 
   const cols: Column<Row>[] = [
     { key: "period", header: "Period", primary: true },
-    { key: "collected", header: "Collected", align: "right", render: (_, v) => `$${(v as number).toLocaleString()}` },
-    { key: "paid", header: "Paid", align: "right", render: (_, v) => `$${(v as number).toLocaleString()}` },
+    { key: "collected", header: "Collected", align: "right", render: (_, v) => formatPrice(v as number) },
+    { key: "paid", header: "Paid", align: "right", render: (_, v) => formatPrice(v as number) },
     {
       key: "balance",
       header: "Balance",
       align: "right",
       render: (r) => (
         <StatusBadge tone={r.balance > 0 ? "warning" : "success"}>
-          ${r.balance.toLocaleString()}
+          {formatPrice(r.balance)}
         </StatusBadge>
       ),
     },
@@ -70,9 +72,9 @@ export default function TaxReport() {
     >
       <KpiBand
         items={[
-          { title: "Collected", value: `$${totalCollected.toLocaleString()}`, delta: "+6%", trend: "up", caption: "year-to-date", Icon: Coins, tone: "emerald" },
-          { title: "Paid", value: `$${totalPaid.toLocaleString()}`, delta: "+8%", trend: "up", Icon: ReceiptText, tone: "violet" },
-          { title: "Balance owed", value: `$${totalBalance.toLocaleString()}`, caption: "due to authority", Icon: Scale, tone: "amber" },
+          { title: "Collected", value: formatPrice(totalCollected), delta: "+6%", trend: "up", caption: "year-to-date", Icon: Coins, tone: "emerald" },
+          { title: "Paid", value: formatPrice(totalPaid), delta: "+8%", trend: "up", Icon: ReceiptText, tone: "violet" },
+          { title: "Balance owed", value: formatPrice(totalBalance), caption: "due to authority", Icon: Scale, tone: "amber" },
           { title: "Effective rate", value: `${effectiveRatePct}%`, caption: "blended", Icon: Calculator, tone: "sky" },
         ]}
       />
@@ -89,7 +91,7 @@ export default function TaxReport() {
           <BarChart data={rows} margin={{ top: 10, right: 6, left: 0, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" strokeOpacity={0.5} />
             <XAxis dataKey="period" {...axisProps} />
-            <YAxis {...axisProps} tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`} />
+            <YAxis {...axisProps} tickFormatter={(v) => `${symbol}${(v / 1000).toFixed(0)}k`} />
             <Tooltip content={<ChartTooltipContent labelKey="period" />} cursor={{ fill: "var(--muted)", fillOpacity: 0.35 }} />
             <Bar dataKey="collected" fill="var(--chart-2)" radius={[6, 6, 0, 0]} />
             <Bar dataKey="paid" fill="var(--chart-1)" radius={[6, 6, 0, 0]} />

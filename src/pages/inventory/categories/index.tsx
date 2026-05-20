@@ -9,6 +9,7 @@ import { useRegisterPageRefresh } from "@/hooks/use-pull-to-refresh"
 import { EmptyState } from "@/components/lists/empty-state"
 import { SummaryStrip } from "@/components/lists/summary-strip"
 import { cn } from "@/lib/utils"
+import { useCurrency } from "@/contexts/currency"
 
 type Row = { name: string; skus: number; revenue: number; tone: number }
 
@@ -32,6 +33,7 @@ const TINTS = [
 
 export default function Categories() {
   const [query, setQuery] = React.useState("")
+  const { formatPrice } = useCurrency()
 
   useRegisterPageRefresh(React.useCallback(async () => { await new Promise((r) => setTimeout(r, 400)) }, []))
 
@@ -52,8 +54,8 @@ export default function Categories() {
           tiles={[
             { label: "Categories", value: String(rows.length), tone: "brand", hint: "tracked" },
             { label: "Total SKUs", value: totalSkus.toLocaleString(), tone: "info", hint: "classified" },
-            { label: "Revenue", value: `$${totalRevenue.toLocaleString()}`, tone: "success", hint: "all categories" },
-            { label: "Top", value: top.name, tone: "warning", hint: `$${top.revenue.toLocaleString()}` },
+            { label: "Revenue", value: formatPrice(totalRevenue), tone: "success", hint: "all categories" },
+            { label: "Top", value: top.name, tone: "warning", hint: formatPrice(top.revenue) },
           ]}
         />
 
@@ -91,7 +93,7 @@ export default function Categories() {
                     </div>
                   </div>
                   <div className="mt-3">
-                    <p className="text-lg font-bold tabular-nums">${r.revenue.toLocaleString()}</p>
+                    <p className="text-lg font-bold tabular-nums">{formatPrice(r.revenue)}</p>
                     <div className="mt-1.5 flex items-center gap-2">
                       <div className="h-1 flex-1 overflow-hidden rounded-full bg-muted">
                         <div

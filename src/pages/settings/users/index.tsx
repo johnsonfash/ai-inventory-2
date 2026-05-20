@@ -27,6 +27,7 @@ import { useIsMobile } from "@/hooks/use-mobile"
 import { INVITES, LOCATIONS, MEMBERS, ROLE_BY_KEY, SESSIONS } from "@/lib/team/data"
 import type { Member, RoleKey } from "@/lib/team/types"
 import { cn } from "@/lib/utils"
+import { useCurrency } from "@/contexts/currency"
 
 type Tab = "active" | "invites" | "affiliates" | "sessions"
 
@@ -87,6 +88,7 @@ export default function TeamHub() {
   const [tab, setTab] = React.useState<Tab>("active")
   const [query, setQuery] = React.useState("")
   const isMobile = useIsMobile()
+  const { formatPrice } = useCurrency()
 
   const activeMembers = React.useMemo(
     () => MEMBERS.filter((m) => m.role !== "affiliate"),
@@ -138,7 +140,7 @@ export default function TeamHub() {
             { label: "Active members", value: String(activeMembers.length), tone: "brand", hint: "humans on staff" },
             { label: "Affiliates", value: String(affiliates.length), tone: "warning", hint: "external partners" },
             { label: "Pending invites", value: String(INVITES.length), tone: "info", hint: "awaiting accept" },
-            { label: "MTD commissions", value: `$${totalCommissionMTD.toLocaleString()}`, tone: "success", hint: "across team" },
+            { label: "MTD commissions", value: formatPrice(totalCommissionMTD), tone: "success", hint: "across team" },
           ]}
         />
 
@@ -180,13 +182,13 @@ export default function TeamHub() {
 
         {/* Tab content */}
         {tab === "active" && (
-          <ActiveTab members={filteredActive} isMobile={isMobile} />
+          <ActiveTab members={filteredActive} isMobile={isMobile} formatPrice={formatPrice} />
         )}
         {tab === "invites" && (
           <InvitesTab />
         )}
         {tab === "affiliates" && (
-          <AffiliatesTab members={filteredAffiliates} totalSales={totalSalesMTD} />
+          <AffiliatesTab members={filteredAffiliates} totalSales={totalSalesMTD} formatPrice={formatPrice} />
         )}
         {tab === "sessions" && (
           <SessionsTab />
@@ -197,7 +199,7 @@ export default function TeamHub() {
 }
 
 // ----------- Active tab -----------
-function ActiveTab({ members, isMobile }: { members: Member[]; isMobile: boolean }) {
+function ActiveTab({ members, isMobile, formatPrice }: { members: Member[]; isMobile: boolean; formatPrice: (n: number | null | undefined) => string }) {
   if (members.length === 0) {
     return (
       <EmptyState
@@ -261,7 +263,7 @@ function ActiveTab({ members, isMobile }: { members: Member[]; isMobile: boolean
                   )}
                 </td>
                 <td className="px-4 py-2.5 text-right tabular-nums">
-                  {m.mtdSalesUsd != null ? `$${m.mtdSalesUsd.toLocaleString()}` : "—"}
+                  {m.mtdSalesUsd != null ? formatPrice(m.mtdSalesUsd) : "—"}
                 </td>
                 <td className="px-4 py-2.5 text-right text-[11px] text-muted-foreground">{relTime(m.lastActiveAt)}</td>
                 <td className="px-4 py-2.5 text-right">
@@ -388,7 +390,7 @@ function InvitesTab() {
 }
 
 // ----------- Affiliates tab -----------
-function AffiliatesTab({ members, totalSales }: { members: Member[]; totalSales: number }) {
+function AffiliatesTab({ members, totalSales, formatPrice }: { members: Member[]; totalSales: number; formatPrice: (n: number | null | undefined) => string }) {
   if (members.length === 0) {
     return (
       <EmptyState
@@ -440,12 +442,12 @@ function AffiliatesTab({ members, totalSales }: { members: Member[]; totalSales:
                   </div>
                   <div>
                     <p className="uppercase text-muted-foreground">MTD sales</p>
-                    <p className="font-bold tabular-nums">${m.mtdSalesUsd?.toLocaleString() ?? "—"}</p>
+                    <p className="font-bold tabular-nums">{m.mtdSalesUsd != null ? formatPrice(m.mtdSalesUsd) : "—"}</p>
                   </div>
                   <div>
                     <p className="uppercase text-muted-foreground">Commission</p>
                     <p className="font-bold tabular-nums text-emerald-600 dark:text-emerald-400">
-                      ${m.mtdCommissionUsd?.toLocaleString() ?? "—"}
+                      {m.mtdCommissionUsd != null ? formatPrice(m.mtdCommissionUsd) : "—"}
                     </p>
                   </div>
                 </div>

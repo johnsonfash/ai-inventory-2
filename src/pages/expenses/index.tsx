@@ -10,6 +10,7 @@ import { useRegisterPageRefresh } from "@/hooks/use-pull-to-refresh"
 import { EmptyState } from "@/components/lists/empty-state"
 import { StatusBadge, type StatusTone } from "@/components/lists/status-badge"
 import { SummaryStrip } from "@/components/lists/summary-strip"
+import { useCurrency } from "@/contexts/currency"
 
 type Row = { id: string; category: string; vendor: string; amount: number; date: string; method: "card" | "cash" | "transfer" }
 
@@ -38,6 +39,8 @@ export default function Expenses() {
   const [query, setQuery] = React.useState("")
   const [category, setCategory] = React.useState<(typeof CATEGORIES)[number]>("All")
 
+  const { formatPrice } = useCurrency()
+
   useRegisterPageRefresh(React.useCallback(async () => { await new Promise((r) => setTimeout(r, 400)) }, []))
 
   const filtered = React.useMemo(() => {
@@ -63,8 +66,8 @@ export default function Expenses() {
       <div className="flex flex-col gap-4">
         <SummaryStrip
           tiles={[
-            { label: "This month", value: `$${thisMonth.toLocaleString()}`, tone: "warning", hint: "spent" },
-            { label: "Largest", value: `$${largest.amount.toLocaleString()}`, tone: "brand", hint: largest.category },
+            { label: "This month", value: formatPrice(thisMonth), tone: "warning", hint: "spent" },
+            { label: "Largest", value: formatPrice(largest.amount), tone: "brand", hint: largest.category },
             { label: "Categories", value: String(new Set(rows.map((r) => r.category)).size), tone: "info", hint: "active" },
             { label: "Entries", value: String(rows.length), tone: "success", hint: "logged" },
           ]}
@@ -119,7 +122,7 @@ export default function Expenses() {
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center justify-between gap-2">
                       <p className="truncate text-sm font-semibold">{r.vendor}</p>
-                      <p className="shrink-0 text-sm font-bold tabular-nums">${r.amount.toLocaleString()}</p>
+                      <p className="shrink-0 text-sm font-bold tabular-nums">{formatPrice(r.amount)}</p>
                     </div>
                     <div className="mt-0.5 flex items-center justify-between gap-2 text-[11px] text-muted-foreground">
                       <span><span className="font-mono">{r.id}</span> · {r.date}</span>
@@ -131,7 +134,7 @@ export default function Expenses() {
             ))}
             <li className="rounded-xl border border-dashed border-border bg-muted/30 p-3 text-center text-xs">
               <span className="text-muted-foreground">Total · </span>
-              <span className="font-semibold tabular-nums">${filtered.reduce((s, r) => s + r.amount, 0).toLocaleString()}</span>
+              <span className="font-semibold tabular-nums">{formatPrice(filtered.reduce((s, r) => s + r.amount, 0))}</span>
             </li>
           </ul>
         ) : (
@@ -161,7 +164,7 @@ export default function Expenses() {
                     </td>
                     <td className="px-3 py-2.5 capitalize text-muted-foreground">{r.method}</td>
                     <td className="px-3 py-2.5 text-muted-foreground">{r.date}</td>
-                    <td className="px-3 py-2.5 text-right tabular-nums font-semibold">${r.amount.toLocaleString()}</td>
+                    <td className="px-3 py-2.5 text-right tabular-nums font-semibold">{formatPrice(r.amount)}</td>
                     <td className="px-3 py-2.5 text-right">
                       <Button size="sm" variant="ghost" asChild><Link to="/expenses"><ChevronRight className="h-3.5 w-3.5" /></Link></Button>
                     </td>
@@ -169,7 +172,7 @@ export default function Expenses() {
                 ))}
                 <tr className="bg-muted/30 font-semibold">
                   <td colSpan={5} className="px-3 py-2.5 text-right text-xs uppercase tracking-wider text-muted-foreground">Total</td>
-                  <td className="px-3 py-2.5 text-right tabular-nums">${filtered.reduce((s, r) => s + r.amount, 0).toLocaleString()}</td>
+                  <td className="px-3 py-2.5 text-right tabular-nums">{formatPrice(filtered.reduce((s, r) => s + r.amount, 0))}</td>
                   <td />
                 </tr>
               </tbody>

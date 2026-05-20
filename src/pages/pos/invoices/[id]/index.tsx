@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { getInvoiceById } from "@/lib/pos/storage"
 import { useShare } from "@/hooks/use-share"
+import { useCurrency } from "@/contexts/currency"
 
 export default function InvoiceDetailPage() {
   const params = useParams<{ id: string }>()
@@ -16,6 +17,7 @@ export default function InvoiceDetailPage() {
   const invoice = getInvoiceById(params.id ?? "")
   const ref = React.useRef<HTMLDivElement>(null)
   const share = useShare()
+  const { formatPrice } = useCurrency()
 
   React.useEffect(() => {
     if (search.get("print") === "1" && ref.current) {
@@ -43,7 +45,7 @@ export default function InvoiceDetailPage() {
       ? "https://pallio.app"
       : window.location.origin
     const url = `${origin}/pos/invoices/${invoice.id}`
-    const total = `$${invoice.total.toFixed(2)}`
+    const total = formatPrice(invoice.total)
     const customer = invoice.customer?.name ?? "Walk-in"
     const res = await share({
       title: `Invoice ${invoice.number}`,

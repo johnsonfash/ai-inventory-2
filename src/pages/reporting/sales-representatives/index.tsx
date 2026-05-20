@@ -17,6 +17,7 @@ import { StatusBadge } from "@/components/lists/status-badge"
 import { ChartTooltipContent } from "@/components/ui/chart"
 import { useRegisterPageRefresh } from "@/hooks/use-pull-to-refresh"
 import { type Period } from "@/components/reports/period-chips"
+import { useCurrency } from "@/contexts/currency"
 
 type Rep = {
   rep: string
@@ -57,6 +58,7 @@ function avatarTint(name: string) {
 
 export default function SalesRepresentatives() {
   const [period, setPeriod] = React.useState<Period>("30d")
+  const { formatPrice, symbol } = useCurrency()
   useRegisterPageRefresh(
     React.useCallback(async () => {
       await new Promise((r) => setTimeout(r, 400))
@@ -90,14 +92,14 @@ export default function SalesRepresentatives() {
       key: "revenue",
       header: "Revenue",
       align: "right",
-      render: (_, v) => `$${(v as number).toLocaleString()}`,
+      render: (_, v) => formatPrice(v as number),
     },
     {
       key: "avgOrder",
       header: "Avg order",
       align: "right",
       hideOnMobile: true,
-      render: (_, v) => `$${(v as number).toFixed(2)}`,
+      render: (_, v) => formatPrice(v as number),
     },
     {
       key: "attainmentPct",
@@ -132,7 +134,7 @@ export default function SalesRepresentatives() {
       <KpiBand
         items={[
           { title: "Top rep", value: top.rep.split(" ")[0] ?? top.rep, delta: `${top.attainmentPct}% of goal`, trend: "up", Icon: Award, tone: "amber" },
-          { title: "Total revenue", value: `$${totalRevenue.toLocaleString()}`, delta: "+18%", trend: "up", caption: "vs last period", Icon: DollarSign, tone: "violet" },
+          { title: "Total revenue", value: formatPrice(totalRevenue), delta: "+18%", trend: "up", caption: "vs last period", Icon: DollarSign, tone: "violet" },
           { title: "Orders", value: totalOrders.toLocaleString(), Icon: ShoppingCart, tone: "emerald" },
           { title: "Avg attainment", value: `${avgAttainment}%`, delta: avgAttainment >= 100 ? "Above goal" : "Below goal", trend: avgAttainment >= 100 ? "up" : "down", Icon: Users, tone: "sky" },
         ]}
@@ -150,7 +152,7 @@ export default function SalesRepresentatives() {
           <BarChart data={sorted.map((r) => ({ rep: r.rep.split(" ")[0], revenue: r.revenue, orders100: r.orders * 100 }))} margin={{ top: 10, right: 6, left: 0, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" strokeOpacity={0.5} />
             <XAxis dataKey="rep" {...axisProps} />
-            <YAxis {...axisProps} tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`} />
+            <YAxis {...axisProps} tickFormatter={(v) => `${symbol}${(v / 1000).toFixed(0)}k`} />
             <Tooltip content={<ChartTooltipContent labelKey="rep" />} cursor={{ fill: "var(--muted)", fillOpacity: 0.35 }} />
             <Bar dataKey="revenue" fill="var(--chart-1)" radius={[6, 6, 0, 0]} />
             <Bar dataKey="orders100" fill="var(--chart-2)" radius={[6, 6, 0, 0]} />

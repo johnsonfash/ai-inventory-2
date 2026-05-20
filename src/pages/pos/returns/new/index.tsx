@@ -15,6 +15,7 @@ import {
   type Invoice,
   type ReturnRecord,
 } from "@/lib/pos/storage"
+import { useCurrency } from "@/contexts/currency"
 
 export default function NewReturnPage() {
   const navigate = useNavigate()
@@ -26,6 +27,7 @@ export default function NewReturnPage() {
   const [qtys, setQtys] = React.useState<Record<string, number>>({})
   const [method, setMethod] = React.useState<ReturnRecord["method"]>("card")
   const [reference, setReference] = React.useState("")
+  const { formatPrice } = useCurrency()
 
   React.useEffect(() => {
     const inv = invoiceId ? getInvoiceById(invoiceId) : invoiceNumber ? getInvoiceByNumber(invoiceNumber) : undefined
@@ -140,7 +142,7 @@ export default function NewReturnPage() {
                         }}
                       />
                     </TableCell>
-                    <TableCell className="text-right tabular-nums">${it.price.toFixed(2)}</TableCell>
+                    <TableCell className="text-right tabular-nums">{formatPrice(it.price)}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -171,15 +173,15 @@ export default function NewReturnPage() {
           <div className="mt-2 rounded border p-3 text-sm">
             <div className="flex items-center justify-between">
               <span className="text-muted-foreground">Subtotal</span>
-              <span className="tabular-nums">${(Math.round(subtotal * 100) / 100).toFixed(2)}</span>
+              <span className="tabular-nums">{formatPrice(Math.round(subtotal * 100) / 100)}</span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-muted-foreground">Tax</span>
-              <span className="tabular-nums">${(Math.round(tax * 100) / 100).toFixed(2)}</span>
+              <span className="tabular-nums">{formatPrice(Math.round(tax * 100) / 100)}</span>
             </div>
             <div className="flex items-center justify-between text-base font-semibold">
               <span>Total Refund</span>
-              <span className="tabular-nums">${totalRefund.toFixed(2)}</span>
+              <span className="tabular-nums">{formatPrice(totalRefund)}</span>
             </div>
           </div>
 

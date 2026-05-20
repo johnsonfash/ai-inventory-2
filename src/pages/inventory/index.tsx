@@ -26,6 +26,7 @@ import {
 } from "@/components/lists/filter-sheet"
 import { SwipeableRow } from "@/components/mobile/swipeable-row"
 import { cn } from "@/lib/utils"
+import { useCurrency } from "@/contexts/currency"
 
 type Item = {
   sku: string
@@ -82,6 +83,7 @@ function stockStatus(it: Item): { tone: StatusTone; label: string } {
 
 export default function InventoryItems() {
   const isMobile = useIsMobile()
+  const { formatPrice } = useCurrency()
   const [query, setQuery] = React.useState("")
   const [filterOpen, setFilterOpen] = React.useState(false)
 
@@ -230,9 +232,9 @@ export default function InventoryItems() {
             </CardContent>
           </Card>
         ) : isMobile ? (
-          <MobileItemList items={filtered} />
+          <MobileItemList items={filtered} formatPrice={formatPrice} />
         ) : (
-          <DesktopItemTable items={filtered} />
+          <DesktopItemTable items={filtered} formatPrice={formatPrice} />
         )}
       </div>
 
@@ -283,11 +285,12 @@ function SummaryStrip({
   oosCount: number
   totalValue: number
 }) {
+  const { formatPrice } = useCurrency()
   const tiles = [
     { label: "Total SKUs", value: total.toLocaleString(), tone: "brand" as StatusTone, hint: "active" },
     { label: "Low stock", value: lowCount.toLocaleString(), tone: "warning" as StatusTone, hint: "watch" },
     { label: "Out of stock", value: oosCount.toLocaleString(), tone: "danger" as StatusTone, hint: "act now" },
-    { label: "Stock value", value: `$${Math.round(totalValue).toLocaleString()}`, tone: "success" as StatusTone, hint: "healthy" },
+    { label: "Stock value", value: formatPrice(totalValue), tone: "success" as StatusTone, hint: "healthy" },
   ]
   return (
     <div className="-mx-4 flex gap-2.5 overflow-x-auto px-4 pb-1 scrollbar-hide snap-x snap-mandatory md:mx-0 md:grid md:grid-cols-4 md:gap-3 md:overflow-visible md:px-0">
@@ -307,7 +310,7 @@ function SummaryStrip({
   )
 }
 
-function MobileItemList({ items }: { items: Item[] }) {
+function MobileItemList({ items, formatPrice }: { items: Item[]; formatPrice: (n: number | null | undefined) => string }) {
   return (
     <ul className="space-y-2">
       {items.map((it) => {
@@ -341,7 +344,7 @@ function MobileItemList({ items }: { items: Item[] }) {
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center justify-between gap-2">
                     <p className="truncate text-sm font-semibold">{it.name}</p>
-                    <p className="shrink-0 text-sm font-semibold tabular-nums">${it.price.toFixed(2)}</p>
+                    <p className="shrink-0 text-sm font-semibold tabular-nums">{formatPrice(it.price)}</p>
                   </div>
                   <div className="mt-0.5 flex items-center justify-between gap-2 text-[11px] text-muted-foreground">
                     <span className="truncate">
@@ -378,7 +381,7 @@ function MobileItemList({ items }: { items: Item[] }) {
   )
 }
 
-function DesktopItemTable({ items }: { items: Item[] }) {
+function DesktopItemTable({ items, formatPrice }: { items: Item[]; formatPrice: (n: number | null | undefined) => string }) {
   return (
     <div className="overflow-hidden rounded-xl border border-border bg-card">
       <table className="w-full text-sm">
@@ -427,7 +430,7 @@ function DesktopItemTable({ items }: { items: Item[] }) {
                   {it.stock}
                   <span className="text-muted-foreground">/{it.reorder}</span>
                 </td>
-                <td className="px-3 py-2.5 text-right tabular-nums">${it.price.toFixed(2)}</td>
+                <td className="px-3 py-2.5 text-right tabular-nums">{formatPrice(it.price)}</td>
                 <td className="px-3 py-2.5">
                   <StatusBadge tone={s.tone} withDot>
                     {s.label}

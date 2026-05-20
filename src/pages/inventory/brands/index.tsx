@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input"
 import { useRegisterPageRefresh } from "@/hooks/use-pull-to-refresh"
 import { EmptyState } from "@/components/lists/empty-state"
 import { SummaryStrip } from "@/components/lists/summary-strip"
+import { useCurrency } from "@/contexts/currency"
 
 type Row = { name: string; supplier: string; skus: number; revenue: number }
 
@@ -39,6 +40,7 @@ function avatarTint(name: string) {
 
 export default function Brands() {
   const [query, setQuery] = React.useState("")
+  const { formatPrice } = useCurrency()
 
   useRegisterPageRefresh(React.useCallback(async () => { await new Promise((r) => setTimeout(r, 400)) }, []))
 
@@ -58,7 +60,7 @@ export default function Brands() {
           tiles={[
             { label: "Brands", value: String(rows.length), tone: "brand", hint: "tracked" },
             { label: "SKUs", value: totalSkus.toLocaleString(), tone: "info", hint: "all brands" },
-            { label: "Top brand", value: top.name, tone: "success", hint: `$${top.revenue.toLocaleString()}` },
+            { label: "Top brand", value: top.name, tone: "success", hint: formatPrice(top.revenue) },
             { label: "Suppliers", value: String(new Set(rows.map((r) => r.supplier)).size), tone: "warning", hint: "linked" },
           ]}
         />
@@ -95,7 +97,7 @@ export default function Brands() {
                   </div>
                 </div>
                 <div className="mt-3 flex items-baseline justify-between">
-                  <p className="text-lg font-bold tabular-nums">${r.revenue.toLocaleString()}</p>
+                  <p className="text-lg font-bold tabular-nums">{formatPrice(r.revenue)}</p>
                   <p className="text-[11px] text-muted-foreground">{r.skus} SKUs</p>
                 </div>
               </Link>

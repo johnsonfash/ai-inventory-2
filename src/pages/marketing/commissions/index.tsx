@@ -10,12 +10,14 @@ import { Bar, BarChart, CartesianGrid, ResponsiveContainer, XAxis, YAxis } from 
 import { aggregateSalesBySalesperson } from "@/lib/pos/storage"
 import { RoleGuard } from "@/components/auth/role-guard"
 import { fetchAnalyticsTeams } from "@/lib/api-mocks/analytics-teams"
+import { useCurrency } from "@/contexts/currency"
 
 type SpRow = { salesperson: string; sales: number; revenue: number }
 
 export default function MarketingCommissionsPage() {
   const [data, setData] = React.useState<SpRow[]>(aggregateSalesBySalesperson())
   const totalRevenue = data.reduce((s, d) => s + d.revenue, 0)
+  const { formatPrice } = useCurrency()
 
   React.useEffect(() => {
     let ignore = false
@@ -92,7 +94,7 @@ export default function MarketingCommissionsPage() {
                       <TableRow key={row.salesperson}>
                         <TableCell className="font-medium">{row.salesperson}</TableCell>
                         <TableCell className="text-right tabular-nums">{row.sales}</TableCell>
-                        <TableCell className="text-right tabular-nums">${row.revenue.toFixed(2)}</TableCell>
+                        <TableCell className="text-right tabular-nums">{formatPrice(row.revenue)}</TableCell>
                       </TableRow>
                     ))}
                     {data.length === 0 && (

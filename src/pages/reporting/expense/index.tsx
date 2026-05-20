@@ -5,6 +5,7 @@ import { KpiBand } from "@/components/reports/kpi-band"
 import { DataTable, type Column } from "@/components/reports/data-table"
 import { useRegisterPageRefresh } from "@/hooks/use-pull-to-refresh"
 import { type Period } from "@/components/reports/period-chips"
+import { useCurrency, formatPriceFor } from "@/contexts/currency"
 
 type Row = { id: string; date: string; category: string; vendor: string; amount: number }
 
@@ -21,11 +22,12 @@ const cols: Column<Row>[] = [
   { key: "date", header: "Date", hideOnMobile: true },
   { key: "category", header: "Category", primary: true },
   { key: "vendor", header: "Vendor" },
-  { key: "amount", header: "Amount", align: "right", render: (_, v) => `$${(v as number).toLocaleString()}` },
+  { key: "amount", header: "Amount", align: "right", render: (_, v) => formatPriceFor(v as number) },
 ]
 
 export default function ExpenseReport() {
   const [period, setPeriod] = React.useState<Period>("30d")
+  const { formatPrice } = useCurrency()
   useRegisterPageRefresh(React.useCallback(async () => { await new Promise((r) => setTimeout(r, 400)) }, []))
 
   const total = rows.reduce((s, r) => s + r.amount, 0)
@@ -42,10 +44,10 @@ export default function ExpenseReport() {
     >
       <KpiBand
         items={[
-          { title: "Total spend", value: `$${total.toLocaleString()}`, delta: "−4%", trend: "down", caption: "vs last period", Icon: Wallet, tone: "rose" },
-          { title: "Largest", value: `$${largest.amount.toLocaleString()}`, caption: largest.category, Icon: TrendingDown, tone: "amber" },
+          { title: "Total spend", value: formatPrice(total), delta: "−4%", trend: "down", caption: "vs last period", Icon: Wallet, tone: "rose" },
+          { title: "Largest", value: formatPrice(largest.amount), caption: largest.category, Icon: TrendingDown, tone: "amber" },
           { title: "Entries", value: String(rows.length), Icon: Receipt, tone: "violet" },
-          { title: "Avg per entry", value: `$${Math.round(total / rows.length).toLocaleString()}`, Icon: PiggyBank, tone: "emerald" },
+          { title: "Avg per entry", value: formatPrice(Math.round(total / rows.length)), Icon: PiggyBank, tone: "emerald" },
         ]}
       />
       <div className="rounded-2xl border border-border bg-card">

@@ -23,6 +23,7 @@ import { PeriodChips, type Period } from "@/components/reports/period-chips"
 import { RoleGuard } from "@/components/auth/role-guard"
 import { aggregateSalesByChannel, aggregateSalesByLocation, aggregateSalesBySalesperson } from "@/lib/pos/storage"
 import { fetchAnalyticsTeams } from "@/lib/api-mocks/analytics-teams"
+import { useCurrency } from "@/contexts/currency"
 
 type SpRow = { salesperson: string; sales: number; revenue: number }
 type LocRow = { location: string; sales: number; revenue: number }
@@ -55,6 +56,7 @@ export default function TeamPerformancePage() {
   const [bySp, setBySp] = React.useState<SpRow[]>(aggregateSalesBySalesperson())
   const [byLoc, setByLoc] = React.useState<LocRow[]>(aggregateSalesByLocation())
   const [byCh, setByCh] = React.useState<ChRow[]>(aggregateSalesByChannel())
+  const { formatPrice, symbol } = useCurrency()
 
   useRegisterPageRefresh(React.useCallback(async () => {
     const d = await fetchAnalyticsTeams(period)
@@ -94,10 +96,10 @@ export default function TeamPerformancePage() {
         <div className="flex flex-col gap-4">
           <SummaryStrip
             tiles={[
-              { label: "Revenue", value: `$${totalRevenue.toLocaleString()}`, tone: "brand", hint: "team total" },
+              { label: "Revenue", value: formatPrice(totalRevenue), tone: "brand", hint: "team total" },
               { label: "Sales", value: String(totalSales), tone: "info", hint: "this period" },
-              { label: "Avg order", value: `$${avgOrder.toFixed(2)}`, tone: "success", hint: "per sale" },
-              { label: "Top rep", value: winner?.salesperson?.split(" ")[0] ?? "—", tone: "warning", hint: winner ? `$${winner.revenue.toLocaleString()}` : "no data" },
+              { label: "Avg order", value: formatPrice(avgOrder), tone: "success", hint: "per sale" },
+              { label: "Top rep", value: winner?.salesperson?.split(" ")[0] ?? "—", tone: "warning", hint: winner ? formatPrice(winner.revenue) : "no data" },
             ]}
           />
 
@@ -150,9 +152,9 @@ export default function TeamPerformancePage() {
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center justify-between gap-2">
                             <p className="truncate text-sm font-semibold">{r.salesperson}</p>
-                            <p className="shrink-0 text-sm font-bold tabular-nums">${r.revenue.toLocaleString()}</p>
+                            <p className="shrink-0 text-sm font-bold tabular-nums">{formatPrice(r.revenue)}</p>
                           </div>
-                          <p className="mt-0.5 text-[11px] text-muted-foreground">{r.sales} sales · ${commission.toFixed(0)} commission</p>
+                          <p className="mt-0.5 text-[11px] text-muted-foreground">{r.sales} sales · {formatPrice(commission)} commission</p>
                           <div className="mt-1.5 flex items-center gap-2">
                             <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
                               <div className="h-1.5 rounded-full bg-gradient-to-r from-brand via-fuchsia-500 to-emerald-500" style={{ width: `${pct}%` }} />
@@ -176,7 +178,7 @@ export default function TeamPerformancePage() {
                 <BarChart data={sorted.map((r) => ({ rep: r.salesperson.split(" ")[0], revenue: r.revenue }))} margin={{ top: 10, right: 6, left: 0, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" strokeOpacity={0.5} />
                   <XAxis dataKey="rep" {...axisProps} />
-                  <YAxis {...axisProps} tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`} />
+                  <YAxis {...axisProps} tickFormatter={(v) => `${symbol}${(v / 1000).toFixed(0)}k`} />
                   <Tooltip content={<ChartTooltipContent labelKey="rep" />} cursor={{ fill: "var(--muted)", fillOpacity: 0.35 }} />
                   <Bar dataKey="revenue" fill="var(--chart-1)" radius={[6, 6, 0, 0]} />
                 </BarChart>
@@ -188,7 +190,7 @@ export default function TeamPerformancePage() {
                 <BarChart data={byCh.map((r) => ({ channel: r.channel, revenue: r.revenue }))} margin={{ top: 10, right: 6, left: 0, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" strokeOpacity={0.5} />
                   <XAxis dataKey="channel" {...axisProps} />
-                  <YAxis {...axisProps} tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`} />
+                  <YAxis {...axisProps} tickFormatter={(v) => `${symbol}${(v / 1000).toFixed(0)}k`} />
                   <Tooltip content={<ChartTooltipContent labelKey="channel" />} cursor={{ fill: "var(--muted)", fillOpacity: 0.35 }} />
                   <Bar dataKey="revenue" fill="var(--chart-2)" radius={[6, 6, 0, 0]} />
                 </BarChart>
@@ -208,7 +210,7 @@ export default function TeamPerformancePage() {
                     </span>
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-semibold">{r.location}</p>
-                      <p className="text-[11px] text-muted-foreground">{r.sales} sales · <span className="font-bold tabular-nums text-foreground">${r.revenue.toLocaleString()}</span></p>
+                      <p className="text-[11px] text-muted-foreground">{r.sales} sales · <span className="font-bold tabular-nums text-foreground">{formatPrice(r.revenue)}</span></p>
                     </div>
                     <ShoppingCart className="h-4 w-4 text-muted-foreground" />
                   </li>

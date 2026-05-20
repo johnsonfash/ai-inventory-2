@@ -6,12 +6,14 @@ import { getReturnById } from "@/lib/pos/storage"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Printer } from "lucide-react"
+import { useCurrency } from "@/contexts/currency"
 
 export default function ReturnDetailPage() {
   const params = useParams<{ id: string }>()
   const [search] = useSearchParams()
   const rec = getReturnById(params.id ?? "")
   const ref = React.useRef<HTMLDivElement>(null)
+  const { formatPrice } = useCurrency()
 
   React.useEffect(() => {
     if (search.get("print") === "1" && ref.current) {
@@ -91,19 +93,19 @@ ${ref.current.outerHTML}
                     <tr key={it.sku} className="border-b">
                       <td className="p-3">{it.name}</td>
                       <td className="p-3 text-right tabular-nums">{it.qty}</td>
-                      <td className="p-3 text-right tabular-nums">${it.price.toFixed(2)}</td>
-                      <td className="p-3 text-right tabular-nums">${(it.qty * it.price).toFixed(2)}</td>
+                      <td className="p-3 text-right tabular-nums">{formatPrice(it.price)}</td>
+                      <td className="p-3 text-right tabular-nums">{formatPrice(it.qty * it.price)}</td>
                     </tr>
                   ))}
                   <tr>
                     <td className="p-3" colSpan={2} />
                     <td className="p-3 text-right font-medium">Tax</td>
-                    <td className="p-3 text-right tabular-nums">${rec.tax.toFixed(2)}</td>
+                    <td className="p-3 text-right tabular-nums">{formatPrice(rec.tax)}</td>
                   </tr>
                   <tr>
                     <td className="p-3" colSpan={2} />
                     <td className="p-3 text-right font-semibold">Refund Total</td>
-                    <td className="p-3 text-right font-semibold tabular-nums">${rec.totalRefund.toFixed(2)}</td>
+                    <td className="p-3 text-right font-semibold tabular-nums">{formatPrice(rec.totalRefund)}</td>
                   </tr>
                 </tbody>
               </table>

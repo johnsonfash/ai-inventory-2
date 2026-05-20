@@ -6,6 +6,7 @@ import { DataTable, type Column } from "@/components/reports/data-table"
 import { StatusBadge, type StatusTone } from "@/components/lists/status-badge"
 import { useRegisterPageRefresh } from "@/hooks/use-pull-to-refresh"
 import { type Period } from "@/components/reports/period-chips"
+import { useCurrency, formatPriceFor } from "@/contexts/currency"
 
 type Status = "paid" | "partial" | "pending" | "overdue"
 type Row = { id: string; vendor: string; amount: number; date: string; status: Status }
@@ -24,12 +25,13 @@ const cols: Column<Row>[] = [
   { key: "id", header: "ID", render: (_, v) => <span className="font-mono text-xs">{v as string}</span> },
   { key: "vendor", header: "Vendor", primary: true },
   { key: "date", header: "Date", hideOnMobile: true },
-  { key: "amount", header: "Amount", align: "right", render: (_, v) => `$${(v as number).toLocaleString()}` },
+  { key: "amount", header: "Amount", align: "right", render: (_, v) => formatPriceFor(v as number) },
   { key: "status", header: "Status", render: (r) => <StatusBadge tone={tone[r.status]} withDot>{r.status}</StatusBadge> },
 ]
 
 export default function PurchasePaymentReport() {
   const [period, setPeriod] = React.useState<Period>("30d")
+  const { formatPrice } = useCurrency()
   useRegisterPageRefresh(React.useCallback(async () => { await new Promise((r) => setTimeout(r, 400)) }, []))
 
   const paid = rows.filter((r) => r.status === "paid").reduce((s, r) => s + r.amount, 0)
@@ -47,10 +49,10 @@ export default function PurchasePaymentReport() {
     >
       <KpiBand
         items={[
-          { title: "Total settled", value: `$${paid.toLocaleString()}`, Icon: CreditCard, tone: "emerald" },
-          { title: "Pending", value: `$${pending.toLocaleString()}`, Icon: Clock, tone: "amber" },
-          { title: "Overdue", value: `$${overdue.toLocaleString()}`, Icon: FileWarning, tone: "rose" },
-          { title: "Total", value: `$${rows.reduce((s, r) => s + r.amount, 0).toLocaleString()}`, Icon: DollarSign, tone: "violet" },
+          { title: "Total settled", value: formatPrice(paid), Icon: CreditCard, tone: "emerald" },
+          { title: "Pending", value: formatPrice(pending), Icon: Clock, tone: "amber" },
+          { title: "Overdue", value: formatPrice(overdue), Icon: FileWarning, tone: "rose" },
+          { title: "Total", value: formatPrice(rows.reduce((s, r) => s + r.amount, 0)), Icon: DollarSign, tone: "violet" },
         ]}
       />
       <div className="rounded-2xl border border-border bg-card">

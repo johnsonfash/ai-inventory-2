@@ -7,10 +7,12 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { listInvoices } from "@/lib/pos/storage"
 import { useNavigate } from "react-router-dom"
 import { Printer, ReceiptText, Search } from "lucide-react"
+import { useCurrency } from "@/contexts/currency"
 
 export default function InvoicesListPage() {
   const navigate = useNavigate()
   const [q, setQ] = React.useState("")
+  const { formatPrice } = useCurrency()
   const invoices = listInvoices()
   const filtered = invoices.filter((inv) => {
     const s = q.toLowerCase()
@@ -66,7 +68,7 @@ export default function InvoicesListPage() {
                       <TableCell className="font-mono text-xs">{i.number}</TableCell>
                       <TableCell>{new Date(i.createdAt).toLocaleString()}</TableCell>
                       <TableCell>{i.customer?.name || "Walk-in"}</TableCell>
-                      <TableCell className="text-right tabular-nums">${i.total.toFixed(2)}</TableCell>
+                      <TableCell className="text-right tabular-nums">{formatPrice(i.total)}</TableCell>
                       <TableCell className="capitalize">{i.payments[0]?.method ?? "—"}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">

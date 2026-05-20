@@ -9,6 +9,7 @@ import { useRegisterPageRefresh } from "@/hooks/use-pull-to-refresh"
 import { EmptyState } from "@/components/lists/empty-state"
 import { StatusBadge, type StatusTone } from "@/components/lists/status-badge"
 import { SummaryStrip } from "@/components/lists/summary-strip"
+import { useCurrency } from "@/contexts/currency"
 
 type Row = {
   sku: string
@@ -56,6 +57,7 @@ const statusTone: Record<Row["status"], StatusTone> = { active: "success", draft
 
 export default function CompositeItems() {
   const [query, setQuery] = React.useState("")
+  const { formatPrice } = useCurrency()
   useRegisterPageRefresh(React.useCallback(async () => { await new Promise((r) => setTimeout(r, 400)) }, []))
 
   const filtered = React.useMemo(() => {
@@ -78,7 +80,7 @@ export default function CompositeItems() {
             { label: "Composites", value: String(rows.length), tone: "brand", hint: "kits / bundles" },
             { label: "Active", value: String(active), tone: "success", hint: "sellable" },
             { label: "Avg margin", value: `${avgMargin}%`, tone: avgMargin >= 50 ? "success" : "warning", hint: "across kits" },
-            { label: "Catalog price", value: `$${totalRevenue.toFixed(0)}`, tone: "info", hint: "combined" },
+            { label: "Catalog price", value: formatPrice(totalRevenue), tone: "info", hint: "combined" },
           ]}
         />
 
@@ -122,7 +124,7 @@ export default function CompositeItems() {
                         ))}
                       </div>
                       <div className="mt-2 flex items-baseline justify-between gap-2 border-t border-border pt-2 text-[11px]">
-                        <span className="text-muted-foreground">Sell: <span className="font-bold tabular-nums text-foreground">${r.sellPrice.toFixed(2)}</span> · cost: <span className="font-mono tabular-nums">${r.cost}</span></span>
+                        <span className="text-muted-foreground">Sell: <span className="font-bold tabular-nums text-foreground">{formatPrice(r.sellPrice)}</span> · cost: <span className="font-mono tabular-nums">{formatPrice(r.cost)}</span></span>
                         <StatusBadge tone={margin >= 50 ? "success" : "warning"}>{margin}% margin</StatusBadge>
                       </div>
                     </div>

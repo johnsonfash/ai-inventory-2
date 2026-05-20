@@ -9,9 +9,11 @@ import { FormField } from "@/components/forms/form-field"
 import { FormFooter } from "@/components/forms/form-footer"
 import { FormAside } from "@/components/forms/form-aside"
 import { SwitchField } from "@/components/forms/switch-field"
+import { useCurrency, formatPriceFor } from "@/contexts/currency"
 
 export default function NewWithdrawalAccount() {
   const [submitting, setSubmitting] = React.useState(false)
+  const { formatPrice } = useCurrency()
   return (
     <FormShell
       title="New withdrawal account"
@@ -21,7 +23,7 @@ export default function NewWithdrawalAccount() {
       aside={
         <FormAside
           tips={[
-            { title: "Verification", body: "We'll send a $0 test deposit before letting payouts hit this account.", Icon: ShieldCheck },
+            { title: "Verification", body: `We'll send a ${formatPriceFor(0)} test deposit before letting payouts hit this account.`, Icon: ShieldCheck },
             { title: "Per-cashier", body: "Use this to split takings across cash drawers — common in pop-ups + markets.", Icon: Banknote },
           ]}
         />
@@ -75,7 +77,7 @@ export default function NewWithdrawalAccount() {
 
       <FormSection title="Behaviour" Icon={ShieldCheck}>
         <SwitchField label="Auto-payout" description="Sweep balance to this account daily at 5pm." defaultChecked />
-        <SwitchField label="Require manager approval over $5,000" />
+        <SwitchField label={`Require manager approval over ${formatPrice(5000)}`} />
       </FormSection>
     </FormShell>
   )

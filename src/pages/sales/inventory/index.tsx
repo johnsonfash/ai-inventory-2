@@ -9,6 +9,7 @@ import { StatusBadge, type StatusTone } from "@/components/lists/status-badge"
 import { SummaryStrip } from "@/components/lists/summary-strip"
 import { loadCatalog, type CatalogItem } from "@/lib/pos/storage"
 import { cn } from "@/lib/utils"
+import { useCurrency } from "@/contexts/currency"
 
 type Mode = "retail" | "restaurant" | "services" | "auto"
 
@@ -24,6 +25,7 @@ export default function SalesInventoryPage() {
   const [query, setQuery] = React.useState("")
   const [filter, setFilter] = React.useState<"all" | "low" | "out">("all")
   const catalog = React.useMemo(() => loadCatalog(mode), [mode])
+  const { formatPrice } = useCurrency()
 
   useRegisterPageRefresh(React.useCallback(async () => { await new Promise((r) => setTimeout(r, 400)) }, []))
 
@@ -53,7 +55,7 @@ export default function SalesInventoryPage() {
             { label: "SKUs", value: total.toLocaleString(), tone: "brand", hint: "available" },
             { label: "Low stock", value: String(low), tone: "warning", hint: "watch" },
             { label: "Out of stock", value: String(out), tone: "danger", hint: "act now" },
-            { label: "Stock value", value: `$${Math.round(totalValue).toLocaleString()}`, tone: "success", hint: "at retail" },
+            { label: "Stock value", value: formatPrice(Math.round(totalValue)), tone: "success", hint: "at retail" },
           ]}
         />
 
@@ -117,7 +119,7 @@ export default function SalesInventoryPage() {
                     <p className="truncate text-sm font-semibold">{it.name}</p>
                     <p className="truncate font-mono text-[11px] text-muted-foreground">{it.sku}</p>
                     <div className="mt-2 flex items-baseline justify-between gap-2">
-                      <span className="text-sm font-bold tabular-nums">${it.price.toFixed(2)}</span>
+                      <span className="text-sm font-bold tabular-nums">{formatPrice(it.price)}</span>
                       <span className="text-[11px] tabular-nums text-muted-foreground">
                         <Package className="mr-0.5 inline h-3 w-3" />
                         {it.stock ?? 0}

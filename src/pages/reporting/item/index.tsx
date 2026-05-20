@@ -5,6 +5,7 @@ import { KpiBand } from "@/components/reports/kpi-band"
 import { DataTable, type Column } from "@/components/reports/data-table"
 import { useRegisterPageRefresh } from "@/hooks/use-pull-to-refresh"
 import { type Period } from "@/components/reports/period-chips"
+import { useCurrency, formatPriceFor } from "@/contexts/currency"
 
 type Row = { sku: string; name: string; category: string; sold: number; purchased: number; onHand: number; revenue: number }
 
@@ -23,11 +24,12 @@ const cols: Column<Row>[] = [
   { key: "sold", header: "Sold", align: "right" },
   { key: "purchased", header: "Purchased", align: "right", hideOnMobile: true },
   { key: "onHand", header: "On hand", align: "right" },
-  { key: "revenue", header: "Revenue", align: "right", render: (_, v) => `$${(v as number).toLocaleString()}` },
+  { key: "revenue", header: "Revenue", align: "right", render: (_, v) => formatPriceFor(v as number) },
 ]
 
 export default function ItemReport() {
   const [period, setPeriod] = React.useState<Period>("30d")
+  const { formatPrice } = useCurrency()
   useRegisterPageRefresh(React.useCallback(async () => { await new Promise((r) => setTimeout(r, 400)) }, []))
 
   const totalSold = rows.reduce((s, r) => s + r.sold, 0)
@@ -48,8 +50,8 @@ export default function ItemReport() {
         items={[
           { title: "Items tracked", value: String(rows.length), Icon: Package, tone: "violet" },
           { title: "Units sold", value: totalSold.toLocaleString(), Icon: ShoppingCart, tone: "emerald" },
-          { title: "Revenue", value: `$${totalRevenue.toLocaleString()}`, Icon: DollarSign, tone: "amber" },
-          { title: "Top item", value: topByRev.name.split(" ")[0] ?? topByRev.name, caption: `$${topByRev.revenue.toLocaleString()}`, Icon: TrendingUp, tone: "fuchsia" },
+          { title: "Revenue", value: formatPrice(totalRevenue), Icon: DollarSign, tone: "amber" },
+          { title: "Top item", value: topByRev.name.split(" ")[0] ?? topByRev.name, caption: formatPrice(topByRev.revenue), Icon: TrendingUp, tone: "fuchsia" },
         ]}
       />
       <div className="rounded-2xl border border-border bg-card">

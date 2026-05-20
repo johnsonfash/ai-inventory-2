@@ -9,6 +9,7 @@ import { EmptyState } from "@/components/lists/empty-state"
 import { SummaryStrip } from "@/components/lists/summary-strip"
 import { RoleGuard } from "@/components/auth/role-guard"
 import { salesForMember } from "@/lib/pos/storage"
+import { useCurrency } from "@/contexts/currency"
 
 function initialsOf(name: string) {
   return name.split(/\s+/).slice(0, 2).map((s) => s[0]!.toUpperCase()).join("")
@@ -32,6 +33,7 @@ export default function MemberDetailPage() {
   const params = useParams<{ member: string }>()
   const member = decodeURIComponent(params.member ?? "")
   const data = salesForMember(member)
+  const { formatPrice } = useCurrency()
   useRegisterPageRefresh(React.useCallback(async () => { await new Promise((r) => setTimeout(r, 400)) }, []))
 
   const avg = data.count ? data.revenue / data.count : 0
@@ -54,7 +56,7 @@ export default function MemberDetailPage() {
               <div className="min-w-0 flex-1">
                 <h2 className="text-xl font-bold tracking-tight md:text-2xl">{member}</h2>
                 <p className="mt-0.5 text-sm text-muted-foreground">
-                  {data.count} invoices · ${data.revenue.toLocaleString()} lifetime
+                  {data.count} invoices · {formatPrice(data.revenue)} lifetime
                 </p>
               </div>
               <Link to="/sales/team/chat">
@@ -68,9 +70,9 @@ export default function MemberDetailPage() {
           <SummaryStrip
             tiles={[
               { label: "Sales", value: String(data.count), tone: "brand", hint: "invoices" },
-              { label: "Revenue", value: `$${data.revenue.toLocaleString()}`, tone: "success", hint: "total" },
-              { label: "Avg order", value: `$${avg.toFixed(2)}`, tone: "info", hint: "per sale" },
-              { label: "Commission (5%)", value: `$${(data.revenue * 0.05).toFixed(2)}`, tone: "warning", hint: "estimated" },
+              { label: "Revenue", value: formatPrice(data.revenue), tone: "success", hint: "total" },
+              { label: "Avg order", value: formatPrice(avg), tone: "info", hint: "per sale" },
+              { label: "Commission (5%)", value: formatPrice(data.revenue * 0.05), tone: "warning", hint: "estimated" },
             ]}
           />
 
@@ -94,7 +96,7 @@ export default function MemberDetailPage() {
                           <p className="truncate text-sm font-semibold">
                             <span className="font-mono">{i.number}</span>
                           </p>
-                          <p className="shrink-0 text-sm font-bold tabular-nums">${i.total.toFixed(2)}</p>
+                          <p className="shrink-0 text-sm font-bold tabular-nums">{formatPrice(i.total)}</p>
                         </div>
                         <div className="mt-0.5 flex items-center justify-between gap-2 text-[11px] text-muted-foreground">
                           <span>{new Date(i.createdAt).toLocaleString()}</span>

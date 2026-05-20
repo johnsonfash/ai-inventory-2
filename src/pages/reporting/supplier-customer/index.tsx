@@ -6,6 +6,7 @@ import { DataTable, type Column } from "@/components/reports/data-table"
 import { StatusBadge } from "@/components/lists/status-badge"
 import { useRegisterPageRefresh } from "@/hooks/use-pull-to-refresh"
 import { type Period } from "@/components/reports/period-chips"
+import { useCurrency, formatPriceFor } from "@/contexts/currency"
 
 type Side = "supplier" | "customer"
 type Row = { side: Side; party: string; outstanding: number; settled: number; transactions: number }
@@ -29,14 +30,14 @@ const cols: Column<Row>[] = [
   },
   { key: "party", header: "Party", primary: true },
   { key: "transactions", header: "Txns", align: "right", hideOnMobile: true },
-  { key: "settled", header: "Settled", align: "right", render: (_, v) => `$${(v as number).toLocaleString()}` },
+  { key: "settled", header: "Settled", align: "right", render: (_, v) => formatPriceFor(v as number) },
   {
     key: "outstanding",
     header: "Outstanding",
     align: "right",
     render: (r) => (
       <span className={r.outstanding > 0 ? "font-semibold text-amber-600 dark:text-amber-400" : "text-muted-foreground"}>
-        ${r.outstanding.toLocaleString()}
+        {formatPriceFor(r.outstanding)}
       </span>
     ),
   },
@@ -44,6 +45,7 @@ const cols: Column<Row>[] = [
 
 export default function SupplierCustomer() {
   const [period, setPeriod] = React.useState<Period>("30d")
+  const { formatPrice } = useCurrency()
   useRegisterPageRefresh(React.useCallback(async () => { await new Promise((r) => setTimeout(r, 400)) }, []))
 
   const suppOutstanding = rows.filter((r) => r.side === "supplier").reduce((s, r) => s + r.outstanding, 0)
@@ -61,9 +63,9 @@ export default function SupplierCustomer() {
     >
       <KpiBand
         items={[
-          { title: "AR outstanding", value: `$${custOutstanding.toLocaleString()}`, caption: "owed by customers", Icon: HandshakeIcon, tone: "amber" },
-          { title: "AP outstanding", value: `$${suppOutstanding.toLocaleString()}`, caption: "owed to suppliers", Icon: Building2, tone: "rose" },
-          { title: "Settled", value: `$${totalSettled.toLocaleString()}`, delta: "+12%", trend: "up", Icon: Wallet, tone: "emerald" },
+          { title: "AR outstanding", value: formatPrice(custOutstanding), caption: "owed by customers", Icon: HandshakeIcon, tone: "amber" },
+          { title: "AP outstanding", value: formatPrice(suppOutstanding), caption: "owed to suppliers", Icon: Building2, tone: "rose" },
+          { title: "Settled", value: formatPrice(totalSettled), delta: "+12%", trend: "up", Icon: Wallet, tone: "emerald" },
           { title: "Parties", value: String(rows.length), Icon: TrendingUp, tone: "violet" },
         ]}
       />

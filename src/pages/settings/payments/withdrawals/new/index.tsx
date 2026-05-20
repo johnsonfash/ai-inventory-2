@@ -11,9 +11,11 @@ import { FormFooter } from "@/components/forms/form-footer"
 import { FormAside } from "@/components/forms/form-aside"
 import { InputAddon } from "@/components/forms/input-addon"
 import { SwitchField } from "@/components/forms/switch-field"
+import { useCurrency, formatPriceFor } from "@/contexts/currency"
 
 export default function NewWithdrawal() {
   const [submitting, setSubmitting] = React.useState(false)
+  const { formatPrice, symbol } = useCurrency()
   return (
     <FormShell
       title="New withdrawal"
@@ -23,8 +25,8 @@ export default function NewWithdrawal() {
       aside={
         <FormAside
           tips={[
-            { title: "Available", body: "$48,210 available right now. Withdrawals settle in 1-2 business days.", Icon: Wallet },
-            { title: "Approval", body: "Withdrawals over $5,000 require a manager-role co-signer.", Icon: ShieldCheck },
+            { title: "Available", body: `${formatPrice(48210)} available right now. Withdrawals settle in 1-2 business days.`, Icon: Wallet },
+            { title: "Approval", body: `Withdrawals over ${formatPrice(5000)} require a manager-role co-signer.`, Icon: ShieldCheck },
           ]}
         />
       }
@@ -46,7 +48,7 @@ export default function NewWithdrawal() {
       <FormSection title="Amount" Icon={ArrowDownToLine}>
         <FormGrid cols={3}>
           <FormField label="Amount" required>
-            <InputAddon leading="$">
+            <InputAddon leading={symbol}>
               <input type="number" step="0.01" placeholder="0.00" required />
             </InputAddon>
           </FormField>
@@ -65,7 +67,7 @@ export default function NewWithdrawal() {
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="ach">ACH (free, 1-2 days)</SelectItem>
-                <SelectItem value="wire">Wire ($25 fee, same day)</SelectItem>
+                <SelectItem value="wire">Wire ({formatPriceFor(25)} fee, same day)</SelectItem>
                 <SelectItem value="instant">Instant (1.5% fee, minutes)</SelectItem>
               </SelectContent>
             </Select>

@@ -18,6 +18,7 @@ import { DataTable, type Column } from "@/components/reports/data-table"
 import { ChartTooltipContent } from "@/components/ui/chart"
 import { useRegisterPageRefresh } from "@/hooks/use-pull-to-refresh"
 import { type Period } from "@/components/reports/period-chips"
+import { useCurrency } from "@/contexts/currency"
 
 type MonthlyRow = { month: string; revenue: number; cogs: number; expenses: number; profit: number }
 
@@ -43,6 +44,7 @@ const axisProps = { stroke: "var(--muted-foreground)", fontSize: 11, tickLine: f
 
 export default function ProfitLoss() {
   const [period, setPeriod] = React.useState<Period>("30d")
+  const { formatPrice, symbol } = useCurrency()
   useRegisterPageRefresh(
     React.useCallback(async () => {
       await new Promise((r) => setTimeout(r, 400))
@@ -70,7 +72,7 @@ export default function ProfitLoss() {
       key: "amount",
       header: "Amount",
       align: "right",
-      render: (_, v) => `$${(v as number).toLocaleString()}`,
+      render: (_, v) => formatPrice(v as number),
     },
   ]
 
@@ -87,7 +89,7 @@ export default function ProfitLoss() {
         items={[
           {
             title: "Revenue",
-            value: `$${Math.round(totalRevenue).toLocaleString()}`,
+            value: formatPrice(Math.round(totalRevenue)),
             delta: "+12.3%",
             trend: "up",
             caption: "vs prior period",
@@ -97,7 +99,7 @@ export default function ProfitLoss() {
           },
           {
             title: "Net profit",
-            value: `$${Math.round(totalProfit).toLocaleString()}`,
+            value: formatPrice(Math.round(totalProfit)),
             delta: "+18.6%",
             trend: "up",
             caption: "after COGS + opex",
@@ -146,7 +148,7 @@ export default function ProfitLoss() {
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" strokeOpacity={0.5} />
               <XAxis dataKey="month" {...axisProps} />
-              <YAxis {...axisProps} tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`} />
+              <YAxis {...axisProps} tickFormatter={(v) => `${symbol}${(v / 1000).toFixed(0)}k`} />
               <Tooltip
                 content={<ChartTooltipContent labelKey="month" />}
                 cursor={{ stroke: "var(--border)", strokeWidth: 1 }}
@@ -169,7 +171,7 @@ export default function ProfitLoss() {
             <BarChart data={monthly} margin={{ top: 10, right: 6, left: 0, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" strokeOpacity={0.5} />
               <XAxis dataKey="month" {...axisProps} />
-              <YAxis {...axisProps} tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`} />
+              <YAxis {...axisProps} tickFormatter={(v) => `${symbol}${(v / 1000).toFixed(0)}k`} />
               <Tooltip content={<ChartTooltipContent />} cursor={{ fill: "var(--muted)", fillOpacity: 0.35 }} />
               <Bar dataKey="revenue" fill="var(--chart-2)" radius={[4, 4, 0, 0]} stackId="x" />
               <Bar dataKey="cogs" fill="var(--chart-4)" radius={[0, 0, 0, 0]} stackId="y" />
@@ -184,7 +186,7 @@ export default function ProfitLoss() {
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={expenseBreakdown} layout="vertical" margin={{ top: 4, right: 12, left: 0, bottom: 0 }}>
               <CartesianGrid horizontal={false} strokeDasharray="3 3" stroke="var(--border)" strokeOpacity={0.5} />
-              <XAxis type="number" {...axisProps} tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`} />
+              <XAxis type="number" {...axisProps} tickFormatter={(v) => `${symbol}${(v / 1000).toFixed(0)}k`} />
               <YAxis type="category" dataKey="category" width={80} {...axisProps} />
               <Tooltip
                 content={<ChartTooltipContent labelKey="category" />}

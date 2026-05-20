@@ -10,6 +10,7 @@ import { useRegisterPageRefresh } from "@/hooks/use-pull-to-refresh"
 import { StatusBadge, type StatusTone } from "@/components/lists/status-badge"
 import { EmptyState } from "@/components/lists/empty-state"
 import { SummaryStrip } from "@/components/lists/summary-strip"
+import { useCurrency } from "@/contexts/currency"
 
 type Status = "approved" | "pending" | "refunded" | "rejected"
 type Row = { id: string; invoice: string; customer: string; amount: number; reason: string; status: Status; date: string }
@@ -31,6 +32,7 @@ const tone: Record<Status, StatusTone> = {
 export default function SalesReturns() {
   const isMobile = useIsMobile()
   const [query, setQuery] = React.useState("")
+  const { formatPrice } = useCurrency()
 
   useRegisterPageRefresh(React.useCallback(async () => { await new Promise((r) => setTimeout(r, 400)) }, []))
 
@@ -55,7 +57,7 @@ export default function SalesReturns() {
           tiles={[
             { label: "Pending", value: String(pending), tone: "warning", hint: "review" },
             { label: "Approved", value: String(approved), tone: "info", hint: "to refund" },
-            { label: "Refunded", value: `$${refundedTotal.toLocaleString()}`, tone: "success", hint: "this period" },
+            { label: "Refunded", value: formatPrice(refundedTotal), tone: "success", hint: "this period" },
             { label: "Returns", value: String(rows.length), tone: "brand", hint: "total" },
           ]}
         />
@@ -85,7 +87,7 @@ export default function SalesReturns() {
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center justify-between gap-2">
                       <p className="truncate text-sm font-semibold">{r.customer}</p>
-                      <p className="shrink-0 text-sm font-semibold tabular-nums">${r.amount.toFixed(2)}</p>
+                      <p className="shrink-0 text-sm font-semibold tabular-nums">{formatPrice(r.amount)}</p>
                     </div>
                     <div className="mt-0.5 flex items-center justify-between gap-2 text-[11px] text-muted-foreground">
                       <span className="truncate"><span className="font-mono">{r.id}</span> · {r.invoice} · {r.reason}</span>
@@ -117,7 +119,7 @@ export default function SalesReturns() {
                     <td className="px-3 py-2.5 font-mono text-xs">{r.id}</td>
                     <td className="px-3 py-2.5 font-mono text-xs text-muted-foreground">{r.invoice}</td>
                     <td className="px-3 py-2.5 font-medium">{r.customer}</td>
-                    <td className="px-3 py-2.5 text-right tabular-nums">${r.amount.toFixed(2)}</td>
+                    <td className="px-3 py-2.5 text-right tabular-nums">{formatPrice(r.amount)}</td>
                     <td className="px-3 py-2.5 text-muted-foreground">{r.reason}</td>
                     <td className="px-3 py-2.5"><StatusBadge tone={tone[r.status]} withDot>{r.status}</StatusBadge></td>
                     <td className="px-3 py-2.5 text-muted-foreground">{r.date}</td>
