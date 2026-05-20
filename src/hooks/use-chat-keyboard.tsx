@@ -28,6 +28,43 @@ function persistKbHeight(h: number) {
   try { localStorage.setItem(STORAGE_KEY, String(h)) } catch { /* ignore */ }
 }
 
+// Cache-only listener. Mount once near the top of the tree (App.tsx)
+// so the kb-height cache populates from the very first input focus
+// in the app — by the time the user reaches /ai or /sales/team/chat
+// the cache is warm and useChatKeyboard preloads the right composer
+// offset on its first render (no fallback-then-correct jump).
+//
+// Idempotent: useChatKeyboard binds its own keyboardWillShow listener
+// while it's mounted. Capacitor's bridge allows multiple subscribers,
+// and both end up writing the same value, so there's no conflict.
+//
+// No-op on web.
+export function useKeyboardHeightCapture(): void {
+  React.useEffect(() => {
+    if (!isNative) return
+    let cancelled = false
+    let cleanup: (() => void) | null = null
+
+    Keyboard.addListener("keyboardWillShow", (info) => {
+      const h = info.keyboardHeight
+      if (h <= 100 || h >= 800) return
+      // Use the cached value as the "current" reference — we don't
+      // hold state ourselves, just want to avoid pointless writes.
+      const cached = getCachedKbHeight()
+      if (Math.abs(h - cached) < TOLERANCE) return
+      persistKbHeight(h)
+    }).then((sub) => {
+      if (cancelled) sub.remove()
+      else cleanup = () => sub.remove()
+    }).catch(() => { /* ignore */ })
+
+    return () => {
+      cancelled = true
+      cleanup?.()
+    }
+  }, [])
+}
+
 type Bindings = {
   /** True only on native (iOS/Android). */
   isNative: boolean

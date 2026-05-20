@@ -11,6 +11,7 @@ import { PWAInstaller } from "@/components/pwa-installer"
 import { NetworkBanner } from "@/components/network-banner"
 import { useNative } from "@/hooks/use-native"
 import { useBackButton } from "@/hooks/use-back-button"
+import { useKeyboardHeightCapture } from "@/hooks/use-chat-keyboard"
 import { routes } from "./routes"
 
 const queryClient = new QueryClient({
@@ -40,6 +41,10 @@ function RouteLoader() {
 // haptics) once the provider tree is mounted. No-op on web.
 function NativeBootstrap() {
   useNative()
+  // Cache-warm the kb-height from any input focused anywhere in the
+  // app, so the first /ai or /sales/team/chat visit doesn't show a
+  // fallback-then-correct jump on its first composer focus.
+  useKeyboardHeightCapture()
   return null
 }
 
