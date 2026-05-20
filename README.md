@@ -2,7 +2,7 @@
 
 All-in-one inventory, POS, and sales operations.
 
-Mobile-first React app — built to feel native in the browser, ship as a PWA, and wrap to iOS/Android via Capacitor later.
+Mobile-first React app — ships as a PWA (installable + offline-capable) and wraps to iOS / Android via Capacitor.
 
 ## What's here
 
@@ -22,6 +22,8 @@ Mobile-first React app — built to feel native in the browser, ship as a PWA, a
 - **recharts** for dashboards + reports
 - **sonner** for toasts
 - **jspdf + html2canvas** for printable invoices
+- **vite-plugin-pwa + Workbox** — installable PWA with offline cache (SW in `src/sw.js`)
+- **Capacitor 8** — iOS + Android native shells around the same Vite build
 
 ## Running locally
 
@@ -80,10 +82,12 @@ src/
 │   ├── charts/           # Theme-aware recharts wrappers
 │   ├── auth/             # RoleGuard
 │   ├── page-shell.tsx
+│   ├── pwa-installer.tsx   # Install / update toast bar
 │   └── route-transition.tsx
 │
 ├── hooks/
 │   ├── use-mobile.ts
+│   ├── use-native.tsx     # Capacitor: status-bar tint, splash hide, keyboard listeners, haptic helpers
 │   └── use-pull-to-refresh.tsx
 │
 ├── lib/
@@ -94,7 +98,12 @@ src/
 │   ├── auth/             # RBAC + auth store
 │   └── payments/         # Virtual account directory
 │
+├── sw.js                 # Workbox service worker (precache + runtime caching)
 └── vite-env.d.ts
+
+ios/                      # Capacitor iOS workspace (Xcode-managed)
+android/                  # Capacitor Android project (Gradle/Android Studio)
+capacitor.config.ts       # Capacitor app config (appId, splash, status bar, keyboard)
 ```
 
 ## Wave history
@@ -117,12 +126,39 @@ The repo went from a v0-generated Next.js scaffold to a production-quality Vite 
 | 12 | Sales team + Balance sheet + leftovers | `6a581c6` |
 | 13 | 14 form pages onto FormShell | `53370fe` |
 | 14 | Final 9 forms + CampaignShell | `f514429` |
+| — | Cleanup pass (dead-file sweep, dep prune, v1.0.0 tag) | `708281e` |
+| 15 | PWA — installable + offline-capable | `5e2bd27` |
+| 16 | Capacitor — iOS + Android native shells | _this commit_ |
 
 ## Deployment
+
+### Web (Vercel / any static host)
 
 - Configured for **Vercel** (see `vercel.json`) — SPA rewrites, asset cache headers, framework auto-detect.
 - `npm run build` produces a static `dist/` that can also drop into Netlify, Cloudflare Pages, S3, etc.
 - The frontend is currently dummy-data only. `VITE_API_BASE_URL` in `.env.local` is where the real backend URL will go when one lands.
+
+### PWA (install + offline)
+
+- Service worker at `src/sw.js` (Workbox via vite-plugin-pwa). Precaches the build manifest; cache-first for static assets + images; SWR for navigations; network-first for `/api/*`.
+- Manifest is `public/manifest.json`; icons in `public/icons/`.
+- The `<PWAInstaller>` component (mounted in `App.tsx`) shows an "Update available" toast when a new SW is waiting and surfaces the browser's `beforeinstallprompt` as an "Install Pallio" CTA.
+
+### Native (iOS + Android via Capacitor)
+
+```bash
+npm run cap:sync     # build + sync web assets into ios/ + android/
+npm run ios          # open Xcode workspace
+npm run ios:run      # run on simulator (needs Xcode + simulator set up)
+npm run android      # open Android Studio
+npm run android:run  # run on emulator (needs Android Studio + emulator)
+```
+
+The native projects live in `ios/` and `android/`. `capacitor.config.ts` controls native behaviour (splash screen, status bar, keyboard resize). The native plumbing (StatusBar tint follows theme, splash hides on first paint, Keyboard sets `--keyboard-height` CSS var, haptics on key interactions) is wired through `src/hooks/use-native.tsx` and mounted in `App.tsx`. The same component tree runs on web — every native call short-circuits when `Capacitor.isNativePlatform()` is false.
+
+Requirements for native builds:
+- **iOS**: macOS + Xcode 15+
+- **Android**: Android Studio with SDK 34
 
 ## License
 

@@ -1,5 +1,6 @@
 import * as React from "react"
 import { AnimatePresence, motion, type PanInfo } from "framer-motion"
+import { haptic } from "@/hooks/use-native"
 import { cn } from "@/lib/utils"
 
 type BottomSheetProps = {
@@ -56,7 +57,10 @@ export function BottomSheet({
 
   const handleDragEnd = (_: unknown, info: PanInfo) => {
     // Close on a meaningful downward fling or pull.
-    if (info.offset.y > 120 || info.velocity.y > 600) onClose()
+    if (info.offset.y > 120 || info.velocity.y > 600) {
+      haptic.light()
+      onClose()
+    }
   }
 
   return (

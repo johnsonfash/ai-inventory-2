@@ -1,6 +1,7 @@
 import { Link, useLocation } from "react-router-dom"
 import { MoreHorizontal } from "lucide-react"
 import { BOTTOM_NAV_PRIMARY } from "@/lib/nav"
+import { haptic } from "@/hooks/use-native"
 import { cn } from "@/lib/utils"
 
 type Props = {
@@ -31,6 +32,7 @@ export function MobileBottomNav({ onMoreClick }: Props) {
             <li key={it.url} className="flex">
               <Link
                 to={it.url}
+                onClick={() => haptic.light()}
                 className="group relative flex flex-1 flex-col items-center justify-center gap-0.5 rounded-xl py-1.5 text-[11px] font-medium tracking-tight"
               >
                 <span
@@ -53,7 +55,7 @@ export function MobileBottomNav({ onMoreClick }: Props) {
         <li className="flex">
           <button
             type="button"
-            onClick={onMoreClick}
+            onClick={() => { haptic.light(); onMoreClick() }}
             className="group relative flex flex-1 flex-col items-center justify-center gap-0.5 rounded-xl py-1.5 text-[11px] font-medium tracking-tight"
           >
             <span className="inline-flex h-9 w-12 items-center justify-center rounded-2xl text-muted-foreground transition-colors group-hover:text-foreground">

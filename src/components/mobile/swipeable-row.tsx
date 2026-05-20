@@ -1,5 +1,6 @@
 import * as React from "react"
 import { motion, useMotionValue, useTransform, type PanInfo } from "framer-motion"
+import { haptic } from "@/hooks/use-native"
 import { cn } from "@/lib/utils"
 
 type Action = {
@@ -40,9 +41,12 @@ export function SwipeableRow({ children, rightActions = [], leftActions = [], cl
   const handleDragEnd = (_: unknown, info: PanInfo) => {
     const v = info.velocity.x
     const offset = info.offset.x + (target ?? 0)
-    if (offset < -rightW / 2 || v < -500) setTarget(-rightW)
-    else if (offset > leftW / 2 || v > 500) setTarget(leftW)
-    else setTarget(0)
+    let next = 0
+    if (offset < -rightW / 2 || v < -500) next = -rightW
+    else if (offset > leftW / 2 || v > 500) next = leftW
+    // Light tap when we snap into / out of the open position.
+    if (next !== target) haptic.light()
+    setTarget(next)
   }
 
   // Background actions sit behind the row. Use the absolute value of x

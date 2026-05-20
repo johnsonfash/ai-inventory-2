@@ -7,6 +7,7 @@ import { Toaster } from "@/components/ui/sonner"
 import { PageRefreshProvider } from "@/hooks/use-pull-to-refresh"
 import { RouteTransition } from "@/components/route-transition"
 import { PWAInstaller } from "@/components/pwa-installer"
+import { useNative } from "@/hooks/use-native"
 import { routes } from "./routes"
 
 const queryClient = new QueryClient({
@@ -32,6 +33,13 @@ function RouteLoader() {
   )
 }
 
+// Bootstraps Capacitor wiring (status bar, splash hide, keyboard,
+// haptics) once the provider tree is mounted. No-op on web.
+function NativeBootstrap() {
+  useNative()
+  return null
+}
+
 // Splits the Routes render so Suspense + AnimatePresence keys off
 // location. Required so the loader sits under the transition.
 function AppRoutes() {
@@ -54,6 +62,7 @@ export default function App() {
     <TWThemeProvider>
       <QueryClientProvider client={queryClient}>
         <BrowserRouter>
+          <NativeBootstrap />
           <PageRefreshProvider>
             <AppRoutes />
           </PageRefreshProvider>
