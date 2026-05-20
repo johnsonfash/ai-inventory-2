@@ -46,4 +46,32 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         return ApplicationDelegateProxy.shared.application(application, continue: userActivity, restorationHandler: restorationHandler)
     }
 
+    // App-icon shortcut handler. iOS doesn't deliver shortcut taps as
+    // URLs by default — they come through this delegate as a
+    // UIApplicationShortcutItem with a type string. We translate the
+    // shortcut type to an `app.pallio://` URL and feed it through
+    // Capacitor's URL pipeline, so the JS useDeepLinks hook can route
+    // it just like any other deep link. Keeps the shortcut destination
+    // table in one place (TypeScript) rather than splitting it across
+    // Swift + Kotlin + JS.
+    //
+    // Shortcut types must match UIApplicationShortcutItemType values
+    // in Info.plist.
+    func application(_ application: UIApplication, performActionFor shortcutItem: UIApplicationShortcutItem, completionHandler: @escaping (Bool) -> Void) {
+        let path: String?
+        switch shortcutItem.type {
+        case "newSale":   path = "pos"
+        case "scanStock": path = "inventory/labels"
+        case "openPOs":   path = "purchasing/pos"
+        case "reports":   path = "reporting"
+        default:          path = nil
+        }
+        guard let p = path, let url = URL(string: "app.pallio://\(p)") else {
+            completionHandler(false)
+            return
+        }
+        let handled = ApplicationDelegateProxy.shared.application(application, open: url, options: [:])
+        completionHandler(handled)
+    }
+
 }

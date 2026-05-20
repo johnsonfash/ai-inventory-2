@@ -63,5 +63,53 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
+	<!-- App-icon shortcuts (long-press the home-screen icon). Each
+	     entry's UIApplicationShortcutItemType is matched in
+	     AppDelegate, converted to an app.pallio:// URL, and routed
+	     by the JS useDeepLinks hook. Icons reuse SF Symbols by name.
+	-->
+	<key>UIApplicationShortcutItems</key>
+	<array>
+		<dict>
+			<key>UIApplicationShortcutItemType</key>
+			<string>newSale</string>
+			<key>UIApplicationShortcutItemTitle</key>
+			<string>New sale</string>
+			<key>UIApplicationShortcutItemSubtitle</key>
+			<string>Open POS</string>
+			<key>UIApplicationShortcutItemIconType</key>
+			<string>UIApplicationShortcutIconTypeAdd</string>
+		</dict>
+		<dict>
+			<key>UIApplicationShortcutItemType</key>
+			<string>scanStock</string>
+			<key>UIApplicationShortcutItemTitle</key>
+			<string>Scan stock</string>
+			<key>UIApplicationShortcutItemSubtitle</key>
+			<string>Print labels</string>
+			<key>UIApplicationShortcutItemIconType</key>
+			<string>UIApplicationShortcutIconTypeMarkLocation</string>
+		</dict>
+		<dict>
+			<key>UIApplicationShortcutItemType</key>
+			<string>openPOs</string>
+			<key>UIApplicationShortcutItemTitle</key>
+			<string>Open POs</string>
+			<key>UIApplicationShortcutItemSubtitle</key>
+			<string>View purchase orders</string>
+			<key>UIApplicationShortcutItemIconType</key>
+			<string>UIApplicationShortcutIconTypeTask</string>
+		</dict>
+		<dict>
+			<key>UIApplicationShortcutItemType</key>
+			<string>reports</string>
+			<key>UIApplicationShortcutItemTitle</key>
+			<string>Reports</string>
+			<key>UIApplicationShortcutItemSubtitle</key>
+			<string>Reports dashboard</string>
+			<key>UIApplicationShortcutItemIconType</key>
+			<string>UIApplicationShortcutIconTypeShare</string>
+		</dict>
+	</array>
 </dict>
 </plist>

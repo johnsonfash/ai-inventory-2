@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Android app-icon shortcuts (long-press launcher icon).
+     Each shortcut fires an ACTION_VIEW intent against our custom
+     scheme, which MainActivity's intent-filter receives. The JS
+     useDeepLinks hook then navigates to the destination route.
+
+     Up to 4 dynamic + 4 static shortcuts are supported. We're using
+     static (declared here) since the destinations don't change.
+
+     Icons are reused from the generated launcher set. We could ship
+     dedicated outline icons later; the foreground vector works fine
+     for now. -->
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:shortcutId="newSale"
+        android:enabled="true"
+        android:icon="@mipmap/ic_launcher"
+        android:shortcutShortLabel="@string/shortcut_new_sale_short"
+        android:shortcutLongLabel="@string/shortcut_new_sale_long">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="app.pallio"
+            android:targetClass="app.pallio.MainActivity"
+            android:data="app.pallio://pos" />
+        <categories android:name="android.shortcut.conversation" />
+    </shortcut>
+
+    <shortcut
+        android:shortcutId="scanStock"
+        android:enabled="true"
+        android:icon="@mipmap/ic_launcher"
+        android:shortcutShortLabel="@string/shortcut_scan_stock_short"
+        android:shortcutLongLabel="@string/shortcut_scan_stock_long">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="app.pallio"
+            android:targetClass="app.pallio.MainActivity"
+            android:data="app.pallio://inventory/labels" />
+    </shortcut>
+
+    <shortcut
+        android:shortcutId="openPOs"
+        android:enabled="true"
+        android:icon="@mipmap/ic_launcher"
+        android:shortcutShortLabel="@string/shortcut_open_pos_short"
+        android:shortcutLongLabel="@string/shortcut_open_pos_long">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="app.pallio"
+            android:targetClass="app.pallio.MainActivity"
+            android:data="app.pallio://purchasing/pos" />
+    </shortcut>
+
+    <shortcut
+        android:shortcutId="reports"
+        android:enabled="true"
+        android:icon="@mipmap/ic_launcher"
+        android:shortcutShortLabel="@string/shortcut_reports_short"
+        android:shortcutLongLabel="@string/shortcut_reports_long">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="app.pallio"
+            android:targetClass="app.pallio.MainActivity"
+            android:data="app.pallio://reporting" />
+    </shortcut>
+</shortcuts>
