@@ -67,7 +67,9 @@ export function SelectTrigger({ className, children, ...props }: React.ButtonHTM
       aria-expanded={ctx.open}
       onClick={() => ctx.setOpen(!ctx.open)}
       className={cn(
-        "flex h-9 w-full items-center justify-between rounded-md border bg-background px-3 text-left text-sm shadow-sm outline-none focus-visible:ring-2 focus-visible:ring-ring",
+        "flex h-10 w-full items-center justify-between rounded-lg border border-input bg-background px-3 text-left text-sm text-foreground shadow-sm outline-none transition-colors",
+        "focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/40",
+        "disabled:cursor-not-allowed disabled:opacity-60",
         className,
       )}
       {...props}
