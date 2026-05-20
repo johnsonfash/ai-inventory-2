@@ -3,75 +3,116 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* ------------------------------------------------------------------
+   Pallio brand + theme tokens
+   ------------------------------------------------------------------
+   Brand: violet-purple gradient.
+   Light theme: cool neutrals (slate-tinted) so it feels less "pure
+   white wireframe" and more polished SaaS.
+   Dark theme: deep neutral with subtle purple cast on surfaces.
+*/
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
+  /* Brand */
+  --brand: oklch(0.55 0.22 295);          /* violet-600 */
+  --brand-foreground: oklch(0.99 0 0);
+  --brand-soft: oklch(0.96 0.04 295);     /* tints */
+
+  /* Surfaces */
+  --background: oklch(0.99 0.003 264);    /* almost white, hint of blue */
+  --foreground: oklch(0.18 0.02 264);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
+  --card-foreground: oklch(0.18 0.02 264);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
+  --popover-foreground: oklch(0.18 0.02 264);
+
+  --primary: oklch(0.55 0.22 295);        /* brand */
+  --primary-foreground: oklch(0.99 0 0);
+  --secondary: oklch(0.96 0.008 264);
+  --secondary-foreground: oklch(0.205 0.02 264);
+  --muted: oklch(0.96 0.008 264);
+  --muted-foreground: oklch(0.45 0.02 264);
+  --accent: oklch(0.96 0.008 264);
+  --accent-foreground: oklch(0.205 0.02 264);
+
+  --destructive: oklch(0.62 0.22 27);
+  --destructive-foreground: oklch(0.99 0 0);
+  --success: oklch(0.68 0.18 152);
+  --success-foreground: oklch(0.99 0 0);
+  --warning: oklch(0.76 0.17 75);
+  --warning-foreground: oklch(0.18 0 0);
+  --info: oklch(0.68 0.16 240);
+  --info-foreground: oklch(0.99 0 0);
+
+  --border: oklch(0.92 0.008 264);
+  --input: oklch(0.92 0.008 264);
+  --ring: oklch(0.55 0.22 295 / 0.5);
+
+  /* Chart palette — same hue across light/dark, lightness flipped in
+     the dark block so contrast stays ~OK on either surface. */
+  --chart-1: oklch(0.6 0.22 295);   /* violet */
+  --chart-2: oklch(0.68 0.18 152);  /* emerald */
+  --chart-3: oklch(0.76 0.17 75);   /* amber */
+  --chart-4: oklch(0.62 0.22 27);   /* red */
+  --chart-5: oklch(0.68 0.16 240);  /* sky */
+  --chart-6: oklch(0.65 0.2 330);   /* pink */
+
   --radius: 0.625rem;
+
   --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --sidebar-foreground: oklch(0.18 0.02 264);
+  --sidebar-primary: oklch(0.55 0.22 295);
+  --sidebar-primary-foreground: oklch(0.99 0 0);
+  --sidebar-accent: oklch(0.96 0.008 264);
+  --sidebar-accent-foreground: oklch(0.205 0.02 264);
+  --sidebar-border: oklch(0.92 0.008 264);
+  --sidebar-ring: oklch(0.55 0.22 295);
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.145 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.145 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.985 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.396 0.141 25.723);
-  --destructive-foreground: oklch(0.637 0.237 25.331);
-  --border: oklch(0.269 0 0);
-  --input: oklch(0.269 0 0);
-  --ring: oklch(0.439 0 0);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(0.269 0 0);
-  --sidebar-ring: oklch(0.439 0 0);
+  --background: oklch(0.16 0.012 264);   /* near-black with violet undertone */
+  --foreground: oklch(0.97 0 0);
+  --card: oklch(0.205 0.014 264);
+  --card-foreground: oklch(0.97 0 0);
+  --popover: oklch(0.205 0.014 264);
+  --popover-foreground: oklch(0.97 0 0);
+
+  --primary: oklch(0.68 0.2 295);
+  --primary-foreground: oklch(0.16 0 0);
+  --secondary: oklch(0.27 0.016 264);
+  --secondary-foreground: oklch(0.97 0 0);
+  --muted: oklch(0.27 0.016 264);
+  --muted-foreground: oklch(0.72 0.012 264);
+  --accent: oklch(0.27 0.016 264);
+  --accent-foreground: oklch(0.97 0 0);
+
+  --destructive: oklch(0.7 0.2 27);
+  --destructive-foreground: oklch(0.16 0 0);
+  --success: oklch(0.75 0.18 152);
+  --success-foreground: oklch(0.16 0 0);
+  --warning: oklch(0.82 0.17 75);
+  --warning-foreground: oklch(0.16 0 0);
+  --info: oklch(0.74 0.15 240);
+  --info-foreground: oklch(0.16 0 0);
+
+  --border: oklch(1 0 0 / 0.1);
+  --input: oklch(1 0 0 / 0.15);
+  --ring: oklch(0.68 0.2 295 / 0.6);
+
+  --chart-1: oklch(0.72 0.22 295);
+  --chart-2: oklch(0.76 0.18 152);
+  --chart-3: oklch(0.82 0.17 75);
+  --chart-4: oklch(0.7 0.22 27);
+  --chart-5: oklch(0.74 0.16 240);
+  --chart-6: oklch(0.72 0.2 330);
+
+  --sidebar: oklch(0.18 0.012 264);
+  --sidebar-foreground: oklch(0.97 0 0);
+  --sidebar-primary: oklch(0.68 0.2 295);
+  --sidebar-primary-foreground: oklch(0.97 0 0);
+  --sidebar-accent: oklch(0.25 0.014 264);
+  --sidebar-accent-foreground: oklch(0.97 0 0);
+  --sidebar-border: oklch(1 0 0 / 0.08);
+  --sidebar-ring: oklch(0.68 0.2 295);
 }
 
 @theme inline {
@@ -91,18 +132,29 @@
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+  --color-brand: var(--brand);
+  --color-brand-foreground: var(--brand-foreground);
+  --color-brand-soft: var(--brand-soft);
   --color-chart-1: var(--chart-1);
   --color-chart-2: var(--chart-2);
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
+  --color-chart-6: var(--chart-6);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar-primary: var(--sidebar-primary);
@@ -117,7 +169,47 @@
   * {
     @apply border-border outline-ring/50;
   }
-  body {
+  html, body {
     @apply bg-background text-foreground;
+    -webkit-tap-highlight-color: transparent;
+  }
+  body {
+    @apply antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1, "cv11" 1;
+  }
+  /* Don't let iOS auto-zoom inputs <16px font-size. */
+  input, select, textarea {
+    font-size: 16px;
+  }
+  @media (min-width: 640px) {
+    input, select, textarea {
+      font-size: inherit;
+    }
+  }
+}
+
+@layer utilities {
+  /* Hide scrollbars on horizontal scroll rows (KPI carousels, etc).
+     The container still scrolls; only the bar visually disappears. */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Safe-area-aware bottom padding for mobile shells that sit above
+     the home indicator on iOS. */
+  .pwa-bottom {
+    padding-bottom: max(env(safe-area-inset-bottom), 0px);
+  }
+  .pwa-top {
+    padding-top: max(env(safe-area-inset-top), 0px);
+  }
+  /* Extra room so content scrolling under a fixed bottom-nav (~64px)
+     plus the home indicator doesn't hide under it. */
+  .pb-mobile-nav {
+    padding-bottom: calc(env(safe-area-inset-bottom) + 4.5rem);
   }
 }

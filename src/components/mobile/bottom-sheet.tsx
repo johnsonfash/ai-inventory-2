@@ -1,0 +1,127 @@
+import * as React from "react"
+import { AnimatePresence, motion, type PanInfo } from "framer-motion"
+import { cn } from "@/lib/utils"
+
+type BottomSheetProps = {
+  open: boolean
+  onClose: () => void
+  /** Title rendered in the sticky header. Optional — pass null to omit. */
+  title?: React.ReactNode
+  /** Subtitle below the title. Optional. */
+  description?: React.ReactNode
+  /** Right-aligned header slot (e.g. a "Done" button). */
+  headerRight?: React.ReactNode
+  /** Sheet content. Scrolls internally. */
+  children: React.ReactNode
+  /** Optional bottom action bar (sticky above home indicator). */
+  footer?: React.ReactNode
+  /** Constrain max height; default 92vh. */
+  maxHeightVh?: number
+  className?: string
+}
+
+// Spring-animated bottom sheet. Drag down to dismiss; tap the backdrop
+// to close. Locks body scroll while open.
+export function BottomSheet({
+  open,
+  onClose,
+  title,
+  description,
+  headerRight,
+  children,
+  footer,
+  maxHeightVh = 92,
+  className,
+}: BottomSheetProps) {
+  // Lock the body when open so the page underneath doesn't scroll with
+  // the drag gesture on iOS Safari.
+  React.useEffect(() => {
+    if (!open) return
+    const prev = document.body.style.overflow
+    document.body.style.overflow = "hidden"
+    return () => {
+      document.body.style.overflow = prev
+    }
+  }, [open])
+
+  // Close on Escape.
+  React.useEffect(() => {
+    if (!open) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose()
+    }
+    window.addEventListener("keydown", onKey)
+    return () => window.removeEventListener("keydown", onKey)
+  }, [open, onClose])
+
+  const handleDragEnd = (_: unknown, info: PanInfo) => {
+    // Close on a meaningful downward fling or pull.
+    if (info.offset.y > 120 || info.velocity.y > 600) onClose()
+  }
+
+  return (
+    <AnimatePresence>
+      {open && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center">
+          {/* Backdrop */}
+          <motion.div
+            className="absolute inset-0 bg-black/50 backdrop-blur-[2px]"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.18 }}
+            onClick={onClose}
+            aria-hidden
+          />
+          {/* Sheet */}
+          <motion.div
+            role="dialog"
+            aria-modal="true"
+            className={cn(
+              "relative z-10 w-full max-w-xl rounded-t-2xl border-t border-border bg-card text-card-foreground shadow-2xl",
+              "flex flex-col overflow-hidden",
+              className,
+            )}
+            style={{ maxHeight: `${maxHeightVh}dvh` }}
+            initial={{ y: "100%" }}
+            animate={{ y: 0 }}
+            exit={{ y: "100%" }}
+            transition={{ type: "spring", damping: 32, stiffness: 320, mass: 0.6 }}
+            drag="y"
+            dragConstraints={{ top: 0, bottom: 0 }}
+            dragElastic={{ top: 0, bottom: 0.4 }}
+            onDragEnd={handleDragEnd}
+          >
+            {/* Drag handle */}
+            <div className="flex justify-center pt-2.5 pb-1.5">
+              <div className="h-1.5 w-10 rounded-full bg-muted-foreground/30" />
+            </div>
+
+            {/* Header */}
+            {(title || description || headerRight) && (
+              <div className="flex items-start gap-3 px-5 pb-3">
+                <div className="min-w-0 flex-1">
+                  {title && <div className="text-base font-semibold leading-tight">{title}</div>}
+                  {description && (
+                    <div className="mt-0.5 text-sm text-muted-foreground">{description}</div>
+                  )}
+                </div>
+                {headerRight}
+              </div>
+            )}
+
+            {/* Body */}
+            <div className="flex-1 overflow-y-auto px-5 pb-4">{children}</div>
+
+            {/* Footer (sticky, safe-area aware) */}
+            {footer && (
+              <div className="border-t border-border bg-card/95 px-5 py-3 pwa-bottom backdrop-blur">
+                {footer}
+              </div>
+            )}
+          </motion.div>
+        </div>
+      )}
+    </AnimatePresence>
+  )
+}

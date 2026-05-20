@@ -1,0 +1,68 @@
+import { Link, useLocation } from "react-router-dom"
+import { MoreHorizontal } from "lucide-react"
+import { BOTTOM_NAV_PRIMARY } from "@/lib/nav"
+import { cn } from "@/lib/utils"
+
+type Props = {
+  onMoreClick: () => void
+}
+
+export function MobileBottomNav({ onMoreClick }: Props) {
+  const { pathname } = useLocation()
+
+  const isActive = (url: string) => {
+    if (url === "/") return pathname === "/"
+    return pathname === url || pathname.startsWith(url + "/")
+  }
+
+  return (
+    <nav
+      className={cn(
+        "fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background/90 pwa-bottom backdrop-blur-md",
+        "shadow-[0_-4px_24px_rgba(0,0,0,0.06)] dark:shadow-[0_-4px_24px_rgba(0,0,0,0.4)]",
+      )}
+      aria-label="Primary"
+    >
+      <ul className="grid grid-cols-5 px-1.5 pt-1.5 pb-1">
+        {BOTTOM_NAV_PRIMARY.map((it) => {
+          const Icon = it.icon
+          const active = isActive(it.url)
+          return (
+            <li key={it.url} className="flex">
+              <Link
+                to={it.url}
+                className="group relative flex flex-1 flex-col items-center justify-center gap-0.5 rounded-xl py-1.5 text-[11px] font-medium tracking-tight"
+              >
+                <span
+                  className={cn(
+                    "inline-flex h-9 w-12 items-center justify-center rounded-2xl transition-all",
+                    active
+                      ? "bg-brand-soft text-brand dark:bg-primary/20 dark:text-primary"
+                      : "text-muted-foreground group-hover:text-foreground",
+                  )}
+                >
+                  <Icon className="h-5 w-5" strokeWidth={active ? 2.4 : 1.9} />
+                </span>
+                <span className={cn("transition-colors", active ? "text-foreground" : "text-muted-foreground")}>
+                  {it.title}
+                </span>
+              </Link>
+            </li>
+          )
+        })}
+        <li className="flex">
+          <button
+            type="button"
+            onClick={onMoreClick}
+            className="group relative flex flex-1 flex-col items-center justify-center gap-0.5 rounded-xl py-1.5 text-[11px] font-medium tracking-tight"
+          >
+            <span className="inline-flex h-9 w-12 items-center justify-center rounded-2xl text-muted-foreground transition-colors group-hover:text-foreground">
+              <MoreHorizontal className="h-5 w-5" />
+            </span>
+            <span className="text-muted-foreground">More</span>
+          </button>
+        </li>
+      </ul>
+    </nav>
+  )
+}

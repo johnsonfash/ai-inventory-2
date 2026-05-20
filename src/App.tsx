@@ -3,6 +3,7 @@ import { Suspense } from "react"
 import { BrowserRouter, Route, Routes } from "react-router-dom"
 import { TWThemeProvider } from "@/components/tw-theme-provider"
 import { Toaster } from "@/components/ui/sonner"
+import { PageRefreshProvider } from "@/hooks/use-pull-to-refresh"
 import { routes } from "./routes"
 
 const queryClient = new QueryClient({
@@ -24,13 +25,15 @@ export default function App() {
     <TWThemeProvider>
       <QueryClientProvider client={queryClient}>
         <BrowserRouter>
-          <Suspense fallback={<RouteLoader />}>
-            <Routes>
-              {routes.map((r) => (
-                <Route key={r.path} path={r.path} Component={r.Component} />
-              ))}
-            </Routes>
-          </Suspense>
+          <PageRefreshProvider>
+            <Suspense fallback={<RouteLoader />}>
+              <Routes>
+                {routes.map((r) => (
+                  <Route key={r.path} path={r.path} Component={r.Component} />
+                ))}
+              </Routes>
+            </Suspense>
+          </PageRefreshProvider>
           <Toaster position="bottom-right" richColors closeButton />
         </BrowserRouter>
       </QueryClientProvider>
