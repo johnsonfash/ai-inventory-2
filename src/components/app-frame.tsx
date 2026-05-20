@@ -1,14 +1,15 @@
 import * as React from "react"
 import { Link } from "react-router-dom"
 import { motion } from "framer-motion"
-import { ChevronDown, Loader2, Search } from "lucide-react"
+import { Box, ChevronDown, Loader2, PackagePlus, Plus, Search, Truck } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { ModeToggle } from "@/components/mode-toggle"
 import { OrgLocationSwitch } from "@/components/org-location-switch"
 import { AppSidebar } from "@/components/app-sidebar"
 import { MobileTopBar } from "@/components/mobile/mobile-top-bar"
 import { MobileBottomNav } from "@/components/mobile/mobile-bottom-nav"
 import { MobileMoreDrawer } from "@/components/mobile/mobile-more-drawer"
+import { UserMenu } from "@/components/app/user-menu"
+import { NotificationBell } from "@/components/app/notification-bell"
 import { usePullToRefresh, usePageRefreshHandler } from "@/hooks/use-pull-to-refresh"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { usePageMeta } from "@/contexts/page-meta"
@@ -36,18 +37,22 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
     enabled: isMobile,
   })
 
-  // Default mobile-trailing slot is a Search button that opens the
-  // command palette. Pages that publish their own mobileTrailing
-  // (e.g. settings sheets) override this.
+  // Default mobile-trailing slot: search + notification bell + user
+  // menu. Pages that publish their own mobileTrailing (e.g. settings
+  // sheets) override this.
   const defaultMobileTrailing = (
-    <button
-      type="button"
-      onClick={() => openPalette(true)}
-      aria-label="Search (⌘K)"
-      className="inline-flex h-9 w-9 items-center justify-center rounded-full text-foreground/80 hover:bg-accent active:bg-accent/70 transition-colors"
-    >
-      <Search className="h-4 w-4" />
-    </button>
+    <div className="flex items-center gap-0.5">
+      <button
+        type="button"
+        onClick={() => openPalette(true)}
+        aria-label="Search (⌘K)"
+        className="inline-flex h-9 w-9 items-center justify-center rounded-full text-foreground/80 hover:bg-accent active:bg-accent/70 transition-colors"
+      >
+        <Search className="h-4 w-4" />
+      </button>
+      <NotificationBell />
+      <UserMenu />
+    </div>
   )
 
   if (isMobile) {
@@ -101,53 +106,67 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
     <div className="flex h-[100dvh] overflow-hidden">
       <AppSidebar />
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-border bg-background/80 px-5 backdrop-blur">
-          <h1 className="text-base font-semibold tracking-tight">{meta.title}</h1>
-          <div className="ml-auto flex items-center gap-2">
+        <header className="sticky top-0 z-30 flex h-16 items-center gap-2 border-b border-border bg-background/80 px-4 backdrop-blur md:gap-3 md:px-5">
+          <h1 className="truncate text-base font-semibold tracking-tight">{meta.title}</h1>
+          <div className="ml-auto flex items-center gap-1.5 md:gap-2">
             <OrgLocationSwitch />
-            {/* Command-palette trigger. Tap or hit ⌘K to open. The
-                button is read-only — the actual input lives inside
-                the palette. */}
+            {/* Command-palette trigger. Tap or hit ⌘K. */}
             <button
               type="button"
               onClick={() => openPalette(true)}
               aria-label="Search the app (Cmd+K)"
-              className="hidden h-9 w-[260px] items-center gap-2 rounded-md border border-input bg-background px-3 text-left text-sm text-muted-foreground transition-colors hover:bg-accent md:flex"
+              className="hidden h-9 items-center gap-2 rounded-md border border-input bg-background px-3 text-left text-sm text-muted-foreground transition-colors hover:bg-accent md:flex md:w-[240px] lg:w-[280px]"
             >
               <Search className="h-4 w-4" />
               <span className="flex-1 truncate">Search items, orders…</span>
               <kbd className="rounded border border-border bg-muted px-1.5 py-0.5 font-mono text-[10px]">⌘K</kbd>
             </button>
-            <ModeToggle />
-            <div className="ml-1 flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-brand to-fuchsia-500 text-xs font-semibold text-white shadow-sm shadow-brand/30">
-              P
-            </div>
+            <NotificationBell />
+            <div className="mx-0.5 hidden h-5 w-px bg-border md:block" aria-hidden />
+            <UserMenu />
           </div>
         </header>
 
         {meta.withToolbar && (
           <div
             className={cn(
-              "border-b border-border px-5 py-3",
+              "border-b border-border px-4 py-2.5 md:px-5 md:py-3",
               "bg-gradient-to-r from-brand-soft/60 via-background to-emerald-50/40",
               "dark:from-primary/10 dark:via-background dark:to-emerald-950/15",
             )}
           >
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="-mx-4 flex items-center gap-2 overflow-x-auto px-4 scrollbar-hide md:mx-0 md:flex-wrap md:overflow-visible md:px-0">
               {meta.toolbarActions ?? (
                 <>
-                  <Link to="/inventory/new" className="inline-flex">
-                    <Button>New Item</Button>
+                  <Link to="/pos" className="shrink-0">
+                    <Button size="sm" className="whitespace-nowrap">
+                      <Plus className="h-3.5 w-3.5" /> New sale
+                    </Button>
                   </Link>
-                  <Link to="/purchasing/pos/new" className="inline-flex">
-                    <Button variant="outline">Create Purchase Order</Button>
+                  <Link to="/inventory/new" className="shrink-0">
+                    <Button size="sm" variant="outline" className="whitespace-nowrap">
+                      <PackagePlus className="h-3.5 w-3.5" /> New item
+                    </Button>
                   </Link>
-                  <Link to="/inventory/receive" className="inline-flex">
-                    <Button variant="outline">Receive Stock</Button>
+                  <Link to="/purchasing/pos/new" className="shrink-0">
+                    <Button size="sm" variant="outline" className="whitespace-nowrap">
+                      <Box className="h-3.5 w-3.5" /> Purchase order
+                    </Button>
                   </Link>
-                  <Link to="/notifications" className="ml-2 inline-flex">
-                    <Button variant="ghost">Notifications</Button>
+                  <Link to="/inventory/receive" className="shrink-0">
+                    <Button size="sm" variant="outline" className="whitespace-nowrap">
+                      <Truck className="h-3.5 w-3.5" /> Receive stock
+                    </Button>
                   </Link>
+                  <span className="hidden flex-1 md:block" aria-hidden />
+                  <button
+                    type="button"
+                    onClick={() => openPalette(true)}
+                    className="ml-auto hidden shrink-0 items-center gap-1 rounded-md px-2 py-1 text-[11px] font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground md:inline-flex"
+                  >
+                    More via{" "}
+                    <kbd className="rounded border border-border bg-muted px-1.5 py-0.5 font-mono text-[10px]">⌘K</kbd>
+                  </button>
                 </>
               )}
             </div>
