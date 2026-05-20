@@ -1,54 +1,23 @@
-import { Link } from "react-router-dom"
-import { PageShell } from "@/components/page-shell"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Instagram } from "lucide-react"
+import { ChannelShell, type Campaign } from "@/components/marketing/channel-shell"
+
+const campaigns: Campaign[] = [
+  { id: "IG-3001", name: "Reels · Hydrating Serum", status: "active", spend: 320, impressions: 24100, clicks: 980, conversions: 64, roas: 4.8 },
+  { id: "IG-3002", name: "Stories · Ceramic Mug", status: "active", spend: 240, impressions: 18900, clicks: 740, conversions: 41, roas: 3.4 },
+  { id: "IG-3003", name: "Shopping · Top Sellers", status: "active", spend: 420, impressions: 32400, clicks: 1240, conversions: 96, roas: 5.6 },
+  { id: "IG-3004", name: "Influencer · Q1 brief", status: "ended", spend: 1800, impressions: 124200, clicks: 4120, conversions: 312, roas: 6.1 },
+]
+
 export default function InstagramAds() {
-  const rows = [{ id: "IG-3001", name: "Reels Promo", status: "Active", spend: 180, clicks: 92 }]
   return (
-    <PageShell title="Marketing — Instagram Ads" withToolbar={false}>
-      <Card>
-        <CardHeader className="flex items-center justify-between">
-          <div>
-            <CardTitle>Campaigns</CardTitle>
-            <CardDescription>Manage and track performance</CardDescription>
-          </div>
-          <div className="flex gap-2">
-            <Link to="/marketing/instagram-ads/new-campaign">
-              <Button>New Campaign</Button>
-            </Link>
-            <Link to="/marketing/instagram-ads/new-listing">
-              <Button variant="outline">New Listing</Button>
-            </Link>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-auto rounded-lg border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>ID</TableHead>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Spend</TableHead>
-                  <TableHead className="text-right">Clicks</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {rows.map((r) => (
-                  <TableRow key={r.id}>
-                    <TableCell className="font-mono text-xs">{r.id}</TableCell>
-                    <TableCell>{r.name}</TableCell>
-                    <TableCell>{r.status}</TableCell>
-                    <TableCell className="text-right tabular-nums">${r.spend.toFixed(2)}</TableCell>
-                    <TableCell className="text-right tabular-nums">{r.clicks}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        </CardContent>
-      </Card>
-    </PageShell>
+    <ChannelShell
+      title="Instagram Ads"
+      description="Reels, Stories, and Shopping ads from your Pallio catalog."
+      Icon={Instagram}
+      tone="fuchsia"
+      campaigns={campaigns}
+      newCampaignHref="/marketing/instagram-ads/new-campaign"
+      newListingHref="/marketing/instagram-ads/new-listing"
+    />
   )
 }

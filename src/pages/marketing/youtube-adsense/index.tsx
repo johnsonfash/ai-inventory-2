@@ -1,54 +1,21 @@
-import { Link } from "react-router-dom"
-import { PageShell } from "@/components/page-shell"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-export default function YouTubeAdSense() {
-  const rows = [{ id: "YT-4001", name: "Accessories Promo", status: "Active", spend: 320, impressions: 12000 }]
+import { Youtube } from "lucide-react"
+import { ChannelShell, type Campaign } from "@/components/marketing/channel-shell"
+
+const campaigns: Campaign[] = [
+  { id: "YT-4001", name: "Demo videos · Hub", status: "active", spend: 320, impressions: 12600, clicks: 412, conversions: 24, roas: 2.1 },
+  { id: "YT-4002", name: "How-to · Serum routine", status: "draft", spend: 0, impressions: 0, clicks: 0, conversions: 0, roas: 0 },
+]
+
+export default function YoutubeAdsense() {
   return (
-    <PageShell title="Marketing — YouTube & AdSense" withToolbar={false}>
-      <Card>
-        <CardHeader className="flex items-center justify-between">
-          <div>
-            <CardTitle>Campaigns</CardTitle>
-            <CardDescription>Manage and track performance</CardDescription>
-          </div>
-          <div className="flex gap-2">
-            <Link to="/marketing/youtube-adsense/new-campaign">
-              <Button>New Campaign</Button>
-            </Link>
-            <Link to="/marketing/youtube-adsense/new-listing">
-              <Button variant="outline">New Listing</Button>
-            </Link>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-auto rounded-lg border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>ID</TableHead>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Spend</TableHead>
-                  <TableHead className="text-right">Impressions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {rows.map((r) => (
-                  <TableRow key={r.id}>
-                    <TableCell className="font-mono text-xs">{r.id}</TableCell>
-                    <TableCell>{r.name}</TableCell>
-                    <TableCell>{r.status}</TableCell>
-                    <TableCell className="text-right tabular-nums">${r.spend.toFixed(2)}</TableCell>
-                    <TableCell className="text-right tabular-nums">{r.impressions.toLocaleString()}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        </CardContent>
-      </Card>
-    </PageShell>
+    <ChannelShell
+      title="YouTube & AdSense"
+      description="Affiliate placements + video ad inventory."
+      Icon={Youtube}
+      tone="rose"
+      campaigns={campaigns}
+      newCampaignHref="/marketing/youtube-adsense/new-campaign"
+      newListingHref="/marketing/youtube-adsense/new-listing"
+    />
   )
 }
