@@ -15,6 +15,18 @@ import * as React from "react"
 // before the browser paints the new route. useEffect would cause a
 // one-frame flash of the previous route's title. useLayoutEffect
 // also handles the React StrictMode double-render safely.
+//
+// Why two contexts (value + setter): the publisher (PageShell) only
+// needs the setter, not the value. The reader (AppFrame) only needs
+// the value, not the setter. Splitting prevents the publisher from
+// re-rendering on every value change — which combined with the
+// `setMeta(currentMeta)` call inside useLayoutEffect would otherwise
+// create an infinite loop:
+//   render → publish → setState → context value changes → publisher
+//   re-renders (because it subscribed to the value) → publish again.
+// React's useState setter is referentially stable, so the setter
+// context never changes, so PageShell never re-renders from meta
+// updates.
 
 export type PageMeta = {
   title: string
@@ -33,32 +45,35 @@ const DEFAULT_META: PageMeta = {
   withToolbar: false,
 }
 
-type Ctx = {
-  meta: PageMeta
-  setMeta: (m: PageMeta) => void
-}
-
-const PageMetaContext = React.createContext<Ctx | null>(null)
+const PageMetaValueContext = React.createContext<PageMeta>(DEFAULT_META)
+// Default setter is a no-op so consumers don't have to null-check
+// when there's no provider mounted (tests, Storybook, etc.).
+const PageMetaSetterContext = React.createContext<(meta: PageMeta) => void>(() => {})
 
 export function PageMetaProvider({ children }: { children: React.ReactNode }) {
   const [meta, setMeta] = React.useState<PageMeta>(DEFAULT_META)
-  const value = React.useMemo(() => ({ meta, setMeta }), [meta])
-  return <PageMetaContext.Provider value={value}>{children}</PageMetaContext.Provider>
+  return (
+    <PageMetaSetterContext.Provider value={setMeta}>
+      <PageMetaValueContext.Provider value={meta}>
+        {children}
+      </PageMetaValueContext.Provider>
+    </PageMetaSetterContext.Provider>
+  )
 }
 
 /** Read the current page meta. Used by AppFrame to render the
- *  header + toolbar slots. */
+ *  header + toolbar slots. Re-renders the caller whenever meta
+ *  changes (which is what AppFrame wants). */
 export function usePageMeta(): PageMeta {
-  const ctx = React.useContext(PageMetaContext)
-  return ctx?.meta ?? DEFAULT_META
+  return React.useContext(PageMetaValueContext)
 }
 
-/** Publish page meta — call from PageShell. Mounted via
- *  useLayoutEffect so the title swap happens before paint. */
+/** Publish page meta. Subscribes to the SETTER context only — the
+ *  setter is the React useState stable function, so PageShell
+ *  doesn't re-render every time `meta` is updated. */
 export function useSetPageMeta(meta: PageMeta): void {
-  const ctx = React.useContext(PageMetaContext)
+  const setMeta = React.useContext(PageMetaSetterContext)
   React.useLayoutEffect(() => {
-    if (!ctx) return
-    ctx.setMeta(meta)
-  }, [ctx, meta.title, meta.withToolbar, meta.toolbarActions, meta.mobileTrailing])
+    setMeta(meta)
+  }, [setMeta, meta.title, meta.withToolbar, meta.toolbarActions, meta.mobileTrailing])
 }
