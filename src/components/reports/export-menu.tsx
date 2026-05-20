@@ -1,6 +1,7 @@
-import * as React from "react"
-import { Download, FileSpreadsheet, FileText, Printer } from "lucide-react"
+import { Download, FileSpreadsheet, FileText, Printer, Share2 } from "lucide-react"
+import { toast } from "sonner"
 import { Dropdown, DropdownItem } from "@/components/ui/dropdown"
+import { useShare } from "@/hooks/use-share"
 
 type Props = {
   /** Filename stem used for downloaded files (no extension). */
@@ -14,13 +15,20 @@ type Props = {
   onPrint?: () => void
   /** Hidden when no rows AND no print handler — there's nothing to do. */
   className?: string
+  /** Report title used in the share-sheet preview. Falls back to
+   *  filename when omitted. */
+  shareTitle?: string
 }
 
-// Compact "Export" dropdown with CSV, PDF, and Print actions.
+// Compact "Export" dropdown with CSV, PDF, Print, and Share actions.
 // PDF uses `window.print()` against a print-targeted CSS class
 // (handled by the caller). The CSV pathway escapes values + handles
-// commas / quotes / newlines safely.
-export function ExportMenu({ filename, rows, onPrint, headers, className }: Props) {
+// commas / quotes / newlines safely. Share uses the native iOS/Android
+// sheet via @capacitor/share + falls back to navigator.share or the
+// clipboard on web.
+export function ExportMenu({ filename, rows, onPrint, headers, className, shareTitle }: Props) {
+  const share = useShare()
+
   const downloadCsv = () => {
     if (!rows || rows.length === 0) return
     const keys = headers ?? Object.keys(rows[0]!)
@@ -40,6 +48,26 @@ export function ExportMenu({ filename, rows, onPrint, headers, className }: Prop
   const triggerPrint = () => {
     onPrint?.()
     requestAnimationFrame(() => window.print())
+  }
+
+  const triggerShare = async () => {
+    // Share the deep link to this report. We don't ship the CSV as
+    // an attachment (most native share sheets reject blob: URLs);
+    // a link with a short summary is what teammates actually want
+    // to receive — they can click through and re-export themselves.
+    const origin = typeof window !== "undefined" && window.location.origin.includes("localhost")
+      ? "https://pallio.app"
+      : window.location.origin
+    const url = typeof window !== "undefined" ? `${origin}${window.location.pathname}${window.location.search}` : undefined
+    const title = shareTitle ?? filename
+    const res = await share({
+      title,
+      text: `Pallio report: ${title}`,
+      url,
+      dialogTitle: "Share report",
+    })
+    if (res.kind === "copied") toast.success("Report link copied")
+    else if (res.kind === "unavailable") toast.error("Sharing not available")
   }
 
   return (
@@ -62,6 +90,9 @@ export function ExportMenu({ filename, rows, onPrint, headers, className }: Prop
       </DropdownItem>
       <DropdownItem onSelect={triggerPrint}>
         <FileText className="h-4 w-4" /> Save as PDF
+      </DropdownItem>
+      <DropdownItem onSelect={triggerShare}>
+        <Share2 className="h-4 w-4" /> Share link
       </DropdownItem>
     </Dropdown>
   )

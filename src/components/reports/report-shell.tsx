@@ -40,6 +40,7 @@ export function ReportShell({
           filename={exportFilename}
           rows={exportRows}
           headers={exportHeaders}
+          shareTitle={title}
         />
       }
     >
@@ -54,7 +55,7 @@ export function ReportShell({
               )}
             </div>
             <div className="hidden md:block">
-              <ExportMenu filename={exportFilename} rows={exportRows} headers={exportHeaders} />
+              <ExportMenu filename={exportFilename} rows={exportRows} headers={exportHeaders} shareTitle={title} />
             </div>
           </div>
           <div className="print:hidden">
