@@ -1,11 +1,6 @@
+import { Instagram } from "lucide-react"
+import { CampaignShell } from "@/components/marketing/campaign-shell"
 
-import { PageShell } from "@/components/page-shell"
-import { ListingForm } from "@/components/marketing/listing-form"
-
-export default function NewListingInstagramAds() {
-  return (
-    <PageShell title="Instagram Ads — New Listing" withToolbar={false}>
-      <ListingForm defaultChannel="instagram-ads" />
-    </PageShell>
-  )
+export default function NewInstagramListing() {
+  return <CampaignShell channel="Instagram Ads" Icon={Instagram} tone="fuchsia" backHref="/marketing/instagram-ads" kind="listing" />
 }

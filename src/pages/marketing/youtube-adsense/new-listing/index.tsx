@@ -1,11 +1,6 @@
+import { Youtube } from "lucide-react"
+import { CampaignShell } from "@/components/marketing/campaign-shell"
 
-import { PageShell } from "@/components/page-shell"
-import { ListingForm } from "@/components/marketing/listing-form"
-
-export default function NewListingYouTubeAdsense() {
-  return (
-    <PageShell title="YouTube & AdSense — New Listing" withToolbar={false}>
-      <ListingForm defaultChannel="youtube-adsense" />
-    </PageShell>
-  )
+export default function NewYoutubeListing() {
+  return <CampaignShell channel="YouTube & AdSense" Icon={Youtube} tone="rose" backHref="/marketing/youtube-adsense" kind="listing" />
 }
