@@ -9,6 +9,7 @@ import {
   Bot,
   CalendarDays,
   ChevronDown,
+  ChevronRight,
   ClipboardList,
   CreditCard,
   FileText,
@@ -372,13 +373,29 @@ export function AppSidebar() {
                     aria-label={collapsed ? item.title : undefined}
                     title={collapsed ? item.title : undefined}
                     className={cn(
-                      "flex w-full items-center rounded-md text-sm transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand",
-                      collapsed ? "h-10 justify-center px-0" : "gap-2 px-2 py-2",
+                      "group/group flex w-full items-center rounded-md text-sm transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand",
+                      collapsed ? "relative h-10 justify-center px-0" : "gap-2 px-2 py-2",
                       active && "bg-accent",
                       collapsed && flyout?.title === item.title && "bg-accent",
                     )}
                   >
                     <item.icon className={cn("shrink-0", collapsed ? "h-5 w-5" : "h-4 w-4")} aria-hidden="true" />
+                    {collapsed && (
+                      // Tiny chevron pinned to the right edge in
+                      // collapsed mode — signals "this icon has
+                      // sub-items, flyout opens this way". Becomes
+                      // fully opaque on hover/focus + when the
+                      // flyout is open for this group.
+                      <ChevronRight
+                        aria-hidden="true"
+                        className={cn(
+                          "absolute right-1 top-1/2 h-2.5 w-2.5 -translate-y-1/2 text-muted-foreground transition-opacity",
+                          flyout?.title === item.title
+                            ? "opacity-100 text-brand dark:text-primary"
+                            : "opacity-40 group-hover/group:opacity-90 group-focus-visible/group:opacity-90",
+                        )}
+                      />
+                    )}
                     {!collapsed && (
                       <>
                         <span className="truncate">{item.title}</span>
