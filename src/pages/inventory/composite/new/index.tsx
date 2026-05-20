@@ -1,50 +1,134 @@
-import { PageShell } from "@/components/page-shell"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { Label } from "@/components/ui/label"
+import * as React from "react"
+import { Layers, Package, Plus, Tag, Trash2 } from "lucide-react"
 import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { FormShell } from "@/components/forms/form-shell"
+import { FormSection } from "@/components/forms/form-section"
+import { FormGrid } from "@/components/forms/form-grid"
+import { FormField } from "@/components/forms/form-field"
+import { FormFooter } from "@/components/forms/form-footer"
+import { FormAside } from "@/components/forms/form-aside"
+import { InputAddon } from "@/components/forms/input-addon"
+
+type Component = { id: string; sku: string; qty: number }
+
+let lineSeq = 0
+const newComponent = (): Component => ({ id: `C-${++lineSeq}`, sku: "", qty: 1 })
+
+const skuOptions = [
+  { value: "EL-2109", label: "USB‑C Hub 6‑in‑1 ($28.50)" },
+  { value: "EL-1001", label: "Wireless Mouse ($22.00)" },
+  { value: "HM-2205", label: "Ceramic Mug 12oz ($8.00)" },
+  { value: "AP-4012", label: "Cotton Tee — Black ($12.00)" },
+  { value: "BT-9091", label: "Hydrating Serum ($18.95)" },
+]
 
 export default function NewComposite() {
+  const [components, setComponents] = React.useState<Component[]>([newComponent()])
+  const [submitting, setSubmitting] = React.useState(false)
+
+  const remove = (id: string) => setComponents((p) => p.filter((c) => c.id !== id))
+  const update = (id: string, patch: Partial<Component>) =>
+    setComponents((p) => p.map((c) => (c.id === id ? { ...c, ...patch } : c)))
+
   return (
-    <PageShell title="Inventory — New Composite Item" withToolbar={false}>
-      <Card>
-        <CardHeader>
-          <CardTitle>Create Composite Item</CardTitle>
-          <CardDescription>Combine multiple components into one SKU</CardDescription>
-        </CardHeader>
-        <CardContent className="grid gap-4">
-          <div className="grid grid-cols-3 gap-3">
-            <div className="grid gap-2">
-              <Label>Name</Label>
-              <Input placeholder="Remote Work Kit" />
-            </div>
-            <div className="grid gap-2">
-              <Label>SKU</Label>
-              <Input placeholder="KIT-001" />
-            </div>
-            <div className="grid gap-2">
-              <Label>Unit</Label>
-              <Input placeholder="pcs" />
-            </div>
-          </div>
-          <div className="grid grid-cols-3 gap-3">
-            <div className="grid gap-2">
-              <Label>Component SKU</Label>
-              <Input placeholder="EL-2109" />
-            </div>
-            <div className="grid gap-2">
-              <Label>Qty</Label>
-              <Input type="number" defaultValue={1} />
-            </div>
-            <div className="flex items-end">
-              <Button variant="outline" className="bg-transparent">
-                Add Component
-              </Button>
-            </div>
-          </div>
-          <Button className="bg-violet-600 hover:bg-violet-600/90 w-fit">Create Composite</Button>
-        </CardContent>
-      </Card>
-    </PageShell>
+    <FormShell
+      title="New composite item"
+      description="Bundle multiple SKUs into one sellable kit."
+      backHref="/inventory/composite"
+      onSubmit={() => { setSubmitting(true); setTimeout(() => setSubmitting(false), 500) }}
+      aside={
+        <FormAside
+          tips={[
+            { title: "Stock impact", body: "Selling a composite decrements each component's stock by its qty.", Icon: Package },
+            { title: "Pricing", body: "Set a custom sell price below the sum of components for a bundle discount.", Icon: Tag },
+          ]}
+        />
+      }
+      footer={<FormFooter submitLabel="Save composite" submitting={submitting} cancelHref="/inventory/composite" />}
+    >
+      <FormSection title="Identity" Icon={Layers}>
+        <FormGrid cols={3}>
+          <FormField label="Composite name" required span={2}>
+            <Input placeholder="Starter Kit (Hub + Mouse)" required />
+          </FormField>
+          <FormField label="SKU" required>
+            <Input placeholder="BUN-1001" required />
+          </FormField>
+          <FormField label="Description" span={3} hint="Shown on the catalog page and POS catalog tile.">
+            <Textarea placeholder="The everything-bundle for new desks." />
+          </FormField>
+        </FormGrid>
+      </FormSection>
+
+      <FormSection
+        title="Components"
+        description="Items included in this kit"
+        Icon={Package}
+        trailing={
+          <Button type="button" variant="outline" size="sm" onClick={() => setComponents((p) => [...p, newComponent()])}>
+            <Plus className="h-3.5 w-3.5" /> Add component
+          </Button>
+        }
+      >
+        <ul className="space-y-3">
+          {components.map((c, idx) => (
+            <li key={c.id} className="rounded-xl border border-border bg-background p-3">
+              <div className="mb-2 flex items-center justify-between">
+                <span className="text-xs font-medium text-muted-foreground">Item {idx + 1}</span>
+                {components.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => remove(c.id)}
+                    className="inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground"
+                    aria-label="Remove component"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
+                )}
+              </div>
+              <FormGrid cols={3}>
+                <FormField label="Source item" required span={2}>
+                  <Select value={c.sku} onValueChange={(v) => v && update(c.id, { sku: v })}>
+                    <SelectTrigger><SelectValue placeholder="Pick a product" /></SelectTrigger>
+                    <SelectContent>
+                      {skuOptions.map((o) => (
+                        <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </FormField>
+                <FormField label="Quantity" required>
+                  <Input
+                    type="number"
+                    min={1}
+                    value={c.qty}
+                    onChange={(e) => update(c.id, { qty: Math.max(1, Number(e.target.value) || 1) })}
+                    required
+                  />
+                </FormField>
+              </FormGrid>
+            </li>
+          ))}
+        </ul>
+      </FormSection>
+
+      <FormSection title="Pricing" Icon={Tag}>
+        <FormGrid cols={2}>
+          <FormField label="Sell price" required>
+            <InputAddon leading="$">
+              <input type="number" step="0.01" placeholder="0.00" required />
+            </InputAddon>
+          </FormField>
+          <FormField label="Wholesale price">
+            <InputAddon leading="$">
+              <input type="number" step="0.01" placeholder="0.00" />
+            </InputAddon>
+          </FormField>
+        </FormGrid>
+      </FormSection>
+    </FormShell>
   )
 }

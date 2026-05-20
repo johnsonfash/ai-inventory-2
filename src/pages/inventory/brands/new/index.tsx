@@ -1,29 +1,61 @@
-import { PageShell } from "@/components/page-shell"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { Label } from "@/components/ui/label"
+import * as React from "react"
+import { Image as ImageIcon, Sparkles } from "lucide-react"
 import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
+import { Textarea } from "@/components/ui/textarea"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { FormShell } from "@/components/forms/form-shell"
+import { FormSection } from "@/components/forms/form-section"
+import { FormGrid } from "@/components/forms/form-grid"
+import { FormField } from "@/components/forms/form-field"
+import { FormFooter } from "@/components/forms/form-footer"
+import { FormAside } from "@/components/forms/form-aside"
 
 export default function NewBrand() {
+  const [submitting, setSubmitting] = React.useState(false)
   return (
-    <PageShell title="Inventory — Add Brand" withToolbar={false}>
-      <Card>
-        <CardHeader>
-          <CardTitle>New Brand</CardTitle>
-          <CardDescription>Register a manufacturer or brand</CardDescription>
-        </CardHeader>
-        <CardContent className="grid gap-4 sm:max-w-xl">
-          <div className="grid gap-2">
-            <Label>Name</Label>
-            <Input placeholder="Cobalt" />
-          </div>
-          <div className="grid gap-2">
-            <Label>Website</Label>
-            <Input placeholder="https://example.com" />
-          </div>
-          <Button className="bg-violet-600 hover:bg-violet-600/90 w-fit">Create Brand</Button>
-        </CardContent>
-      </Card>
-    </PageShell>
+    <FormShell
+      title="New brand"
+      description="Brands group items by manufacturer or label."
+      backHref="/inventory/brands"
+      onSubmit={() => { setSubmitting(true); setTimeout(() => setSubmitting(false), 400) }}
+      aside={
+        <FormAside
+          tips={[
+            { title: "Supplier link", body: "Tying a brand to its supplier makes purchasing suggestions sharper.", Icon: Sparkles },
+            { title: "Logo", body: "Used in the catalog filter chips and the storefront brand page.", Icon: ImageIcon },
+          ]}
+        />
+      }
+      footer={<FormFooter submitLabel="Save brand" submitting={submitting} cancelHref="/inventory/brands" />}
+    >
+      <FormSection title="Identity" Icon={Sparkles}>
+        <FormGrid cols={2}>
+          <FormField label="Name" required>
+            <Input placeholder="Cobalt" required />
+          </FormField>
+          <FormField label="Linked supplier">
+            <Select>
+              <SelectTrigger><SelectValue placeholder="(none)" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="cobalt">Cobalt Distributors</SelectItem>
+                <SelectItem value="delta">Delta Apparel</SelectItem>
+                <SelectItem value="acme">Acme Supplies</SelectItem>
+                <SelectItem value="porcel">Porcel Ceramics</SelectItem>
+                <SelectItem value="glow">Glow Co</SelectItem>
+              </SelectContent>
+            </Select>
+          </FormField>
+          <FormField label="Tagline" span={2}>
+            <Input placeholder="e.g. Power tools, professional grade." />
+          </FormField>
+          <FormField label="Description" span={2}>
+            <Textarea placeholder="Short summary for the storefront brand page." />
+          </FormField>
+          <FormField label="Brand logo" span={2}>
+            <Input type="file" accept="image/*" />
+          </FormField>
+        </FormGrid>
+      </FormSection>
+    </FormShell>
   )
 }

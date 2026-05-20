@@ -1,30 +1,71 @@
-import { PageShell } from "@/components/page-shell"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { Label } from "@/components/ui/label"
+import * as React from "react"
+import { ShieldCheck } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { Button } from "@/components/ui/button"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { FormShell } from "@/components/forms/form-shell"
+import { FormSection } from "@/components/forms/form-section"
+import { FormGrid } from "@/components/forms/form-grid"
+import { FormField } from "@/components/forms/form-field"
+import { FormFooter } from "@/components/forms/form-footer"
+import { FormAside } from "@/components/forms/form-aside"
+import { InputAddon } from "@/components/forms/input-addon"
+import { SwitchField } from "@/components/forms/switch-field"
 
 export default function NewWarranty() {
+  const [submitting, setSubmitting] = React.useState(false)
   return (
-    <PageShell title="Inventory — Add Warranty" withToolbar={false}>
-      <Card>
-        <CardHeader>
-          <CardTitle>New Warranty</CardTitle>
-          <CardDescription>Define warranty duration and terms</CardDescription>
-        </CardHeader>
-        <CardContent className="grid gap-4 sm:max-w-xl">
-          <div className="grid gap-2">
-            <Label>Name</Label>
-            <Input placeholder="12 months" />
-          </div>
-          <div className="grid gap-2">
-            <Label>Terms</Label>
-            <Textarea placeholder="Coverage details…" />
-          </div>
-          <Button className="bg-violet-600 hover:bg-violet-600/90 w-fit">Create Warranty</Button>
-        </CardContent>
-      </Card>
-    </PageShell>
+    <FormShell
+      title="New warranty plan"
+      description="Define a coverage policy that can be attached to one or more items."
+      backHref="/inventory/warranties"
+      onSubmit={() => { setSubmitting(true); setTimeout(() => setSubmitting(false), 400) }}
+      aside={
+        <FormAside
+          tips={[
+            { title: "Duration", body: "Enter 9999 to represent a lifetime warranty.", Icon: ShieldCheck },
+            { title: "Coverage", body: "Be specific — this text appears on receipts and the storefront product page.", Icon: ShieldCheck },
+          ]}
+        />
+      }
+      footer={<FormFooter submitLabel="Save plan" submitting={submitting} cancelHref="/inventory/warranties" />}
+    >
+      <FormSection title="Plan" Icon={ShieldCheck}>
+        <FormGrid cols={2}>
+          <FormField label="Code" required hint="Short identifier shown on labels.">
+            <Input placeholder="W12" required />
+          </FormField>
+          <FormField label="Plan name" required>
+            <Input placeholder="12-month standard" required />
+          </FormField>
+          <FormField label="Duration">
+            <InputAddon trailing="months">
+              <input type="number" defaultValue={12} />
+            </InputAddon>
+          </FormField>
+          <FormField label="Tier">
+            <Select defaultValue="standard">
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="basic">Basic</SelectItem>
+                <SelectItem value="standard">Standard</SelectItem>
+                <SelectItem value="extended">Extended</SelectItem>
+                <SelectItem value="lifetime">Lifetime</SelectItem>
+              </SelectContent>
+            </Select>
+          </FormField>
+          <FormField label="Coverage" span={2} hint="Describe what's covered (and what isn't).">
+            <Textarea placeholder="Manufacturer defects only. Excludes accidental damage." />
+          </FormField>
+          <FormField span={2}>
+            <SwitchField
+              label="Available on storefront"
+              description="Customers can select this plan at checkout if available for their item."
+              defaultChecked
+            />
+          </FormField>
+        </FormGrid>
+      </FormSection>
+    </FormShell>
   )
 }
