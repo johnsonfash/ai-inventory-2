@@ -74,7 +74,8 @@ export function useBackButton(): void {
 // should ask to exit instead of trying to pop history (which on
 // Android typically lands on a deep-link from another app).
 const ROOTS = new Set<string>([
-  "/",
+  "/",            // public landing
+  "/dashboard",   // app home (root inside the AppFrame)
   "/pos",
   "/inventory",
   "/sales",

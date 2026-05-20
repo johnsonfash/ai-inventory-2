@@ -31,7 +31,7 @@ type SubItem = { title: string; url: string }
 type Item = { title: string; url?: string; icon: LucideIcon; sub?: SubItem[] }
 
 const nav: Item[] = [
-  { title: "Dashboard", url: "/", icon: BarChart3 },
+  { title: "Dashboard", url: "/dashboard", icon: BarChart3 },
 
   {
     title: "Point of Sale",
@@ -319,7 +319,7 @@ export function AppSidebar() {
         )}
       >
         {!collapsed && (
-          <Link to="/" className="flex flex-1 items-center gap-2 px-1.5">
+          <Link to="/dashboard" className="flex flex-1 items-center gap-2 px-1.5">
             <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-brand to-fuchsia-500 text-sm font-bold text-white shadow-sm shadow-brand/30">
               P
             </span>

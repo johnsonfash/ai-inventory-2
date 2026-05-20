@@ -212,4 +212,25 @@
   .pb-mobile-nav {
     padding-bottom: calc(env(safe-area-inset-bottom) + 4.5rem);
   }
+
+  /* Long-form readable typography for legal pages (Privacy + Terms).
+     Tailwind doesn't ship the official @tailwindcss/typography plugin
+     in our setup so we hand-roll just the few rules we need. */
+  .prose-pallio header { @apply mb-10; }
+  .prose-pallio section { @apply mb-8; }
+  .prose-pallio h2 {
+    @apply mt-2 text-xl font-bold tracking-tight md:text-2xl;
+  }
+  .prose-pallio p,
+  .prose-pallio li {
+    @apply text-sm leading-relaxed text-muted-foreground md:text-base;
+  }
+  .prose-pallio p { @apply mt-3; }
+  .prose-pallio ul {
+    @apply mt-3 list-disc space-y-1.5 pl-5;
+  }
+  .prose-pallio a {
+    @apply font-semibold text-brand underline underline-offset-2 dark:text-primary;
+  }
+  .prose-pallio strong { @apply text-foreground; }
 }

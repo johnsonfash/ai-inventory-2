@@ -5,7 +5,18 @@ type PageModule = { default: ComponentType<any> }
 const page = (load: () => Promise<PageModule>) => lazy(load)
 
 export const routes: RouteObject[] = [
-  { path: "/", Component: page(() => import("./pages/index")) },
+  // --- Public marketing site ---
+  { path: "/", Component: page(() => import("./pages/marketing-site/landing")) },
+  { path: "/pricing", Component: page(() => import("./pages/marketing-site/pricing")) },
+  { path: "/about", Component: page(() => import("./pages/marketing-site/about")) },
+  { path: "/faq", Component: page(() => import("./pages/marketing-site/faq")) },
+  { path: "/contact", Component: page(() => import("./pages/marketing-site/contact")) },
+  { path: "/privacy", Component: page(() => import("./pages/marketing-site/privacy")) },
+  { path: "/terms", Component: page(() => import("./pages/marketing-site/terms")) },
+  { path: "/login", Component: page(() => import("./pages/marketing-site/login")) },
+
+  // --- App routes (everything under the AppFrame shell) ---
+  { path: "/dashboard", Component: page(() => import("./pages/dashboard")) },
   { path: "/accounting/balance-sheet", Component: page(() => import("./pages/accounting/balance-sheet")) },
   { path: "/ai", Component: page(() => import("./pages/ai")) },
   { path: "/analytics", Component: page(() => import("./pages/analytics")) },

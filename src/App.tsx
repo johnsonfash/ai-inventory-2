@@ -11,6 +11,7 @@ import { PWAInstaller } from "@/components/pwa-installer"
 import { NetworkBanner } from "@/components/network-banner"
 import { BiometricGate } from "@/components/biometric-gate"
 import { AppFrame } from "@/components/app-frame"
+import { MarketingFrame } from "@/components/marketing/marketing-frame"
 import { PageMetaProvider } from "@/contexts/page-meta"
 import { useNative } from "@/hooks/use-native"
 import { useBackButton } from "@/hooks/use-back-button"
@@ -69,7 +70,19 @@ function RouterBootstrap() {
   return null
 }
 
-// Suspense + AnimatePresence wraps ONLY the routes — the AppFrame
+// Public marketing routes use a completely different shell (top
+// nav + footer + sign-in modal). Everything else gets the AppFrame
+// (sidebar / mobile chrome). Listed here, not on each route, so the
+// shell-switch logic stays in one place.
+const MARKETING_PATHS = new Set<string>([
+  "/", "/pricing", "/about", "/faq", "/contact", "/privacy", "/terms", "/login",
+])
+
+function isMarketingPath(pathname: string): boolean {
+  return MARKETING_PATHS.has(pathname)
+}
+
+// Suspense + AnimatePresence wraps ONLY the routes — the frame
 // above stays mounted across navigations. The fallback is a small
 // content-area spinner instead of a full-screen one.
 function AppRoutes() {
@@ -87,6 +100,30 @@ function AppRoutes() {
   )
 }
 
+// Picks the right shell for the current route. Lives just above the
+// Suspense so when the user transitions from a marketing page into
+// an app page (e.g. clicking "Get started" → /dashboard), the
+// shell swaps cleanly instead of trying to render the wrong chrome.
+function ShellRouter() {
+  const { pathname } = useLocation()
+  if (isMarketingPath(pathname)) {
+    return (
+      <MarketingFrame>
+        <AppRoutes />
+      </MarketingFrame>
+    )
+  }
+  return (
+    <PageMetaProvider>
+      <PageRefreshProvider>
+        <AppFrame>
+          <AppRoutes />
+        </AppFrame>
+      </PageRefreshProvider>
+    </PageMetaProvider>
+  )
+}
+
 export default function App() {
   return (
     <TWThemeProvider>
@@ -96,13 +133,7 @@ export default function App() {
           <RouterBootstrap />
           <BiometricGate>
             <NetworkBanner />
-            <PageMetaProvider>
-              <PageRefreshProvider>
-                <AppFrame>
-                  <AppRoutes />
-                </AppFrame>
-              </PageRefreshProvider>
-            </PageMetaProvider>
+            <ShellRouter />
             <PWAInstaller />
           </BiometricGate>
           <Toaster position="bottom-right" richColors closeButton />

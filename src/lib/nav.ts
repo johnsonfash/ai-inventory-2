@@ -20,7 +20,7 @@ export type SubItem = { title: string; url: string }
 export type NavItem = { title: string; url?: string; icon: LucideIcon; sub?: SubItem[] }
 
 export const NAV: NavItem[] = [
-  { title: "Dashboard", url: "/", icon: BarChart3 },
+  { title: "Dashboard", url: "/dashboard", icon: BarChart3 },
   {
     title: "Point of Sale",
     icon: CreditCard,
@@ -172,7 +172,7 @@ export const NAV: NavItem[] = [
 // "most-used" rather than full coverage — everything else falls into
 // the More drawer.
 export const BOTTOM_NAV_PRIMARY: { title: string; url: string; icon: LucideIcon }[] = [
-  { title: "Home", url: "/", icon: BarChart3 },
+  { title: "Home", url: "/dashboard", icon: BarChart3 },
   { title: "POS", url: "/pos", icon: CreditCard },
   { title: "Stock", url: "/inventory", icon: Package2 },
   { title: "Sales", url: "/sales/orders", icon: ShoppingCart },
