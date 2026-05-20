@@ -7,6 +7,7 @@ import {
   BarChart3,
   Bell,
   Bot,
+  Mail,
   CalendarDays,
   ChevronDown,
   ChevronRight,
@@ -150,6 +151,17 @@ const nav: Item[] = [
     title: "Accounting",
     icon: Wallet,
     sub: [{ title: "Balance Sheet", url: "/accounting/balance-sheet" }],
+  },
+
+  {
+    title: "Communications",
+    icon: Mail,
+    sub: [
+      { title: "Inbox", url: "/communications" },
+      { title: "Compose", url: "/communications/new" },
+      { title: "Templates", url: "/communications/templates" },
+      { title: "Team chat", url: "/sales/team/chat" },
+    ],
   },
 
   { title: "Notifications", url: "/notifications", icon: Bell },

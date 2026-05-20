@@ -86,6 +86,7 @@ const QUICK_ACTIONS: CommandItem[] = [
   { id: "qa-new-expense",  group: "Quick actions", title: "Log an expense",      subtitle: "Expenses / new",              Icon: Receipt,      href: "/expenses/new",          searchTerms: "new expense receipt outflow" },
   { id: "qa-print-labels", group: "Quick actions", title: "Print labels",        subtitle: "Inventory / labels",          Icon: Tags,         href: "/inventory/labels",      searchTerms: "print labels barcode" },
   { id: "qa-record-credit",group: "Quick actions", title: "Record vendor credit",subtitle: "Purchasing / credits / new",  Icon: FileMinus,    href: "/purchasing/vendor-credits/new", searchTerms: "vendor credit memo refund" },
+  { id: "qa-send-email",   group: "Quick actions", title: "Send a new email",    subtitle: "Communications / new",        Icon: Megaphone,    href: "/communications/new",            searchTerms: "send email compose new message marketing customer" },
   { id: "qa-withdrawal",   group: "Quick actions", title: "Request withdrawal",  subtitle: "Settings / payments",         Icon: ArrowDownToLine, href: "/settings/payments/withdrawals/new", searchTerms: "withdrawal payout bank transfer" },
 ]
 
@@ -116,6 +117,9 @@ const NAVIGATE: CommandItem[] = [
   { id: "nav-fb-ads",         group: "Navigate", title: "Facebook Ads",         subtitle: "/marketing/facebook-ads",   Icon: Megaphone,    href: "/marketing/facebook-ads",     searchTerms: "facebook ads fb meta" },
   { id: "nav-ig-ads",         group: "Navigate", title: "Instagram Ads",        subtitle: "/marketing/instagram-ads",  Icon: Megaphone,    href: "/marketing/instagram-ads",    searchTerms: "instagram ads ig reels" },
   { id: "nav-ai",             group: "Navigate", title: "AI Assistant",         subtitle: "/ai",                       Icon: Bot,          href: "/ai",                         searchTerms: "ai assistant chat copilot" },
+  { id: "nav-comms",          group: "Navigate", title: "Communications",       subtitle: "/communications",           Icon: Megaphone,    href: "/communications",             searchTerms: "communications email inbox sent drafts messages" },
+  { id: "nav-comms-new",      group: "Navigate", title: "Compose email",        subtitle: "/communications/new",       Icon: Megaphone,    href: "/communications/new",         searchTerms: "compose new email send write message" },
+  { id: "nav-comms-tpls",     group: "Navigate", title: "Email templates",      subtitle: "/communications/templates", Icon: Megaphone,    href: "/communications/templates",   searchTerms: "templates email library marketing transactional" },
   { id: "nav-notifications",  group: "Navigate", title: "Notifications",        subtitle: "/notifications",            Icon: Bell,         href: "/notifications",              searchTerms: "notifications alerts inbox" },
   { id: "nav-appointments",   group: "Navigate", title: "Appointments",         subtitle: "/appointments",             Icon: CalendarDays, href: "/appointments",               searchTerms: "appointments calendar bookings" },
 ]

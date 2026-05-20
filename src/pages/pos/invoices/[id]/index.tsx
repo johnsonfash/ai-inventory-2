@@ -1,7 +1,7 @@
 
 import * as React from "react"
-import { useSearchParams, useParams } from "react-router-dom"
-import { Printer, Share2 } from "lucide-react"
+import { Link, useSearchParams, useParams } from "react-router-dom"
+import { Mail, Printer, Share2 } from "lucide-react"
 import { toast } from "sonner"
 import { PageShell } from "@/components/page-shell"
 import { InvoicePreview, printInvoiceNode } from "@/components/pos/invoice-print"
@@ -60,7 +60,14 @@ export default function InvoiceDetailPage() {
       <div ref={ref}>
         <InvoicePreview invoice={invoice} />
       </div>
-      <div className="mt-4 flex justify-end gap-2">
+      <div className="mt-4 flex flex-wrap justify-end gap-2">
+        <Link
+          to={`/communications/new?template=tpl-invoice${invoice.customer?.email ? `&to=${encodeURIComponent(invoice.customer.email)}` : ""}`}
+        >
+          <Button variant="outline">
+            <Mail className="mr-2 h-4 w-4" /> Send via email
+          </Button>
+        </Link>
         <Button variant="outline" onClick={onShare}>
           <Share2 className="mr-2 h-4 w-4" /> Share
         </Button>
