@@ -134,6 +134,7 @@ export const routes: RouteObject[] = [
   { path: "/settings/integrations/website", Component: page(() => import("./pages/settings/integrations/website")) },
   { path: "/settings/integrations/woocommerce", Component: page(() => import("./pages/settings/integrations/woocommerce")) },
   { path: "/settings/integrations/youtube-adsense", Component: page(() => import("./pages/settings/integrations/youtube-adsense")) },
+  { path: "/settings/integrations/:id", Component: page(() => import("./pages/settings/integrations/[id]")) },
   { path: "/settings/invoice", Component: page(() => import("./pages/settings/invoice")) },
   { path: "/settings/locations", Component: page(() => import("./pages/settings/locations")) },
   { path: "/settings/notifications", Component: page(() => import("./pages/settings/notifications")) },
