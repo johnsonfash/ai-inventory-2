@@ -1,10 +1,9 @@
-"use client"
 
-import { useTheme } from "next-themes"
+import { useTWTheme } from "@/components/tw-theme-provider"
 import { Toaster as Sonner, ToasterProps } from "sonner"
 
 const Toaster = ({ ...props }: ToasterProps) => {
-  const { theme = "system" } = useTheme()
+  const { resolvedTheme: theme = "system" } = useTWTheme()
 
   return (
     <Sonner

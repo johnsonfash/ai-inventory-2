@@ -1,7 +1,6 @@
-"use client"
 
 import * as React from "react"
-import Image from "next/image"
+
 import type { CatalogItem } from "@/lib/pos/storage"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -66,12 +65,11 @@ export function CatalogGrid({ catalog, onAdd }: Props) {
         {filtered.map((p) => (
           <div key={p.id} className="rounded-lg border p-3 transition-colors hover:bg-accent">
             <div className="relative mb-2 aspect-square overflow-hidden rounded-md border">
-              <Image
-                src={p.image || "/placeholder.svg?height=160&width=160&query=product"}
+              <img
+                src={p.image || "/placeholder.svg"}
                 alt={p.name}
-                fill
-                sizes="(min-width: 1280px) 20vw, (min-width: 768px) 25vw, 50vw"
-                className="object-cover"
+                loading="lazy"
+                className="absolute inset-0 h-full w-full object-cover"
               />
             </div>
             <div className="line-clamp-1 text-sm font-medium">{p.name}</div>

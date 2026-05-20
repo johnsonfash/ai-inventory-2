@@ -1,4 +1,3 @@
-"use client"
 
 import * as React from "react"
 import { cn } from "@/lib/utils"
@@ -18,14 +17,20 @@ export function Dialog({
   return <Ctx.Provider value={{ open, onOpenChange }}>{children}</Ctx.Provider>
 }
 
-export function DialogTrigger({ asChild = false, children }: { asChild?: boolean; children: React.ReactElement }) {
+type TriggerChild = React.ReactElement<{ onClick?: (e: React.MouseEvent) => void }>
+
+export function DialogTrigger({ asChild: _asChild = false, children }: { asChild?: boolean; children: TriggerChild }) {
   const ctx = React.useContext(Ctx)!
-  const child = React.Children.only(children)
-  const onClick = (e: any) => {
+  const child = React.Children.only(children) as TriggerChild
+  const onClick = (e: React.MouseEvent) => {
     child.props.onClick?.(e)
     ctx.onOpenChange?.(true)
   }
   return React.cloneElement(child, { onClick })
+}
+
+export function DialogDescription({ className, ...props }: React.HTMLAttributes<HTMLParagraphElement>) {
+  return <p className={cn("mt-1 text-sm text-muted-foreground", className)} {...props} />
 }
 
 export function DialogContent({ className, children }: React.HTMLAttributes<HTMLDivElement>) {

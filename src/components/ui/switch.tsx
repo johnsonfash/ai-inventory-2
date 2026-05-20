@@ -1,12 +1,24 @@
 import type * as React from "react"
 import { cn } from "@/lib/utils"
 
-type Props = Omit<React.InputHTMLAttributes<HTMLInputElement>, "type"> & { id?: string }
+type Props = Omit<React.InputHTMLAttributes<HTMLInputElement>, "type" | "onChange"> & {
+  id?: string
+  onCheckedChange?: (checked: boolean) => void
+  onChange?: React.ChangeEventHandler<HTMLInputElement>
+}
 
-export function Switch({ className, ...props }: Props) {
+export function Switch({ className, onCheckedChange, onChange, ...props }: Props) {
   return (
     <label className="inline-flex cursor-pointer items-center">
-      <input type="checkbox" className="peer sr-only" {...props} />
+      <input
+        type="checkbox"
+        className="peer sr-only"
+        onChange={(e) => {
+          onCheckedChange?.(e.target.checked)
+          onChange?.(e)
+        }}
+        {...props}
+      />
       <span
         className={cn("relative h-5 w-9 rounded-full bg-muted transition-colors peer-checked:bg-violet-600", className)}
       >

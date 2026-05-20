@@ -1,6 +1,5 @@
-"use client"
 
-import Image from "next/image"
+
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -83,11 +82,12 @@ export function InventoryList() {
               <TableRow key={it.sku} className="hover:bg-muted/50">
                 <TableCell>
                   <div className="flex items-center gap-3">
-                    <Image
+                    <img
                       src={it.image || "/placeholder.svg"}
                       alt=""
                       width={40}
                       height={40}
+                      loading="lazy"
                       className="rounded-md border"
                     />
                     <span className="font-medium">{it.name}</span>

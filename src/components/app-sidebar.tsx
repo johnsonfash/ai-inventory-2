@@ -1,8 +1,7 @@
-"use client"
 
 import * as React from "react"
-import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { Link } from "react-router-dom"
+import { useLocation } from "react-router-dom"
 import {
   BarChart3,
   Bell,
@@ -191,7 +190,7 @@ const nav: Item[] = [
 ]
 
 export function AppSidebar() {
-  const pathname = usePathname()
+  const pathname = useLocation().pathname
   const [collapsed, setCollapsed] = React.useState(false)
   const [openStates, setOpenStates] = React.useState<Record<string, boolean>>(() =>
     nav.reduce(
@@ -273,7 +272,7 @@ export function AppSidebar() {
                                   "block rounded-md px-2 py-1.5 text-sm hover:bg-accent",
                                   subActive && "bg-accent",
                                 )}
-                                href={s.url}
+                                to={s.url}
                               >
                                 {s.title}
                               </Link>
@@ -293,7 +292,7 @@ export function AppSidebar() {
                     "flex items-center gap-2 rounded-md px-2 py-2 text-sm hover:bg-accent",
                     active && "bg-accent",
                   )}
-                  href={item.url!}
+                  to={item.url!}
                 >
                   <item.icon className="h-4 w-4" />
                   {!collapsed && <span>{item.title}</span>}

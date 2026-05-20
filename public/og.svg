@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" role="img" aria-label="Pallio social card">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0a0a0a"/>
+      <stop offset="100%" stop-color="#1a0030"/>
+    </linearGradient>
+    <linearGradient id="mark" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#7c3aed"/>
+      <stop offset="100%" stop-color="#a855f7"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+
+  <g transform="translate(96 175)">
+    <rect width="280" height="280" rx="56" fill="url(#mark)"/>
+    <g transform="translate(0,2)">
+      <path d="M52 78 L140 44 L228 78 L140 112 Z" fill="#ffffff" fill-opacity="0.95"/>
+      <path d="M52 78 L52 174 L140 208 L140 112 Z" fill="#ffffff" fill-opacity="0.78"/>
+      <path d="M228 78 L228 174 L140 208 L140 112 Z" fill="#ffffff" fill-opacity="0.62"/>
+    </g>
+    <text x="140" y="226" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-weight="800" font-size="68" fill="#ffffff">P</text>
+  </g>
+
+  <g transform="translate(432 240)">
+    <text x="0" y="0" font-family="Inter, system-ui, sans-serif" font-weight="800" font-size="108" fill="#ffffff">Pallio</text>
+    <text x="0" y="64" font-family="Inter, system-ui, sans-serif" font-weight="500" font-size="32" fill="#cbd5e1">All-in-one inventory, POS,</text>
+    <text x="0" y="108" font-family="Inter, system-ui, sans-serif" font-weight="500" font-size="32" fill="#cbd5e1">and sales operations.</text>
+    <text x="0" y="184" font-family="Inter, system-ui, sans-serif" font-weight="600" font-size="22" fill="#a855f7" letter-spacing="2">pallio.app</text>
+  </g>
+</svg>

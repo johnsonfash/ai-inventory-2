@@ -1,7 +1,6 @@
-"use client"
 
 import type * as React from "react"
-import Link from "next/link"
+import { Link } from "react-router-dom"
 import { Input } from "@/components/ui/input"
 import { ModeToggle } from "@/components/mode-toggle"
 import { OrgLocationSwitch } from "@/components/org-location-switch"
@@ -36,16 +35,16 @@ export function PageShell({ title, children, withToolbar = true }: PageShellProp
         {withToolbar && (
           <div className="border-b bg-gradient-to-r from-violet-50/60 to-emerald-50/60 p-3 dark:from-violet-950/20 dark:to-emerald-950/20">
             <div className="flex flex-wrap items-center gap-2 px-1">
-              <Link href="/inventory/new" className="inline-flex">
+              <Link to="/inventory/new" className="inline-flex">
                 <Button>New Item</Button>
               </Link>
-              <Link href="/purchasing/pos/new" className="inline-flex">
+              <Link to="/purchasing/pos/new" className="inline-flex">
                 <Button variant="outline">Create Purchase Order</Button>
               </Link>
-              <Link href="/inventory/receive" className="inline-flex">
+              <Link to="/inventory/receive" className="inline-flex">
                 <Button variant="outline">Receive Stock</Button>
               </Link>
-              <Link href="/notifications" className="ml-2 inline-flex">
+              <Link to="/notifications" className="ml-2 inline-flex">
                 <Button variant="outline">Notifications</Button>
               </Link>
             </div>

@@ -1,12 +1,16 @@
 import type * as React from "react"
 import { cn } from "@/lib/utils"
 
-type Props = React.HTMLAttributes<HTMLSpanElement> & { variant?: "default" | "secondary" }
+type Props = React.HTMLAttributes<HTMLSpanElement> & {
+  variant?: "default" | "secondary" | "outline" | "destructive"
+}
 
 export function Badge({ className, variant = "default", ...props }: Props) {
   const variants = {
     default: "bg-violet-600 text-white",
     secondary: "bg-muted text-foreground",
+    outline: "border border-input bg-transparent text-foreground",
+    destructive: "bg-destructive text-destructive-foreground",
   }
   return (
     <span

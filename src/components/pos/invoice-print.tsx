@@ -1,4 +1,3 @@
-"use client"
 import type { Invoice } from "@/lib/pos/storage"
 
 export function printInvoiceNode(node: HTMLElement) {

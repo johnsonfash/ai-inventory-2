@@ -1,4 +1,3 @@
-"use client"
 
 export type Role = "Admin" | "Manager" | "Sales" | "Marketing" | "Viewer"
 export type Permission =

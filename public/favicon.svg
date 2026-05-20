@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Pallio">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#7c3aed"/>
+      <stop offset="100%" stop-color="#a855f7"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="96" fill="url(#g)"/>
+  <g transform="translate(0,4)">
+    <path d="M96 144 L256 80 L416 144 L256 208 Z" fill="#ffffff" fill-opacity="0.95"/>
+    <path d="M96 144 L96 320 L256 384 L256 208 Z" fill="#ffffff" fill-opacity="0.78"/>
+    <path d="M416 144 L416 320 L256 384 L256 208 Z" fill="#ffffff" fill-opacity="0.62"/>
+    <path d="M176 112 L336 112 L336 176 L256 208 Z" fill="#ffffff" fill-opacity="0.55"/>
+  </g>
+  <g transform="translate(180 256)">
+    <text x="76" y="60" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-weight="800" font-size="120" fill="#ffffff">P</text>
+  </g>
+</svg>
