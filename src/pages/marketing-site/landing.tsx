@@ -24,6 +24,8 @@ import {
 import { Button } from "@/components/ui/button"
 import { PhoneFrame } from "@/components/marketing/phone-frame"
 import { PhoneDashboardMock } from "@/components/marketing/phone-mock"
+import { LaptopFrame } from "@/components/marketing/laptop-frame"
+import { DesktopDashboardMock } from "@/components/marketing/laptop-mock"
 
 const fadeIn = {
   hidden: { opacity: 0, y: 16 },
@@ -40,6 +42,7 @@ export default function LandingPage() {
       <Hero />
       <TrustBar />
       <Features />
+      <DeviceShowcase />
       <DashboardShowcase />
       <InsightsShowcase />
       <Stats />
@@ -362,10 +365,82 @@ function DashboardShowcase() {
         </motion.div>
 
         <div className="relative flex items-center justify-center">
-          <PhoneFrame width={300} tilt="left">
+          <LaptopFrame width={520}>
+            <DesktopDashboardMock />
+          </LaptopFrame>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+// ---- Device showcase ----
+// "Works on every device" — phone + laptop in one composition, plus
+// three small "where it runs" pills that summarise iOS / Android /
+// Web. Sits between Features and DashboardShowcase so the user has
+// a moment to digest the product surface before being pulled deeper.
+function DeviceShowcase() {
+  return (
+    <section className="relative overflow-hidden px-4 py-16 md:px-6 md:py-24">
+      <div className="absolute inset-0 -z-10" aria-hidden>
+        <div className="absolute left-1/2 top-1/2 h-[42rem] w-[42rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-gradient-to-br from-brand/15 via-fuchsia-500/10 to-emerald-500/10 blur-3xl" />
+      </div>
+
+      <div className="mx-auto max-w-7xl">
+        <motion.div
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, amount: 0.3 }}
+          variants={fadeIn}
+          className="mx-auto max-w-2xl text-center"
+        >
+          <p className="text-xs font-semibold uppercase tracking-wider text-brand dark:text-primary">
+            Phone · Tablet · Desktop · Native
+          </p>
+          <h2 className="mt-2 text-3xl font-bold tracking-tight md:text-4xl">
+            Same Pallio.
+            <br />
+            <span className="text-muted-foreground">Every device you own.</span>
+          </h2>
+          <p className="mt-3 text-base text-muted-foreground">
+            One codebase, three shells. The mobile build feels native (Capacitor wraps iOS + Android); the desktop is a fast SPA; the PWA installs offline. State syncs across all three the moment a real backend lands.
+          </p>
+        </motion.div>
+
+        {/* The composition: laptop tucked behind, phone floats in front + right. */}
+        <div className="relative mt-12 flex flex-col items-center gap-12 md:mt-16 md:flex-row md:items-center md:justify-center md:gap-0">
+          {/* Laptop — anchor */}
+          <LaptopFrame width={620} className="md:mr-[-9rem] md:translate-y-2 lg:mr-[-12rem]">
+            <DesktopDashboardMock />
+          </LaptopFrame>
+
+          {/* Phone — overlaps the laptop on the right, tilted forward. */}
+          <PhoneFrame width={210} tilt="right" className="md:translate-y-8">
             <PhoneDashboardMock />
           </PhoneFrame>
         </div>
+
+        {/* "Where it runs" pills */}
+        <ul className="mx-auto mt-12 flex max-w-3xl flex-wrap items-center justify-center gap-2 md:mt-16">
+          {[
+            { label: "iOS", body: "Native via Capacitor · Face ID · Push" },
+            { label: "Android", body: "Native via Capacitor · Adaptive icons" },
+            { label: "Web", body: "Vite SPA · Installable PWA · Offline" },
+            { label: "iPad", body: "Same Vite build · Sidebar layout" },
+          ].map((p) => (
+            <li
+              key={p.label}
+              className="flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1.5 text-xs"
+            >
+              <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-gradient-to-br from-brand to-fuchsia-500 text-[10px] font-bold text-white">
+                {p.label[0]}
+              </span>
+              <span className="font-semibold">{p.label}</span>
+              <span className="hidden text-muted-foreground sm:inline">·</span>
+              <span className="hidden text-muted-foreground sm:inline">{p.body}</span>
+            </li>
+          ))}
+        </ul>
       </div>
     </section>
   )
