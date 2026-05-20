@@ -30,8 +30,14 @@ export default defineConfig({
       // can't drift out of sync.
       manifest: false,
 
+      // Off in dev. Without this the SW intercepts /@vite/client,
+      // /src/*.tsx, /node_modules/.vite/deps/*, etc. and serves them
+      // CacheFirst — kills HMR + produces stale source on every
+      // reload until the user manually unregisters the worker. The
+      // PWA is tested via `npm run preview` (built dist/) or inside
+      // the Capacitor shell; dev should be free of SW churn.
       devOptions: {
-        enabled: true,
+        enabled: false,
         type: "module",
         navigateFallback: "index.html",
       },

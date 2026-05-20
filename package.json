@@ -7,7 +7,7 @@
     "node": "22.x"
   },
   "scripts": {
-    "dev": "node ip.js && vite --port 3000 --host",
+    "dev": "node ip.js && vite --port 3210 --host",
     "build": "tsc --noEmit && vite build",
     "build:analyze": "ANALYZE=1 npm run build",
     "typecheck": "tsc --noEmit",

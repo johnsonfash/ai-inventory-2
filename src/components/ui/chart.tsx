@@ -23,14 +23,18 @@ type ChartContextProps = {
 
 const ChartContext = React.createContext<ChartContextProps | null>(null)
 
-function useChart() {
-  const context = React.useContext(ChartContext)
-
-  if (!context) {
-    throw new Error("useChart must be used within a <ChartContainer />")
-  }
-
-  return context
+// Returns an empty config when not inside a <ChartContainer> so the
+// helper components (ChartTooltipContent, ChartLegendContent) can be
+// dropped directly into a raw <ResponsiveContainer><Chart><Tooltip
+// content={<ChartTooltipContent />} /></Chart></ResponsiveContainer>
+// tree without forcing every page to set up a config object. Pages
+// that DO want config-driven labels still get them by wrapping in
+// <ChartContainer config={...}>. Without it, the tooltip falls
+// through to the raw values recharts passes in — same behaviour as
+// the default <Tooltip /> with a styled wrapper.
+const EMPTY_CONFIG: ChartConfig = {}
+function useChart(): ChartContextProps {
+  return React.useContext(ChartContext) ?? { config: EMPTY_CONFIG }
 }
 
 function ChartContainer({
