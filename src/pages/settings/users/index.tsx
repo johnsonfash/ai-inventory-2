@@ -1,58 +1,74 @@
 import * as React from "react"
 import { Link } from "react-router-dom"
-import { Crown, MoreHorizontal, Plus, Search, Shield, ShieldCheck, UserCog, Users } from "lucide-react"
+import { toast } from "sonner"
+import {
+  Activity,
+  ArrowRight,
+  ChevronRight,
+  Copy,
+  Laptop,
+  MapPin,
+  RefreshCw,
+  Search,
+  Smartphone,
+  Trash2,
+  UserPlus,
+  Users,
+} from "lucide-react"
 import { PageShell } from "@/components/page-shell"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { useIsMobile } from "@/hooks/use-mobile"
-import { useRegisterPageRefresh } from "@/hooks/use-pull-to-refresh"
-import { EmptyState } from "@/components/lists/empty-state"
 import { StatusBadge, type StatusTone } from "@/components/lists/status-badge"
 import { SummaryStrip } from "@/components/lists/summary-strip"
+import { EmptyState } from "@/components/lists/empty-state"
+import { InfoTooltip } from "@/components/info-tooltip"
+import { useRegisterPageRefresh } from "@/hooks/use-pull-to-refresh"
+import { useIsMobile } from "@/hooks/use-mobile"
+import { INVITES, LOCATIONS, MEMBERS, ROLE_BY_KEY, SESSIONS } from "@/lib/team/data"
+import type { Member, RoleKey } from "@/lib/team/types"
+import { cn } from "@/lib/utils"
 
-type Role = "Admin" | "Manager" | "Cashier" | "Viewer"
-type Row = {
-  email: string
-  name: string
-  role: Role
-  location: string
-  status: "active" | "invited" | "suspended"
-  lastSeen: string
+type Tab = "active" | "invites" | "affiliates" | "sessions"
+
+const TAB_LABELS: Record<Tab, string> = {
+  active: "Active",
+  invites: "Pending invites",
+  affiliates: "Affiliates",
+  sessions: "Sessions",
 }
 
-const rows: Row[] = [
-  { email: "john@pallio.app", name: "John Founder", role: "Admin", location: "HQ", status: "active", lastSeen: "Active now" },
-  { email: "mia@pallio.app", name: "Mia Chen", role: "Manager", location: "Downtown Austin", status: "active", lastSeen: "12m ago" },
-  { email: "alex@pallio.app", name: "Alex Larson", role: "Manager", location: "East DC", status: "active", lastSeen: "2h ago" },
-  { email: "priya@pallio.app", name: "Priya Patel", role: "Cashier", location: "West Hub", status: "active", lastSeen: "1d ago" },
-  { email: "daniel@pallio.app", name: "Daniel Kim", role: "Cashier", location: "HQ", status: "invited", lastSeen: "Pending invite" },
-  { email: "linda@pallio.app", name: "Linda Mensah", role: "Viewer", location: "HQ", status: "suspended", lastSeen: "30d ago" },
-]
-
-const roleIcon: Record<Role, typeof Crown> = {
-  Admin: Crown,
-  Manager: Shield,
-  Cashier: UserCog,
-  Viewer: ShieldCheck,
-}
-const roleTone: Record<Role, StatusTone> = {
-  Admin: "brand",
-  Manager: "info",
-  Cashier: "warning",
-  Viewer: "neutral",
-}
-const statusTone: Record<Row["status"], StatusTone> = {
-  active: "success",
-  invited: "warning",
-  suspended: "danger",
+const ROLE_TONE: Record<RoleKey, StatusTone> = {
+  owner: "brand",
+  manager: "info",
+  cashier: "success",
+  "sales-rep": "warning",
+  marketer: "info",
+  affiliate: "warning",
+  viewer: "neutral",
+  custom: "neutral",
 }
 
-function initialsOf(name: string) {
+function locName(id: string): string {
+  return LOCATIONS.find((l) => l.id === id)?.name ?? id
+}
+
+function relTime(iso?: string): string {
+  if (!iso) return "—"
+  const diff = Date.now() - new Date(iso).getTime()
+  const min = Math.round(diff / 60_000)
+  if (min < 1) return "now"
+  if (min < 60) return `${min}m ago`
+  const h = Math.round(min / 60)
+  if (h < 24) return `${h}h ago`
+  const d = Math.round(h / 24)
+  return d === 1 ? "1d ago" : `${d}d ago`
+}
+
+function initials(name: string): string {
   return name.split(/\s+/).slice(0, 2).map((s) => s[0]!.toUpperCase()).join("")
 }
 
-function avatarTint(name: string) {
+function avatarTint(name: string): string {
   const palette = [
     "bg-brand/15 text-brand dark:bg-primary/20 dark:text-primary",
     "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300",
@@ -66,114 +82,430 @@ function avatarTint(name: string) {
   return palette[h % palette.length]!
 }
 
-export default function UsersSettings() {
-  const isMobile = useIsMobile()
-  const [query, setQuery] = React.useState("")
-
+export default function TeamHub() {
   useRegisterPageRefresh(React.useCallback(async () => { await new Promise((r) => setTimeout(r, 400)) }, []))
+  const [tab, setTab] = React.useState<Tab>("active")
+  const [query, setQuery] = React.useState("")
+  const isMobile = useIsMobile()
 
-  const filtered = React.useMemo(() => {
+  const activeMembers = React.useMemo(
+    () => MEMBERS.filter((m) => m.role !== "affiliate"),
+    [],
+  )
+  const affiliates = React.useMemo(
+    () => MEMBERS.filter((m) => m.role === "affiliate"),
+    [],
+  )
+
+  const filteredActive = React.useMemo(() => {
     const q = query.trim().toLowerCase()
-    if (!q) return rows
-    return rows.filter((r) => r.name.toLowerCase().includes(q) || r.email.toLowerCase().includes(q))
-  }, [query])
+    if (!q) return activeMembers
+    return activeMembers.filter(
+      (m) => m.name.toLowerCase().includes(q) || m.email.toLowerCase().includes(q) || ROLE_BY_KEY[m.role].name.toLowerCase().includes(q),
+    )
+  }, [activeMembers, query])
 
-  const active = rows.filter((r) => r.status === "active").length
-  const invited = rows.filter((r) => r.status === "invited").length
-  const admins = rows.filter((r) => r.role === "Admin").length
+  const filteredAffiliates = React.useMemo(() => {
+    const q = query.trim().toLowerCase()
+    if (!q) return affiliates
+    return affiliates.filter(
+      (m) => m.name.toLowerCase().includes(q) || m.email.toLowerCase().includes(q) || (m.affiliateCode ?? "").toLowerCase().includes(q),
+    )
+  }, [affiliates, query])
+
+  const totalSalesMTD = MEMBERS.reduce((s, m) => s + (m.mtdSalesUsd ?? 0), 0)
+  const totalCommissionMTD = MEMBERS.reduce((s, m) => s + (m.mtdCommissionUsd ?? 0), 0)
 
   return (
-    <PageShell title="Users" withToolbar={false}>
+    <PageShell
+      title="Team"
+      withToolbar={false}
+      mobileTrailing={
+        <Link to="/settings/users/new">
+          <button
+            type="button"
+            aria-label="Invite member"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-full text-foreground/80 hover:bg-accent active:bg-accent/70"
+          >
+            <UserPlus className="h-4 w-4" />
+          </button>
+        </Link>
+      }
+    >
       <div className="flex flex-col gap-4">
         <SummaryStrip
           tiles={[
-            { label: "Users", value: String(rows.length), tone: "brand", hint: "in workspace" },
-            { label: "Active", value: String(active), tone: "success", hint: "signed in" },
-            { label: "Invited", value: String(invited), tone: "warning", hint: "not accepted" },
-            { label: "Admins", value: String(admins), tone: "info", hint: "elevated" },
+            { label: "Active members", value: String(activeMembers.length), tone: "brand", hint: "humans on staff" },
+            { label: "Affiliates", value: String(affiliates.length), tone: "warning", hint: "external partners" },
+            { label: "Pending invites", value: String(INVITES.length), tone: "info", hint: "awaiting accept" },
+            { label: "MTD commissions", value: `$${totalCommissionMTD.toLocaleString()}`, tone: "success", hint: "across team" },
           ]}
         />
 
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="relative min-w-[180px] flex-1">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search by name or email…" className="pl-9" />
+        {/* Tabs + search + invite CTA */}
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="-mx-4 flex gap-1.5 overflow-x-auto px-4 scrollbar-hide sm:mx-0 sm:px-0">
+            {(["active", "invites", "affiliates", "sessions"] as Tab[]).map((t) => (
+              <button
+                key={t}
+                type="button"
+                onClick={() => setTab(t)}
+                className={cn(
+                  "shrink-0 rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors",
+                  tab === t
+                    ? "border-transparent bg-brand text-brand-foreground dark:bg-primary dark:text-primary-foreground"
+                    : "border-border bg-card text-muted-foreground hover:bg-accent hover:text-foreground",
+                )}
+              >
+                {TAB_LABELS[t]}
+                {t === "invites" && INVITES.length > 0 && (
+                  <span className={cn(
+                    "ml-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px]",
+                    tab === t ? "bg-white/25" : "bg-muted",
+                  )}>{INVITES.length}</span>
+                )}
+              </button>
+            ))}
           </div>
-          <Link to="/settings/users/new" className="inline-flex">
-            <Button><Plus className="h-4 w-4" /> Invite user</Button>
-          </Link>
+          <div className="flex gap-2">
+            <div className="relative min-w-0 flex-1">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search…" className="pl-9" />
+            </div>
+            <Link to="/settings/users/new" className="hidden sm:inline-flex">
+              <Button><UserPlus className="h-4 w-4" /> Invite</Button>
+            </Link>
+          </div>
         </div>
 
-        {filtered.length === 0 ? (
-          <Card><CardContent className="p-0">
-            <EmptyState Icon={Users} title="No users match" description="Try a different name or email." />
-          </CardContent></Card>
-        ) : isMobile ? (
-          <ul className="space-y-2">
-            {filtered.map((r) => {
-              const RIcon = roleIcon[r.role]
-              return (
-                <li key={r.email} className="flex items-start gap-3 rounded-2xl border border-border bg-card p-3">
-                  <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-xs font-bold ${avatarTint(r.name)}`}>
-                    {initialsOf(r.name)}
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center justify-between gap-2">
-                      <p className="truncate text-sm font-semibold">{r.name}</p>
-                      <StatusBadge tone={statusTone[r.status]}>{r.status}</StatusBadge>
-                    </div>
-                    <p className="truncate text-[11px] text-muted-foreground">{r.email}</p>
-                    <div className="mt-1 flex items-center gap-1.5">
-                      <StatusBadge tone={roleTone[r.role]}><RIcon className="h-3 w-3" /> {r.role}</StatusBadge>
-                      <span className="text-[10px] text-muted-foreground">· {r.location}</span>
-                    </div>
-                    <p className="mt-1 text-[10px] text-muted-foreground">{r.lastSeen}</p>
-                  </div>
-                </li>
-              )
-            })}
-          </ul>
-        ) : (
-          <div className="overflow-hidden rounded-xl border border-border bg-card">
-            <table className="w-full text-sm">
-              <thead className="bg-muted/40 text-left text-[11px] uppercase tracking-wider text-muted-foreground">
-                <tr>
-                  <th className="px-3 py-2.5 font-medium">User</th>
-                  <th className="px-3 py-2.5 font-medium">Email</th>
-                  <th className="px-3 py-2.5 font-medium">Role</th>
-                  <th className="px-3 py-2.5 font-medium">Location</th>
-                  <th className="px-3 py-2.5 font-medium">Status</th>
-                  <th className="px-3 py-2.5 font-medium">Last seen</th>
-                  <th className="px-3 py-2.5 text-right font-medium" />
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {filtered.map((r) => {
-                  const RIcon = roleIcon[r.role]
-                  return (
-                    <tr key={r.email} className="transition-colors hover:bg-accent/30">
-                      <td className="px-3 py-2.5">
-                        <div className="flex items-center gap-2">
-                          <span className={`flex h-7 w-7 items-center justify-center rounded-full text-[10px] font-bold ${avatarTint(r.name)}`}>{initialsOf(r.name)}</span>
-                          <span className="font-medium">{r.name}</span>
-                        </div>
-                      </td>
-                      <td className="px-3 py-2.5 text-muted-foreground">{r.email}</td>
-                      <td className="px-3 py-2.5"><StatusBadge tone={roleTone[r.role]}><RIcon className="h-3 w-3" /> {r.role}</StatusBadge></td>
-                      <td className="px-3 py-2.5 text-muted-foreground">{r.location}</td>
-                      <td className="px-3 py-2.5"><StatusBadge tone={statusTone[r.status]} withDot>{r.status}</StatusBadge></td>
-                      <td className="px-3 py-2.5 text-muted-foreground">{r.lastSeen}</td>
-                      <td className="px-3 py-2.5 text-right">
-                        <Button size="sm" variant="ghost" aria-label="More actions"><MoreHorizontal className="h-3.5 w-3.5" aria-hidden="true" /></Button>
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          </div>
+        {/* Tab content */}
+        {tab === "active" && (
+          <ActiveTab members={filteredActive} isMobile={isMobile} />
+        )}
+        {tab === "invites" && (
+          <InvitesTab />
+        )}
+        {tab === "affiliates" && (
+          <AffiliatesTab members={filteredAffiliates} totalSales={totalSalesMTD} />
+        )}
+        {tab === "sessions" && (
+          <SessionsTab />
         )}
       </div>
     </PageShell>
+  )
+}
+
+// ----------- Active tab -----------
+function ActiveTab({ members, isMobile }: { members: Member[]; isMobile: boolean }) {
+  if (members.length === 0) {
+    return (
+      <EmptyState
+        Icon={Users}
+        title="No members match"
+        description="Try a different name, email, or role."
+      />
+    )
+  }
+  if (isMobile) {
+    return <ul className="space-y-2">{members.map((m) => <li key={m.id}><MemberRow member={m} /></li>)}</ul>
+  }
+  return (
+    <div className="overflow-hidden rounded-2xl border border-border bg-card">
+      <table className="w-full text-sm">
+        <thead className="bg-muted/40 text-left text-[11px] uppercase tracking-wider text-muted-foreground">
+          <tr>
+            <th className="px-4 py-2.5 font-medium">Name</th>
+            <th className="px-4 py-2.5 font-medium">Role</th>
+            <th className="px-4 py-2.5 font-medium">Locations</th>
+            <th className="px-4 py-2.5 text-right font-medium">MTD sales</th>
+            <th className="px-4 py-2.5 text-right font-medium">Last active</th>
+            <th className="px-4 py-2.5 text-right font-medium" />
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-border">
+          {members.map((m) => {
+            const role = ROLE_BY_KEY[m.role]
+            return (
+              <tr key={m.id} className="transition-colors hover:bg-accent/30">
+                <td className="px-4 py-2.5">
+                  <Link to={`/settings/users/${m.id}`} className="flex items-center gap-3">
+                    <span className={cn("flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-bold", avatarTint(m.name))}>
+                      {initials(m.name)}
+                    </span>
+                    <div className="min-w-0">
+                      <p className="truncate font-medium">{m.name}</p>
+                      <p className="truncate text-[11px] text-muted-foreground">{m.email}</p>
+                    </div>
+                  </Link>
+                </td>
+                <td className="px-4 py-2.5">
+                  <div className="flex flex-wrap gap-1">
+                    <StatusBadge tone={ROLE_TONE[m.role]}>{role.name}</StatusBadge>
+                    {m.status === "suspended" && (
+                      <StatusBadge tone="danger" withDot>suspended</StatusBadge>
+                    )}
+                  </div>
+                </td>
+                <td className="px-4 py-2.5">
+                  {m.locationIds.length === 0 ? (
+                    <span className="text-[11px] text-muted-foreground">All locations</span>
+                  ) : (
+                    <span className="flex flex-wrap items-center gap-1">
+                      {m.locationIds.map((id) => (
+                        <span key={id} className="inline-flex items-center gap-1 rounded-full border border-border bg-background px-1.5 py-0.5 text-[10px]">
+                          <MapPin className="h-2.5 w-2.5" /> {locName(id)}
+                        </span>
+                      ))}
+                    </span>
+                  )}
+                </td>
+                <td className="px-4 py-2.5 text-right tabular-nums">
+                  {m.mtdSalesUsd != null ? `$${m.mtdSalesUsd.toLocaleString()}` : "—"}
+                </td>
+                <td className="px-4 py-2.5 text-right text-[11px] text-muted-foreground">{relTime(m.lastActiveAt)}</td>
+                <td className="px-4 py-2.5 text-right">
+                  <Link to={`/settings/users/${m.id}`} className="inline-flex items-center gap-1 text-xs font-semibold text-brand hover:text-brand/80 dark:text-primary">
+                    Open <ArrowRight className="h-3 w-3" />
+                  </Link>
+                </td>
+              </tr>
+            )
+          })}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
+function MemberRow({ member }: { member: Member }) {
+  const role = ROLE_BY_KEY[member.role]
+  return (
+    <Link to={`/settings/users/${member.id}`} className="block rounded-2xl border border-border bg-card p-3 transition-colors hover:border-brand/40">
+      <div className="flex items-start gap-3">
+        <span className={cn("flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-xs font-bold", avatarTint(member.name))}>
+          {initials(member.name)}
+        </span>
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center justify-between gap-2">
+            <p className="truncate text-sm font-semibold">{member.name}</p>
+            <StatusBadge tone={ROLE_TONE[member.role]}>{role.name}</StatusBadge>
+          </div>
+          <p className="truncate text-[11px] text-muted-foreground">{member.email}</p>
+          <div className="mt-1.5 flex flex-wrap items-center gap-1 text-[11px] text-muted-foreground">
+            {member.locationIds.length === 0 ? (
+              <span>All locations</span>
+            ) : (
+              member.locationIds.map((id) => (
+                <span key={id} className="inline-flex items-center gap-1">
+                  <MapPin className="h-2.5 w-2.5" />
+                  {locName(id)}
+                </span>
+              ))
+            )}
+            <span>· last active {relTime(member.lastActiveAt)}</span>
+          </div>
+        </div>
+        <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+      </div>
+    </Link>
+  )
+}
+
+// ----------- Invites tab -----------
+function InvitesTab() {
+  if (INVITES.length === 0) {
+    return (
+      <EmptyState
+        Icon={UserPlus}
+        title="No pending invites"
+        description="Invite a teammate or affiliate to get started."
+        action={
+          <Link to="/settings/users/new">
+            <Button><UserPlus className="h-4 w-4" /> Invite member</Button>
+          </Link>
+        }
+      />
+    )
+  }
+  return (
+    <ul className="flex flex-col gap-2">
+      {INVITES.map((inv) => {
+        const role = ROLE_BY_KEY[inv.role]
+        const link = `https://pallio.app/invite/${inv.token}`
+        const expiresIn = Math.round((new Date(inv.expiresAt).getTime() - Date.now()) / 86_400_000)
+        const expiringSoon = expiresIn <= 1
+        const copy = async () => {
+          try {
+            await navigator.clipboard.writeText(link)
+            toast.success("Invite link copied")
+          } catch {
+            toast.error("Couldn't copy — check clipboard permissions")
+          }
+        }
+        return (
+          <li key={inv.id} className="rounded-2xl border border-border bg-card p-3">
+            <div className="flex items-start gap-3">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground">
+                <UserPlus className="h-4 w-4" />
+              </span>
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <p className="truncate text-sm font-semibold">{inv.email}</p>
+                  <StatusBadge tone={ROLE_TONE[inv.role]}>{role.name}</StatusBadge>
+                </div>
+                <p className="mt-0.5 text-[11px] text-muted-foreground">
+                  Invited by <span className="font-medium text-foreground/80">{inv.invitedBy}</span> · {relTime(inv.invitedAt)}
+                </p>
+                <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-[11px]">
+                  {inv.locationIds.length > 0 && inv.locationIds.map((id) => (
+                    <span key={id} className="inline-flex items-center gap-1 rounded-full border border-border bg-background px-1.5 py-0.5">
+                      <MapPin className="h-2.5 w-2.5" /> {locName(id)}
+                    </span>
+                  ))}
+                  <StatusBadge tone={expiringSoon ? "danger" : "neutral"}>
+                    {expiringSoon ? "expires < 24h" : `expires in ${expiresIn}d`}
+                  </StatusBadge>
+                </div>
+              </div>
+            </div>
+            <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-border pt-3">
+              <Button size="sm" variant="outline" onClick={copy}>
+                <Copy className="h-3.5 w-3.5" /> Copy link
+              </Button>
+              <Button size="sm" variant="outline">
+                <RefreshCw className="h-3.5 w-3.5" /> Resend email
+              </Button>
+              <Button size="sm" variant="ghost" className="ml-auto text-rose-600 dark:text-rose-400">
+                <Trash2 className="h-3.5 w-3.5" /> Revoke
+              </Button>
+            </div>
+          </li>
+        )
+      })}
+    </ul>
+  )
+}
+
+// ----------- Affiliates tab -----------
+function AffiliatesTab({ members, totalSales }: { members: Member[]; totalSales: number }) {
+  if (members.length === 0) {
+    return (
+      <EmptyState
+        Icon={Users}
+        title="No affiliates yet"
+        description="Invite an external partner to start tracking referred sales."
+        action={
+          <Link to="/settings/users/new?role=affiliate">
+            <Button><UserPlus className="h-4 w-4" /> Invite affiliate</Button>
+          </Link>
+        }
+      />
+    )
+  }
+  const affiliateSalesShare = (members.reduce((s, m) => s + (m.mtdSalesUsd ?? 0), 0) / Math.max(1, totalSales)) * 100
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="rounded-2xl border border-border bg-card p-4">
+        <div className="flex items-baseline gap-1.5">
+          <h3 className="text-sm font-semibold md:text-base">Active affiliates</h3>
+          <InfoTooltip label="Affiliates" size="xs">
+            External partners with a unique referral link. Pallio
+            attributes sales when a customer arrives via that link
+            and pays commission at the rate set on the invite.
+          </InfoTooltip>
+        </div>
+        <p className="text-[11px] text-muted-foreground">
+          {members.length} affiliates driving {affiliateSalesShare.toFixed(0)}% of MTD revenue.
+        </p>
+
+        <ul className="mt-4 divide-y divide-border">
+          {members.map((m) => (
+            <li key={m.id} className="flex items-start gap-3 py-3">
+              <span className={cn("flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-xs font-bold", avatarTint(m.name))}>
+                {initials(m.name)}
+              </span>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center justify-between gap-2">
+                  <Link to={`/settings/users/${m.id}`} className="truncate text-sm font-semibold hover:underline">
+                    {m.name}
+                  </Link>
+                  <code className="rounded bg-muted px-1.5 py-0.5 text-[10px] font-bold">{m.affiliateCode}</code>
+                </div>
+                <p className="text-[11px] text-muted-foreground">{m.email}</p>
+                <div className="mt-1.5 grid grid-cols-3 gap-2 text-[11px]">
+                  <div>
+                    <p className="uppercase text-muted-foreground">Clicks</p>
+                    <p className="font-bold tabular-nums">{m.affiliateClicks?.toLocaleString() ?? "—"}</p>
+                  </div>
+                  <div>
+                    <p className="uppercase text-muted-foreground">MTD sales</p>
+                    <p className="font-bold tabular-nums">${m.mtdSalesUsd?.toLocaleString() ?? "—"}</p>
+                  </div>
+                  <div>
+                    <p className="uppercase text-muted-foreground">Commission</p>
+                    <p className="font-bold tabular-nums text-emerald-600 dark:text-emerald-400">
+                      ${m.mtdCommissionUsd?.toLocaleString() ?? "—"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  )
+}
+
+// ----------- Sessions tab -----------
+function SessionsTab() {
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="flex items-baseline gap-1.5">
+        <h3 className="text-sm font-semibold md:text-base">Active sessions</h3>
+        <InfoTooltip label="Sessions" size="xs">
+          Every device currently signed into your organization. Revoke
+          anything you don't recognise — the device is signed out the
+          next time it tries to reach the API.
+        </InfoTooltip>
+      </div>
+      <ul className="flex flex-col gap-2">
+        {SESSIONS.map((s) => {
+          const member = MEMBERS.find((m) => m.id === s.memberId)
+          if (!member) return null
+          const Device = s.device.toLowerCase().includes("iphone") || s.device.toLowerCase().includes("android") ? Smartphone : Laptop
+          return (
+            <li key={s.id} className="rounded-2xl border border-border bg-card p-3">
+              <div className="flex items-start gap-3">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-soft text-brand dark:bg-primary/15 dark:text-primary">
+                  <Device className="h-4 w-4" />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <p className="text-sm font-semibold">{member.name} · {s.device}</p>
+                    {s.current && (
+                      <StatusBadge tone="success" withDot>this device</StatusBadge>
+                    )}
+                  </div>
+                  <p className="mt-0.5 text-[11px] text-muted-foreground">
+                    {s.approxLocation && <>{s.approxLocation} · </>}signed in {relTime(s.startedAt)} · last seen {relTime(s.lastSeenAt)}
+                  </p>
+                </div>
+                {!s.current && (
+                  <Button size="sm" variant="ghost" className="text-rose-600 dark:text-rose-400">
+                    <Trash2 className="h-3.5 w-3.5" /> Revoke
+                  </Button>
+                )}
+              </div>
+            </li>
+          )
+        })}
+      </ul>
+      <div className="rounded-2xl border border-dashed border-border bg-muted/30 p-3 text-xs text-muted-foreground">
+        <Activity className="mr-1.5 inline h-3.5 w-3.5" />
+        Every sign-in attempt + revocation is logged. Audit trail lands when the real backend ships.
+      </div>
+    </div>
   )
 }

@@ -144,6 +144,7 @@ export const routes: RouteObject[] = [
   { path: "/settings/taxes", Component: page(() => import("./pages/settings/taxes")) },
   { path: "/settings/users", Component: page(() => import("./pages/settings/users")) },
   { path: "/settings/users/new", Component: page(() => import("./pages/settings/users/new")) },
+  { path: "/settings/users/:id", Component: page(() => import("./pages/settings/users/[id]")) },
   { path: "/settings/warehouses", Component: page(() => import("./pages/settings/warehouses")) },
   { path: "/settings/warehouses/:code/edit", Component: page(() => import("./pages/settings/warehouses/[code]/edit")) },
   { path: "/settings/warehouses/new", Component: page(() => import("./pages/settings/warehouses/new")) },
