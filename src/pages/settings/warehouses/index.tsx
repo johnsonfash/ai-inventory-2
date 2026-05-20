@@ -1,55 +1,185 @@
-
-import { PageShell } from "@/components/page-shell"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Button } from "@/components/ui/button"
+import * as React from "react"
 import { Link } from "react-router-dom"
+import { Boxes, ChevronRight, MapPin, Plus, Search, Warehouse } from "lucide-react"
+import { PageShell } from "@/components/page-shell"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { useIsMobile } from "@/hooks/use-mobile"
+import { useRegisterPageRefresh } from "@/hooks/use-pull-to-refresh"
+import { EmptyState } from "@/components/lists/empty-state"
+import { StatusBadge, type StatusTone } from "@/components/lists/status-badge"
+import { SummaryStrip } from "@/components/lists/summary-strip"
+
+type Row = {
+  code: string
+  name: string
+  location: string
+  manager: string
+  utilizationPct: number
+  skus: number
+  status: "active" | "maintenance" | "archived"
+}
+
+const rows: Row[] = [
+  { code: "WH-A", name: "Main Warehouse", location: "Austin, TX", manager: "Mia Chen", utilizationPct: 78, skus: 642, status: "active" },
+  { code: "WH-B", name: "East DC", location: "Atlanta, GA", manager: "Alex Larson", utilizationPct: 64, skus: 412, status: "active" },
+  { code: "WH-C", name: "West Hub", location: "Portland, OR", manager: "Priya Patel", utilizationPct: 92, skus: 218, status: "active" },
+  { code: "WH-D", name: "Overflow", location: "Phoenix, AZ", manager: "Daniel Kim", utilizationPct: 12, skus: 56, status: "maintenance" },
+]
+
+const statusTone: Record<Row["status"], StatusTone> = {
+  active: "success",
+  maintenance: "warning",
+  archived: "neutral",
+}
 
 export default function Warehouses() {
-  const rows = [
-    { code: "WH-A", name: "Main Warehouse", location: "Austin, TX" },
-    { code: "WH-B", name: "East DC", location: "Atlanta, GA" },
-  ]
+  const isMobile = useIsMobile()
+  const [query, setQuery] = React.useState("")
+
+  useRegisterPageRefresh(React.useCallback(async () => { await new Promise((r) => setTimeout(r, 400)) }, []))
+
+  const filtered = React.useMemo(() => {
+    const q = query.trim().toLowerCase()
+    if (!q) return rows
+    return rows.filter((r) =>
+      r.code.toLowerCase().includes(q) ||
+      r.name.toLowerCase().includes(q) ||
+      r.location.toLowerCase().includes(q),
+    )
+  }, [query])
+
+  const totalSkus = rows.reduce((s, r) => s + r.skus, 0)
+  const activeCount = rows.filter((r) => r.status === "active").length
+  const avgUtil = Math.round(rows.reduce((s, r) => s + r.utilizationPct, 0) / rows.length)
+  const overCapacity = rows.filter((r) => r.utilizationPct >= 90).length
+
   return (
-    <PageShell title="Settings — Warehouses" withToolbar={false}>
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Warehouses</CardTitle>
-          <Link to="/settings/warehouses/new">
-            <Button className="bg-violet-600 hover:bg-violet-600/90">Add Warehouse</Button>
-          </Link>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-auto rounded-lg border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Code</TableHead>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Location</TableHead>
-                  <TableHead>Action</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {rows.map((r) => (
-                  <TableRow key={r.code}>
-                    <TableCell className="font-mono text-xs">{r.code}</TableCell>
-                    <TableCell>{r.name}</TableCell>
-                    <TableCell>{r.location}</TableCell>
-                    <TableCell className="text-right">
-                      <Link to={`/settings/warehouses/${r.code}/edit`}>
-                        <Button size="sm" variant="outline" className="bg-transparent">
-                          Edit
-                        </Button>
-                      </Link>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+    <PageShell title="Warehouses" withToolbar={false}>
+      <div className="flex flex-col gap-4">
+        <SummaryStrip
+          tiles={[
+            { label: "Locations", value: String(rows.length), tone: "brand", hint: "configured" },
+            { label: "Active", value: String(activeCount), tone: "success", hint: "operating" },
+            { label: "SKUs", value: totalSkus.toLocaleString(), tone: "info", hint: "across all" },
+            { label: "Avg utilization", value: `${avgUtil}%`, tone: overCapacity > 0 ? "warning" : "success", hint: overCapacity > 0 ? `${overCapacity} near full` : "healthy" },
+          ]}
+        />
+
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="relative min-w-[180px] flex-1">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search by code, name, or city…" className="pl-9" />
           </div>
-        </CardContent>
-      </Card>
+          <Link to="/settings/warehouses/new" className="hidden md:inline-flex">
+            <Button><Plus className="h-4 w-4" /> Add warehouse</Button>
+          </Link>
+        </div>
+
+        {filtered.length === 0 ? (
+          <Card><CardContent className="p-0">
+            <EmptyState
+              Icon={Warehouse}
+              title="No warehouses match"
+              description="Try a different code or city name."
+              action={<Link to="/settings/warehouses/new"><Button><Plus className="h-4 w-4" /> Add warehouse</Button></Link>}
+            />
+          </CardContent></Card>
+        ) : isMobile ? (
+          <ul className="space-y-2">
+            {filtered.map((r) => (
+              <li key={r.code}>
+                <Link to={`/settings/warehouses/${r.code}/edit`} className="flex items-start gap-3 rounded-2xl border border-border bg-card p-3">
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-soft text-brand dark:bg-primary/15 dark:text-primary">
+                    <Warehouse className="h-4 w-4" />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="truncate text-sm font-semibold">{r.name}</p>
+                      <StatusBadge tone={statusTone[r.status]}>{r.status}</StatusBadge>
+                    </div>
+                    <p className="mt-0.5 text-[11px] text-muted-foreground">
+                      <span className="font-mono">{r.code}</span> · <span className="inline-flex items-center gap-1"><MapPin className="h-3 w-3" /> {r.location}</span>
+                    </p>
+                    <p className="mt-0.5 text-[11px] text-muted-foreground">{r.skus} SKUs · {r.manager}</p>
+                    <div className="mt-1.5 flex items-center gap-2">
+                      <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
+                        <div
+                          className={
+                            r.utilizationPct >= 90
+                              ? "h-1.5 rounded-full bg-rose-500"
+                              : r.utilizationPct >= 70
+                                ? "h-1.5 rounded-full bg-amber-500"
+                                : "h-1.5 rounded-full bg-emerald-500"
+                          }
+                          style={{ width: `${r.utilizationPct}%` }}
+                        />
+                      </div>
+                      <span className="shrink-0 text-[10px] tabular-nums text-muted-foreground">{r.utilizationPct}%</span>
+                    </div>
+                  </div>
+                  <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+                </Link>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <div className="overflow-hidden rounded-xl border border-border bg-card">
+            <table className="w-full text-sm">
+              <thead className="bg-muted/40 text-left text-[11px] uppercase tracking-wider text-muted-foreground">
+                <tr>
+                  <th className="px-3 py-2.5 font-medium">Code</th>
+                  <th className="px-3 py-2.5 font-medium">Name</th>
+                  <th className="px-3 py-2.5 font-medium">Location</th>
+                  <th className="px-3 py-2.5 font-medium">Manager</th>
+                  <th className="px-3 py-2.5 text-right font-medium">SKUs</th>
+                  <th className="px-3 py-2.5 font-medium">Utilization</th>
+                  <th className="px-3 py-2.5 font-medium">Status</th>
+                  <th className="px-3 py-2.5 text-right font-medium" />
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {filtered.map((r) => (
+                  <tr key={r.code} className="transition-colors hover:bg-accent/30">
+                    <td className="px-3 py-2.5 font-mono text-xs font-semibold">{r.code}</td>
+                    <td className="px-3 py-2.5">
+                      <div className="flex items-center gap-2">
+                        <Boxes className="h-3.5 w-3.5 text-muted-foreground" />
+                        {r.name}
+                      </div>
+                    </td>
+                    <td className="px-3 py-2.5 text-muted-foreground">{r.location}</td>
+                    <td className="px-3 py-2.5 text-muted-foreground">{r.manager}</td>
+                    <td className="px-3 py-2.5 text-right tabular-nums">{r.skus.toLocaleString()}</td>
+                    <td className="px-3 py-2.5">
+                      <div className="flex items-center gap-2">
+                        <div className="h-1.5 w-24 overflow-hidden rounded-full bg-muted">
+                          <div
+                            className={
+                              r.utilizationPct >= 90
+                                ? "h-1.5 rounded-full bg-rose-500"
+                                : r.utilizationPct >= 70
+                                  ? "h-1.5 rounded-full bg-amber-500"
+                                  : "h-1.5 rounded-full bg-emerald-500"
+                            }
+                            style={{ width: `${r.utilizationPct}%` }}
+                          />
+                        </div>
+                        <span className="text-xs tabular-nums text-muted-foreground">{r.utilizationPct}%</span>
+                      </div>
+                    </td>
+                    <td className="px-3 py-2.5"><StatusBadge tone={statusTone[r.status]} withDot>{r.status}</StatusBadge></td>
+                    <td className="px-3 py-2.5 text-right">
+                      <Button size="sm" variant="ghost" asChild><Link to={`/settings/warehouses/${r.code}/edit`}>Edit</Link></Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
     </PageShell>
   )
 }

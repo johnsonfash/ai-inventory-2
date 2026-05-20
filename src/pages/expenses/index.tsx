@@ -1,63 +1,182 @@
-
+import * as React from "react"
+import { Link } from "react-router-dom"
+import { Building2, ChevronRight, Plus, Receipt, Search, Wallet } from "lucide-react"
 import { PageShell } from "@/components/page-shell"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import { useIsMobile } from "@/hooks/use-mobile"
+import { useRegisterPageRefresh } from "@/hooks/use-pull-to-refresh"
+import { EmptyState } from "@/components/lists/empty-state"
+import { StatusBadge, type StatusTone } from "@/components/lists/status-badge"
+import { SummaryStrip } from "@/components/lists/summary-strip"
+
+type Row = { id: string; category: string; vendor: string; amount: number; date: string; method: "card" | "cash" | "transfer" }
+
+const rows: Row[] = [
+  { id: "EXP-1042", category: "Logistics", vendor: "DHL", amount: 482, date: "2026-05-19", method: "card" },
+  { id: "EXP-1041", category: "Marketing", vendor: "Meta Ads", amount: 1240, date: "2026-05-18", method: "card" },
+  { id: "EXP-1040", category: "Rent", vendor: "WeWork", amount: 4200, date: "2026-05-17", method: "transfer" },
+  { id: "EXP-1039", category: "Utilities", vendor: "ConEd", amount: 312, date: "2026-05-16", method: "transfer" },
+  { id: "EXP-1038", category: "Payroll", vendor: "ADP", amount: 18400, date: "2026-05-15", method: "transfer" },
+  { id: "EXP-1037", category: "Logistics", vendor: "USPS", amount: 84, date: "2026-05-14", method: "card" },
+]
+
+const CATEGORIES = ["All", "Logistics", "Marketing", "Rent", "Utilities", "Payroll", "Other"] as const
+
+const categoryTone: Record<string, StatusTone> = {
+  Logistics: "info",
+  Marketing: "brand",
+  Rent: "neutral",
+  Utilities: "warning",
+  Payroll: "danger",
+  Other: "neutral",
+}
 
 export default function Expenses() {
-  const rows = [
-    { id: "EXP-101", category: "Shipping", amount: 220.5, date: "2025-08-05" },
-    { id: "EXP-102", category: "Packaging", amount: 84.0, date: "2025-08-06" },
-  ]
+  const isMobile = useIsMobile()
+  const [query, setQuery] = React.useState("")
+  const [category, setCategory] = React.useState<(typeof CATEGORIES)[number]>("All")
+
+  useRegisterPageRefresh(React.useCallback(async () => { await new Promise((r) => setTimeout(r, 400)) }, []))
+
+  const filtered = React.useMemo(() => {
+    let list = rows
+    const q = query.trim().toLowerCase()
+    if (q) {
+      list = list.filter((r) =>
+        r.id.toLowerCase().includes(q) ||
+        r.vendor.toLowerCase().includes(q) ||
+        r.category.toLowerCase().includes(q),
+      )
+    }
+    if (category !== "All") list = list.filter((r) => r.category === category)
+    return list
+  }, [query, category])
+
+  const total = rows.reduce((s, r) => s + r.amount, 0)
+  const largest = rows.reduce((a, b) => (a.amount > b.amount ? a : b))
+  const thisMonth = rows.filter((r) => r.date.startsWith("2026-05")).reduce((s, r) => s + r.amount, 0)
+
   return (
-    <PageShell title="Expenses" withToolbar={false}>
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle>Log Expense</CardTitle>
-          <CardDescription>Track operational costs</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="grid grid-cols-3 gap-3">
-            <div className="grid gap-2">
-              <Label>Category</Label>
-              <Input placeholder="Shipping" />
-            </div>
-            <div className="grid gap-2">
-              <Label>Amount</Label>
-              <Input type="number" placeholder="0.00" />
-            </div>
-            <div className="grid gap-2">
-              <Label>Date</Label>
-              <Input type="date" />
-            </div>
+    <PageShell title="Expenses" withToolbar>
+      <div className="flex flex-col gap-4">
+        <SummaryStrip
+          tiles={[
+            { label: "This month", value: `$${thisMonth.toLocaleString()}`, tone: "warning", hint: "spent" },
+            { label: "Largest", value: `$${largest.amount.toLocaleString()}`, tone: "brand", hint: largest.category },
+            { label: "Categories", value: String(new Set(rows.map((r) => r.category)).size), tone: "info", hint: "active" },
+            { label: "Entries", value: String(rows.length), tone: "success", hint: "logged" },
+          ]}
+        />
+
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="relative min-w-[180px] flex-1">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search by ID, vendor, or category…" className="pl-9" />
           </div>
-          <Button className="bg-violet-600 hover:bg-violet-600/90 w-fit">Add Expense</Button>
-          <div className="overflow-auto rounded-lg border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>ID</TableHead>
-                  <TableHead>Category</TableHead>
-                  <TableHead className="text-right">Amount</TableHead>
-                  <TableHead>Date</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {rows.map((r) => (
-                  <TableRow key={r.id}>
-                    <TableCell className="font-mono text-xs">{r.id}</TableCell>
-                    <TableCell>{r.category}</TableCell>
-                    <TableCell className="text-right tabular-nums">${r.amount.toFixed(2)}</TableCell>
-                    <TableCell>{r.date}</TableCell>
-                  </TableRow>
+          <Link to="/expenses/new" className="hidden md:inline-flex">
+            <Button><Plus className="h-4 w-4" /> Log expense</Button>
+          </Link>
+        </div>
+
+        {/* Category pills */}
+        <div className="-mx-4 flex gap-1.5 overflow-x-auto px-4 pb-1 scrollbar-hide md:mx-0 md:px-0">
+          {CATEGORIES.map((c) => (
+            <button
+              key={c}
+              type="button"
+              onClick={() => setCategory(c)}
+              className={
+                "shrink-0 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors " +
+                (category === c
+                  ? "border-transparent bg-brand text-brand-foreground dark:bg-primary dark:text-primary-foreground"
+                  : "border-border bg-card text-muted-foreground hover:bg-accent hover:text-foreground")
+              }
+            >
+              {c}
+            </button>
+          ))}
+        </div>
+
+        {filtered.length === 0 ? (
+          <Card><CardContent className="p-0">
+            <EmptyState
+              Icon={Receipt}
+              title="No expenses match"
+              description="Adjust filters or log a new expense."
+              action={<Link to="/expenses/new"><Button><Plus className="h-4 w-4" /> Log expense</Button></Link>}
+            />
+          </CardContent></Card>
+        ) : isMobile ? (
+          <ul className="space-y-2">
+            {filtered.map((r) => (
+              <li key={r.id} className="rounded-xl border border-border bg-card p-3">
+                <div className="flex items-start gap-3">
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-rose-50 text-rose-600 dark:bg-rose-500/10 dark:text-rose-300">
+                    <Wallet className="h-4 w-4" />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="truncate text-sm font-semibold">{r.vendor}</p>
+                      <p className="shrink-0 text-sm font-bold tabular-nums">${r.amount.toLocaleString()}</p>
+                    </div>
+                    <div className="mt-0.5 flex items-center justify-between gap-2 text-[11px] text-muted-foreground">
+                      <span><span className="font-mono">{r.id}</span> · {r.date}</span>
+                      <StatusBadge tone={categoryTone[r.category] ?? "neutral"}>{r.category}</StatusBadge>
+                    </div>
+                  </div>
+                </div>
+              </li>
+            ))}
+            <li className="rounded-xl border border-dashed border-border bg-muted/30 p-3 text-center text-xs">
+              <span className="text-muted-foreground">Total · </span>
+              <span className="font-semibold tabular-nums">${filtered.reduce((s, r) => s + r.amount, 0).toLocaleString()}</span>
+            </li>
+          </ul>
+        ) : (
+          <div className="overflow-hidden rounded-xl border border-border bg-card">
+            <table className="w-full text-sm">
+              <thead className="bg-muted/40 text-left text-[11px] uppercase tracking-wider text-muted-foreground">
+                <tr>
+                  <th className="px-3 py-2.5 font-medium">ID</th>
+                  <th className="px-3 py-2.5 font-medium">Category</th>
+                  <th className="px-3 py-2.5 font-medium">Vendor</th>
+                  <th className="px-3 py-2.5 font-medium">Method</th>
+                  <th className="px-3 py-2.5 font-medium">Date</th>
+                  <th className="px-3 py-2.5 text-right font-medium">Amount</th>
+                  <th className="px-3 py-2.5 text-right font-medium" />
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {filtered.map((r) => (
+                  <tr key={r.id} className="transition-colors hover:bg-accent/30">
+                    <td className="px-3 py-2.5 font-mono text-xs">{r.id}</td>
+                    <td className="px-3 py-2.5"><StatusBadge tone={categoryTone[r.category] ?? "neutral"}>{r.category}</StatusBadge></td>
+                    <td className="px-3 py-2.5 font-medium">
+                      <div className="flex items-center gap-2">
+                        <Building2 className="h-3 w-3 text-muted-foreground" />
+                        {r.vendor}
+                      </div>
+                    </td>
+                    <td className="px-3 py-2.5 capitalize text-muted-foreground">{r.method}</td>
+                    <td className="px-3 py-2.5 text-muted-foreground">{r.date}</td>
+                    <td className="px-3 py-2.5 text-right tabular-nums font-semibold">${r.amount.toLocaleString()}</td>
+                    <td className="px-3 py-2.5 text-right">
+                      <Button size="sm" variant="ghost" asChild><Link to="/expenses"><ChevronRight className="h-3.5 w-3.5" /></Link></Button>
+                    </td>
+                  </tr>
                 ))}
-              </TableBody>
-            </Table>
+                <tr className="bg-muted/30 font-semibold">
+                  <td colSpan={5} className="px-3 py-2.5 text-right text-xs uppercase tracking-wider text-muted-foreground">Total</td>
+                  <td className="px-3 py-2.5 text-right tabular-nums">${filtered.reduce((s, r) => s + r.amount, 0).toLocaleString()}</td>
+                  <td />
+                </tr>
+              </tbody>
+            </table>
           </div>
-        </CardContent>
-      </Card>
+        )}
+      </div>
     </PageShell>
   )
 }
