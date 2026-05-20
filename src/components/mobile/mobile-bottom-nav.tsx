@@ -33,7 +33,9 @@ export function MobileBottomNav({ onMoreClick }: Props) {
               <Link
                 to={it.url}
                 onClick={() => haptic.light()}
-                className="group relative flex flex-1 flex-col items-center justify-center gap-0.5 rounded-xl py-1.5 text-[11px] font-medium tracking-tight"
+                aria-current={active ? "page" : undefined}
+                aria-label={it.title}
+                className="group relative flex flex-1 flex-col items-center justify-center gap-0.5 rounded-xl py-1.5 text-[11px] font-medium tracking-tight focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-background"
               >
                 <span
                   className={cn(
@@ -56,7 +58,9 @@ export function MobileBottomNav({ onMoreClick }: Props) {
           <button
             type="button"
             onClick={() => { haptic.light(); onMoreClick() }}
-            className="group relative flex flex-1 flex-col items-center justify-center gap-0.5 rounded-xl py-1.5 text-[11px] font-medium tracking-tight"
+            aria-label="More navigation"
+            aria-haspopup="dialog"
+            className="group relative flex flex-1 flex-col items-center justify-center gap-0.5 rounded-xl py-1.5 text-[11px] font-medium tracking-tight focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-background"
           >
             <span className="inline-flex h-9 w-12 items-center justify-center rounded-2xl text-muted-foreground transition-colors group-hover:text-foreground">
               <MoreHorizontal className="h-5 w-5" />

@@ -20,7 +20,7 @@ type Variant = keyof typeof variantClasses
 type Size = keyof typeof sizeClasses
 
 const baseClasses =
-  "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
+  "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50"
 
 export function buttonVariants(opts?: { variant?: Variant; size?: Size; className?: string }) {
   const { variant = "default", size = "default", className } = opts ?? {}

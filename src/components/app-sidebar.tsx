@@ -231,7 +231,7 @@ export function AppSidebar() {
         </div>
       )}
 
-      <nav className="flex-1 overflow-y-auto px-2 pb-4">
+      <nav aria-label="Primary" className="flex-1 overflow-y-auto px-2 pb-4">
         <ul className="space-y-1">
           {nav.map((item) => {
             const active = item.url ? pathname === item.url : item.sub?.some((s) => pathname.startsWith(s.url))
@@ -241,8 +241,10 @@ export function AppSidebar() {
                 <li key={item.title}>
                   <button
                     onClick={() => toggle(item.title)}
+                    aria-expanded={isOpen}
+                    aria-controls={`nav-${item.title.replace(/\s+/g, "-").toLowerCase()}`}
                     className={cn(
-                      "flex w-full items-center gap-2 rounded-md px-2 py-2 text-sm hover:bg-accent",
+                      "flex w-full items-center gap-2 rounded-md px-2 py-2 text-sm hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand",
                       active && "bg-accent",
                     )}
                   >
@@ -257,6 +259,7 @@ export function AppSidebar() {
                   </button>
                   {!collapsed && (
                     <div
+                      id={`nav-${item.title.replace(/\s+/g, "-").toLowerCase()}`}
                       className={cn(
                         "grid overflow-hidden pl-6 transition-all",
                         isOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0",
@@ -268,8 +271,9 @@ export function AppSidebar() {
                           return (
                             <li key={s.url}>
                               <Link
+                                aria-current={subActive ? "page" : undefined}
                                 className={cn(
-                                  "block rounded-md px-2 py-1.5 text-sm hover:bg-accent",
+                                  "block rounded-md px-2 py-1.5 text-sm hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand",
                                   subActive && "bg-accent",
                                 )}
                                 to={s.url}
@@ -288,13 +292,15 @@ export function AppSidebar() {
             return (
               <li key={item.title}>
                 <Link
+                  aria-current={active ? "page" : undefined}
+                  aria-label={collapsed ? item.title : undefined}
                   className={cn(
-                    "flex items-center gap-2 rounded-md px-2 py-2 text-sm hover:bg-accent",
+                    "flex items-center gap-2 rounded-md px-2 py-2 text-sm hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand",
                     active && "bg-accent",
                   )}
                   to={item.url!}
                 >
-                  <item.icon className="h-4 w-4" />
+                  <item.icon className="h-4 w-4" aria-hidden="true" />
                   {!collapsed && <span>{item.title}</span>}
                 </Link>
               </li>

@@ -181,9 +181,7 @@ export default function TeamChatPage() {
                   placeholder="Your name"
                   className="hidden h-8 w-32 text-xs sm:flex"
                 />
-                <Button type="button" variant="ghost" size="sm" onClick={clearChannel} className="hidden md:inline-flex">
-                  <Trash2 className="h-3.5 w-3.5" />
-                </Button>
+                <Button type="button" variant="ghost" size="sm" onClick={clearChannel} className="hidden md:inline-flex" aria-label="Delete"><Trash2 className="h-3.5 w-3.5" aria-hidden="true" /></Button>
               </div>
             </div>
 

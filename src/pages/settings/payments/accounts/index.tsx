@@ -94,8 +94,8 @@ export default function PaymentAccounts() {
                   </div>
                 </div>
                 <div className="flex shrink-0 items-center gap-1">
-                  <Button size="sm" variant="ghost"><Edit3 className="h-3.5 w-3.5" /></Button>
-                  <Button size="sm" variant="ghost"><Trash2 className="h-3.5 w-3.5" /></Button>
+                  <Button size="sm" variant="ghost" aria-label="Edit"><Edit3 className="h-3.5 w-3.5" aria-hidden="true" /></Button>
+                  <Button size="sm" variant="ghost" aria-label="Delete"><Trash2 className="h-3.5 w-3.5" aria-hidden="true" /></Button>
                 </div>
               </li>
             ))}

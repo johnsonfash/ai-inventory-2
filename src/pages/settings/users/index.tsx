@@ -164,7 +164,7 @@ export default function UsersSettings() {
                       <td className="px-3 py-2.5"><StatusBadge tone={statusTone[r.status]} withDot>{r.status}</StatusBadge></td>
                       <td className="px-3 py-2.5 text-muted-foreground">{r.lastSeen}</td>
                       <td className="px-3 py-2.5 text-right">
-                        <Button size="sm" variant="ghost"><MoreHorizontal className="h-3.5 w-3.5" /></Button>
+                        <Button size="sm" variant="ghost" aria-label="More actions"><MoreHorizontal className="h-3.5 w-3.5" aria-hidden="true" /></Button>
                       </td>
                     </tr>
                   )

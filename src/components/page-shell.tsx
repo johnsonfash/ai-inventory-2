@@ -37,6 +37,7 @@ export function PageShell({ title, children, withToolbar = true, mobileTrailing,
   if (isMobile) {
     return (
       <div className="flex h-[100dvh] min-h-0 flex-col overflow-hidden bg-background">
+        <SkipToContent />
         <MobileTopBar title={title} trailing={mobileTrailing} />
 
         {/* Pull-to-refresh indicator. Anchored to top of scroll
@@ -62,7 +63,8 @@ export function PageShell({ title, children, withToolbar = true, mobileTrailing,
           </div>
         </div>
 
-        <div
+        <main
+          id="main"
           {...bind}
           className="flex-1 overflow-y-auto overscroll-contain pb-mobile-nav"
           style={{
@@ -71,7 +73,7 @@ export function PageShell({ title, children, withToolbar = true, mobileTrailing,
           }}
         >
           <div className="px-4 pt-3 pb-2">{children}</div>
-        </div>
+        </main>
 
         <MobileBottomNav onMoreClick={() => setMoreOpen(true)} />
         <MobileMoreDrawer open={moreOpen} onClose={() => setMoreOpen(false)} />
@@ -82,6 +84,7 @@ export function PageShell({ title, children, withToolbar = true, mobileTrailing,
   // Desktop / tablet shell.
   return (
     <div className="flex h-[100dvh] overflow-hidden">
+      <SkipToContent />
       <AppSidebar />
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-border bg-background/80 px-5 backdrop-blur">
@@ -127,8 +130,22 @@ export function PageShell({ title, children, withToolbar = true, mobileTrailing,
           </div>
         )}
 
-        <div className="flex-1 overflow-y-auto p-5">{children}</div>
+        <main id="main" className="flex-1 overflow-y-auto p-5">{children}</main>
       </div>
     </div>
+  )
+}
+
+// Skip-to-content link. Hidden until focused — once a keyboard user
+// tabs to it, they can jump past the sidebar / top bar / nav straight
+// into the page content. Required for WCAG 2.4.1.
+function SkipToContent() {
+  return (
+    <a
+      href="#main"
+      className="sr-only focus:not-sr-only focus:absolute focus:left-3 focus:top-3 focus:z-[100] focus:rounded-md focus:bg-brand focus:px-3 focus:py-2 focus:text-sm focus:font-semibold focus:text-brand-foreground focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-brand focus:ring-offset-2"
+    >
+      Skip to content
+    </a>
   )
 }

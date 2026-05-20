@@ -79,8 +79,8 @@ export default function Units() {
                   {r.baseFor && <p className="mt-0.5 text-[11px] text-muted-foreground">{r.baseFor}</p>}
                   <p className="mt-0.5 text-[11px] text-muted-foreground">{r.skus.toLocaleString()} items</p>
                   <div className="mt-2 flex items-center gap-1">
-                    <Button size="sm" variant="ghost"><Edit3 className="h-3.5 w-3.5" /></Button>
-                    <Button size="sm" variant="ghost"><Trash2 className="h-3.5 w-3.5" /></Button>
+                    <Button size="sm" variant="ghost" aria-label="Edit"><Edit3 className="h-3.5 w-3.5" aria-hidden="true" /></Button>
+                    <Button size="sm" variant="ghost" aria-label="Delete"><Trash2 className="h-3.5 w-3.5" aria-hidden="true" /></Button>
                   </div>
                 </div>
               </div>

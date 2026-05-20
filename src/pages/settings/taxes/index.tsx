@@ -129,8 +129,8 @@ export default function TaxRates() {
                     </td>
                     <td className="px-3 py-2.5 text-right">
                       <div className="inline-flex items-center gap-1">
-                        <Button size="sm" variant="ghost"><Edit3 className="h-3.5 w-3.5" /></Button>
-                        <Button size="sm" variant="ghost"><Trash2 className="h-3.5 w-3.5" /></Button>
+                        <Button size="sm" variant="ghost" aria-label="Edit"><Edit3 className="h-3.5 w-3.5" aria-hidden="true" /></Button>
+                        <Button size="sm" variant="ghost" aria-label="Delete"><Trash2 className="h-3.5 w-3.5" aria-hidden="true" /></Button>
                       </div>
                     </td>
                   </tr>
