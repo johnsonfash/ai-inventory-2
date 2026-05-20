@@ -1,22 +1,16 @@
 {
   "name": "pallio",
   "private": true,
-  "version": "0.1.0",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "node ip.js && vite --port 3000 --host",
     "build": "tsc --noEmit && vite build",
     "typecheck": "tsc --noEmit",
-    "preview": "vite preview",
-    "lint": "eslint . --quiet"
+    "preview": "vite preview"
   },
   "dependencies": {
-    "@radix-ui/react-dialog": "^1.1.14",
-    "@radix-ui/react-toast": "^1.2.14",
-    "@radix-ui/react-toggle": "^1.1.9",
-    "@radix-ui/react-tooltip": "^1.2.7",
     "@tanstack/react-query": "^5.62.0",
-    "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "framer-motion": "^12.39.0",
     "html2canvas": "^1.4.1",
