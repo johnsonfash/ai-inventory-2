@@ -1,13 +1,16 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
-import { Suspense } from "react"
+import { Suspense, useEffect } from "react"
 import { Loader2 } from "lucide-react"
 import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom"
-import { TWThemeProvider } from "@/components/tw-theme-provider"
+import { toast } from "sonner"
 import { Toaster } from "@/components/ui/sonner"
+import { TWThemeProvider } from "@/components/tw-theme-provider"
 import { PageRefreshProvider } from "@/hooks/use-pull-to-refresh"
 import { RouteTransition } from "@/components/route-transition"
 import { PWAInstaller } from "@/components/pwa-installer"
+import { NetworkBanner } from "@/components/network-banner"
 import { useNative } from "@/hooks/use-native"
+import { useBackButton } from "@/hooks/use-back-button"
 import { routes } from "./routes"
 
 const queryClient = new QueryClient({
@@ -40,6 +43,19 @@ function NativeBootstrap() {
   return null
 }
 
+// Lives inside the Router so useNavigate is available. Wires Android's
+// hardware back button to React Router history + emits a toast hint on
+// the first back press at a root route.
+function RouterBootstrap() {
+  useBackButton()
+  useEffect(() => {
+    const onHint = () => toast("Press back again to exit", { duration: 1800 })
+    window.addEventListener("pallio:back-exit-hint", onHint)
+    return () => window.removeEventListener("pallio:back-exit-hint", onHint)
+  }, [])
+  return null
+}
+
 // Splits the Routes render so Suspense + AnimatePresence keys off
 // location. Required so the loader sits under the transition.
 function AppRoutes() {
@@ -63,6 +79,8 @@ export default function App() {
       <QueryClientProvider client={queryClient}>
         <BrowserRouter>
           <NativeBootstrap />
+          <RouterBootstrap />
+          <NetworkBanner />
           <PageRefreshProvider>
             <AppRoutes />
           </PageRefreshProvider>
