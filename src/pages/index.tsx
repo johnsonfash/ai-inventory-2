@@ -1,57 +1,197 @@
+import * as React from "react"
+import { DollarSign, Layers, Package, ShoppingCart, Sparkles } from "lucide-react"
 import { PageShell } from "@/components/page-shell"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { ArrowDownRight, ArrowUpRight, Package } from "lucide-react"
-import { KpiCard } from "@/components/kpi-card"
 import { CategoryBreakdownChart, SalesVsPurchaseChart, StockLevelsChart } from "@/components/charts/inventory-charts"
-import { InventoryTable } from "@/components/inventory-table"
 import { TopMovers } from "@/components/top-movers"
 import { TopSelling } from "@/components/top-selling"
+import { KpiCarousel } from "@/components/dashboard/kpi-carousel"
+import { LowStockCard } from "@/components/dashboard/low-stock-card"
+import { OpenPosCard } from "@/components/dashboard/open-pos-card"
+import { QuickActionsCard } from "@/components/dashboard/quick-actions-card"
+import { RecentSalesCard } from "@/components/dashboard/recent-sales-card"
+import { SectionHeader } from "@/components/dashboard/section-header"
+import { useRegisterPageRefresh } from "@/hooks/use-pull-to-refresh"
+
+// Spark series — tiny mock data per KPI. Replace with real series
+// from the analytics endpoint once the backend lands.
+const sparkRevenue = [
+  { x: "M", y: 220 },
+  { x: "T", y: 280 },
+  { x: "W", y: 240 },
+  { x: "T", y: 310 },
+  { x: "F", y: 380 },
+  { x: "S", y: 350 },
+  { x: "S", y: 420 },
+]
+const sparkUnits = [
+  { x: "M", y: 14 },
+  { x: "T", y: 22 },
+  { x: "W", y: 18 },
+  { x: "T", y: 24 },
+  { x: "F", y: 31 },
+  { x: "S", y: 28 },
+  { x: "S", y: 36 },
+]
+const sparkOrders = [
+  { x: "M", y: 8 },
+  { x: "T", y: 12 },
+  { x: "W", y: 10 },
+  { x: "T", y: 14 },
+  { x: "F", y: 16 },
+  { x: "S", y: 13 },
+  { x: "S", y: 19 },
+]
+const sparkOOS = [
+  { x: "M", y: 18 },
+  { x: "T", y: 16 },
+  { x: "W", y: 19 },
+  { x: "T", y: 15 },
+  { x: "F", y: 14 },
+  { x: "S", y: 13 },
+  { x: "S", y: 12 },
+]
 
 export default function Dashboard() {
+  // Hook pull-to-refresh on mobile. Refresh on dashboard is a no-op for
+  // now (dummy data); when real queries are wired this will call their
+  // invalidate function.
+  useRegisterPageRefresh(
+    React.useCallback(async () => {
+      await new Promise((r) => setTimeout(r, 500))
+    }, []),
+  )
+
   return (
-    <PageShell title="Inventory Dashboard" withToolbar>
+    <PageShell title="Dashboard" withToolbar>
       <div className="flex flex-col gap-6">
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <KpiCard title="Total SKUs" value="1,284" delta="3.2%" trend="up" />
-          <KpiCard title="Units in Stock" value="15,940" delta="1.1%" trend="up" />
-          <KpiCard title="Out of Stock" value="12" delta="0.4%" trend="down" colorFrom="#ef4444" colorTo="#f59e0b" />
-          <KpiCard title="Pending Orders" value="87" delta="5.6%" trend="up" />
+        {/* Welcome / period summary */}
+        <div className="relative overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-brand-soft via-card to-emerald-50/50 p-5 dark:from-primary/10 dark:via-card dark:to-emerald-950/15">
+          <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-brand/20 blur-3xl dark:bg-primary/20" aria-hidden />
+          <div className="relative flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <p className="inline-flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wider text-brand dark:text-primary">
+                <Sparkles className="h-3.5 w-3.5" /> Today
+              </p>
+              <h2 className="mt-1 text-xl font-bold tracking-tight md:text-2xl">
+                Sales are <span className="text-brand dark:text-primary">trending up</span> 12%
+              </h2>
+              <p className="mt-0.5 text-sm text-muted-foreground">
+                $2,840 in revenue across 36 orders so far · vs. $2,535 yesterday
+              </p>
+            </div>
+            <div className="flex items-center gap-3 text-right tabular-nums">
+              <div>
+                <div className="text-[11px] uppercase tracking-wider text-muted-foreground">Today</div>
+                <div className="text-lg font-bold">$2,840</div>
+              </div>
+              <div className="h-8 w-px bg-border" aria-hidden />
+              <div>
+                <div className="text-[11px] uppercase tracking-wider text-muted-foreground">MTD</div>
+                <div className="text-lg font-bold">$54,210</div>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <div className="grid gap-4 lg:grid-cols-3">
-          <Card className="lg:col-span-2">
-            <CardHeader className="pb-2">
-              <CardTitle>Stock vs Sold</CardTitle>
-              <CardDescription>Monthly movement</CardDescription>
-            </CardHeader>
-            <CardContent className="pt-2">
-              <StockLevelsChart />
-            </CardContent>
-          </Card>
+        {/* KPI carousel — snap-scroll on mobile, 4-col grid on md+. */}
+        <KpiCarousel
+          items={[
+            {
+              title: "Revenue (7d)",
+              value: "$18,420",
+              delta: "+12.4%",
+              trend: "up",
+              caption: "vs last week",
+              Icon: DollarSign,
+              tone: "violet",
+              data: sparkRevenue,
+            },
+            {
+              title: "Units in stock",
+              value: "15,940",
+              delta: "+1.1%",
+              trend: "up",
+              caption: "across 4 locations",
+              Icon: Layers,
+              tone: "emerald",
+              data: sparkUnits,
+            },
+            {
+              title: "Open orders",
+              value: "87",
+              delta: "+5.6%",
+              trend: "up",
+              caption: "pending fulfillment",
+              Icon: ShoppingCart,
+              tone: "sky",
+              data: sparkOrders,
+            },
+            {
+              title: "Out of stock",
+              value: "12",
+              delta: "−4 SKUs",
+              trend: "down",
+              caption: "improving",
+              Icon: Package,
+              tone: "rose",
+              data: sparkOOS,
+            },
+          ]}
+        />
+
+        {/* Charts row — single column on mobile, 3-col on desktop with
+            Stock vs Sold spanning 2. */}
+        <section className="flex flex-col gap-4">
+          <SectionHeader title="Performance" subtitle="Stock movement and sales mix" />
+
+          <div className="grid gap-4 lg:grid-cols-3">
+            <Card className="lg:col-span-2">
+              <CardHeader className="pb-2">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="text-base">Stock vs Sold</CardTitle>
+                    <CardDescription>Last 6 months</CardDescription>
+                  </div>
+                  <div className="hidden items-center gap-3 text-[11px] text-muted-foreground sm:flex">
+                    <span className="inline-flex items-center gap-1.5">
+                      <span className="h-2 w-2 rounded-full" style={{ background: "var(--chart-1)" }} /> Stock
+                    </span>
+                    <span className="inline-flex items-center gap-1.5">
+                      <span className="h-2 w-2 rounded-full" style={{ background: "var(--chart-2)" }} /> Sold
+                    </span>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="pt-2">
+                <StockLevelsChart />
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base">Category mix</CardTitle>
+                <CardDescription>Share by category</CardDescription>
+              </CardHeader>
+              <CardContent className="pt-2">
+                <CategoryBreakdownChart />
+              </CardContent>
+            </Card>
+          </div>
 
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle>Category Breakdown</CardTitle>
-              <CardDescription>Share by category</CardDescription>
-            </CardHeader>
-            <CardContent className="pt-2">
-              <CategoryBreakdownChart />
-            </CardContent>
-          </Card>
-
-          <Card className="lg:col-span-3">
-            <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle>Sales vs Purchases (weekly)</CardTitle>
-                  <CardDescription>Compare movement across the week</CardDescription>
+                  <CardTitle className="text-base">Sales vs Purchases</CardTitle>
+                  <CardDescription>Weekly movement</CardDescription>
                 </div>
-                <div className="flex items-center gap-3 text-sm">
-                  <span className="flex items-center text-emerald-600">
-                    <ArrowUpRight className="mr-1 h-4 w-4" /> Sales
+                <div className="hidden items-center gap-3 text-[11px] text-muted-foreground sm:flex">
+                  <span className="inline-flex items-center gap-1.5">
+                    <span className="h-2 w-2 rounded-full" style={{ background: "var(--chart-1)" }} /> Sales
                   </span>
-                  <span className="flex items-center text-violet-600">
-                    <ArrowDownRight className="mr-1 h-4 w-4 rotate-90" /> Purchases
+                  <span className="inline-flex items-center gap-1.5">
+                    <span className="h-2 w-2 rounded-full" style={{ background: "var(--chart-2)" }} /> Purchases
                   </span>
                 </div>
               </div>
@@ -60,27 +200,27 @@ export default function Dashboard() {
               <SalesVsPurchaseChart />
             </CardContent>
           </Card>
-        </div>
+        </section>
 
-        <div className="grid gap-4 lg:grid-cols-3">
-          <Card className="lg:col-span-2">
-            <CardHeader className="pb-2">
-              <CardTitle className="flex items-center gap-2">
-                <Package className="h-5 w-5" />
-                Low Stock Items
-              </CardTitle>
-              <CardDescription>Items below reorder point</CardDescription>
-            </CardHeader>
-            <CardContent className="pt-2">
-              <InventoryTable />
-            </CardContent>
-          </Card>
+        {/* Operations row */}
+        <section className="flex flex-col gap-4">
+          <SectionHeader title="Operations" subtitle="What needs attention right now" />
+          <div className="grid gap-4 lg:grid-cols-3">
+            <LowStockCard />
+            <OpenPosCard />
+            <RecentSalesCard />
+          </div>
+        </section>
 
-          <div className="space-y-4">
+        {/* Bottom row — quick actions + best-sellers */}
+        <section className="flex flex-col gap-4">
+          <SectionHeader title="At a glance" />
+          <div className="grid gap-4 lg:grid-cols-3">
+            <QuickActionsCard />
             <TopSelling />
             <TopMovers />
           </div>
-        </div>
+        </section>
       </div>
     </PageShell>
   )

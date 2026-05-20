@@ -36,17 +36,17 @@ export function Dropdown({ button, children, className, align = "end" }: Dropdow
         aria-haspopup="menu"
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
-        className="inline-flex h-9 items-center gap-2 rounded-md border bg-transparent px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className="inline-flex h-9 items-center gap-2 rounded-md border border-border bg-transparent px-3 text-sm text-foreground outline-none transition-colors hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring"
       >
         {button}
       </button>
       <div
         role="menu"
         className={cn(
-          "absolute z-50 mt-1 w-44 overflow-hidden rounded-md border bg-white p-1 text-sm shadow-lg dark:bg-neutral-900",
+          "absolute z-50 mt-1 w-48 overflow-hidden rounded-lg border border-border bg-popover p-1 text-sm text-popover-foreground shadow-lg",
           align === "end" ? "right-0" : "left-0",
-          "transition origin-top scale-95 opacity-0",
-          open && "scale-100 opacity-100",
+          "transition-all origin-top",
+          open ? "scale-100 opacity-100" : "scale-95 opacity-0",
         )}
         style={{ pointerEvents: open ? "auto" : "none" }}
       >
@@ -73,7 +73,7 @@ export function DropdownItem({
       role={role}
       onClick={onSelect}
       className={cn(
-        "flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-left hover:bg-neutral-100 dark:hover:bg-neutral-800",
+        "flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm transition-colors hover:bg-accent hover:text-accent-foreground",
         className,
       )}
     >
