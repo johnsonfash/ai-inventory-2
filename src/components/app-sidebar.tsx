@@ -1,34 +1,35 @@
 
 import * as React from "react"
-import { Link } from "react-router-dom"
-import { useLocation } from "react-router-dom"
+import { Link, useLocation } from "react-router-dom"
 import {
   BarChart3,
   Bell,
+  Bot,
+  CalendarDays,
+  ChevronDown,
   ClipboardList,
+  CreditCard,
   FileText,
+  Megaphone,
   Package2,
+  PanelLeftClose,
+  PanelLeftOpen,
+  Puzzle,
+  Receipt,
   Settings,
   ShoppingCart,
-  CreditCard,
   Wallet,
-  CalendarDays,
-  Puzzle,
-  Bot,
-  Megaphone,
-  ChevronDown,
-  Receipt,
+  type LucideIcon,
 } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
 
 type SubItem = { title: string; url: string }
-type Item = { title: string; url?: string; icon: any; sub?: SubItem[] }
+type Item = { title: string; url?: string; icon: LucideIcon; sub?: SubItem[] }
 
 const nav: Item[] = [
   { title: "Dashboard", url: "/", icon: BarChart3 },
 
-  // POS grouped so all sub-pages are reachable
   {
     title: "Point of Sale",
     icon: CreditCard,
@@ -91,7 +92,6 @@ const nav: Item[] = [
     ],
   },
 
-  // Group Expenses and Add Expense together.
   {
     title: "Expenses",
     icon: Receipt,
@@ -158,6 +158,7 @@ const nav: Item[] = [
       { title: "Warehouses", url: "/settings/warehouses" },
       { title: "Users & Roles", url: "/settings/users" },
       { title: "Roles", url: "/settings/roles" },
+      { title: "Security", url: "/settings/security" },
       { title: "Payment Settings", url: "/settings/payments" },
       { title: "Preferences", url: "/settings/preferences" },
       { title: "Business Settings", url: "/settings/business" },
@@ -189,9 +190,39 @@ const nav: Item[] = [
   },
 ]
 
+const COLLAPSED_KEY = "pallio:sidebar-collapsed"
+
 export function AppSidebar() {
   const pathname = useLocation().pathname
-  const [collapsed, setCollapsed] = React.useState(false)
+
+  // Persist collapsed state. Read sync so the first paint matches
+  // whatever the user picked last session — no resize flash.
+  const [collapsed, setCollapsed] = React.useState<boolean>(() => {
+    if (typeof window === "undefined") return false
+    try { return localStorage.getItem(COLLAPSED_KEY) === "1" } catch { return false }
+  })
+  React.useEffect(() => {
+    try { localStorage.setItem(COLLAPSED_KEY, collapsed ? "1" : "0") } catch { /* ignore */ }
+  }, [collapsed])
+
+  // Cmd/Ctrl + B toggle. The tip text in the footer promised this
+  // shortcut for two waves before any handler existed.
+  React.useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === "b" || e.key === "B")) {
+        // Don't steal focus from inputs / contentEditables where the
+        // user might be trying to bold text.
+        const tag = (e.target as HTMLElement | null)?.tagName?.toLowerCase()
+        const editable = (e.target as HTMLElement | null)?.isContentEditable
+        if (tag === "input" || tag === "textarea" || editable) return
+        e.preventDefault()
+        setCollapsed((c) => !c)
+      }
+    }
+    window.addEventListener("keydown", onKey)
+    return () => window.removeEventListener("keydown", onKey)
+  }, [])
+
   const [openStates, setOpenStates] = React.useState<Record<string, boolean>>(() =>
     nav.reduce(
       (acc, item) => {
@@ -205,34 +236,62 @@ export function AppSidebar() {
 
   const toggle = (title: string) => setOpenStates((p) => ({ ...p, [title]: !p[title] }))
 
+  // When the route changes, re-expand the matching group so deep
+  // links open into the right tree.
+  React.useEffect(() => {
+    setOpenStates((prev) => {
+      const next = { ...prev }
+      for (const item of nav) {
+        if (item.sub?.some((s) => pathname.startsWith(s.url))) next[item.title] = true
+      }
+      return next
+    })
+  }, [pathname])
+
   return (
-    <aside className={cn("flex h-svh flex-col border-r bg-background transition-all", collapsed ? "w-14" : "w-64")}>
-      <div className="flex items-center gap-2 px-2 py-3">
-        <button
-          onClick={() => setCollapsed((c) => !c)}
-          className="inline-flex h-8 w-8 items-center justify-center rounded-md border bg-transparent"
-          aria-label="Toggle sidebar"
-        >
-          <div className="h-3 w-3 border-b-2 border-t-2" />
-        </button>
-        {!collapsed && (
-          <div className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-md bg-gradient-to-br from-violet-500 to-emerald-500 text-white font-bold">
-              IV
-            </div>
-            <span className="font-semibold">Inventory</span>
-          </div>
+    <aside
+      className={cn(
+        "flex h-svh flex-col border-r border-border bg-background transition-[width] duration-200 ease-out",
+        collapsed ? "w-16" : "w-64",
+      )}
+      aria-label="Primary navigation"
+    >
+      {/* Brand + collapse toggle */}
+      <div
+        className={cn(
+          "flex items-center gap-2 border-b border-border px-2 py-3",
+          collapsed && "justify-center px-0",
         )}
+      >
+        {!collapsed && (
+          <Link to="/" className="flex flex-1 items-center gap-2 px-1.5">
+            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-brand to-fuchsia-500 text-sm font-bold text-white shadow-sm shadow-brand/30">
+              P
+            </span>
+            <span className="text-sm font-semibold tracking-tight">Pallio</span>
+          </Link>
+        )}
+        <button
+          type="button"
+          onClick={() => setCollapsed((c) => !c)}
+          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          aria-keyshortcuts="Meta+B Control+B"
+          title={collapsed ? "Expand sidebar (⌘B)" : "Collapse sidebar (⌘B)"}
+          className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+        >
+          {collapsed ? <PanelLeftOpen className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
+        </button>
       </div>
 
+      {/* Search — only visible when expanded. */}
       {!collapsed && (
-        <div className="px-2 pb-3">
-          <Input placeholder="Search..." />
+        <div className="px-2 py-2">
+          <Input placeholder="Search…" className="h-9" />
         </div>
       )}
 
-      <nav aria-label="Primary" className="flex-1 overflow-y-auto px-2 pb-4">
-        <ul className="space-y-1">
+      <nav aria-label="Primary" className="flex-1 overflow-y-auto px-2 py-2">
+        <ul className="space-y-0.5">
           {nav.map((item) => {
             const active = item.url ? pathname === item.url : item.sub?.some((s) => pathname.startsWith(s.url))
             if (item.sub) {
@@ -240,43 +299,63 @@ export function AppSidebar() {
               return (
                 <li key={item.title}>
                   <button
-                    onClick={() => toggle(item.title)}
-                    aria-expanded={isOpen}
-                    aria-controls={`nav-${item.title.replace(/\s+/g, "-").toLowerCase()}`}
+                    type="button"
+                    onClick={() => {
+                      // Collapsed: clicking a group should re-expand
+                      // the sidebar and open its tree, since the
+                      // children are otherwise unreachable from this
+                      // state.
+                      if (collapsed) {
+                        setCollapsed(false)
+                        setOpenStates((p) => ({ ...p, [item.title]: true }))
+                        return
+                      }
+                      toggle(item.title)
+                    }}
+                    aria-expanded={!collapsed && isOpen}
+                    aria-controls={!collapsed ? `nav-${slug(item.title)}` : undefined}
+                    aria-label={collapsed ? item.title : undefined}
+                    title={collapsed ? item.title : undefined}
                     className={cn(
-                      "flex w-full items-center gap-2 rounded-md px-2 py-2 text-sm hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand",
+                      "flex w-full items-center rounded-md text-sm transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand",
+                      collapsed ? "h-10 justify-center px-0" : "gap-2 px-2 py-2",
                       active && "bg-accent",
                     )}
                   >
-                    <item.icon className="h-4 w-4" />
-                    {!collapsed && <span>{item.title}</span>}
-                    <ChevronDown
-                      className={cn(
-                        "ml-auto h-4 w-4 opacity-60 transition-transform",
-                        isOpen ? "rotate-180" : "rotate-0",
-                      )}
-                    />
+                    <item.icon className={cn("shrink-0", collapsed ? "h-5 w-5" : "h-4 w-4")} aria-hidden="true" />
+                    {!collapsed && (
+                      <>
+                        <span className="truncate">{item.title}</span>
+                        <ChevronDown
+                          className={cn(
+                            "ml-auto h-4 w-4 opacity-60 transition-transform",
+                            isOpen ? "rotate-180" : "rotate-0",
+                          )}
+                          aria-hidden="true"
+                        />
+                      </>
+                    )}
                   </button>
                   {!collapsed && (
                     <div
-                      id={`nav-${item.title.replace(/\s+/g, "-").toLowerCase()}`}
+                      id={`nav-${slug(item.title)}`}
                       className={cn(
                         "grid overflow-hidden pl-6 transition-all",
                         isOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0",
                       )}
                     >
-                      <ul className="min-h-0 space-y-1">
+                      <ul className="min-h-0 space-y-0.5 border-l border-border pl-2">
                         {item.sub.map((s) => {
                           const subActive = pathname === s.url
                           return (
                             <li key={s.url}>
                               <Link
                                 aria-current={subActive ? "page" : undefined}
-                                className={cn(
-                                  "block rounded-md px-2 py-1.5 text-sm hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand",
-                                  subActive && "bg-accent",
-                                )}
                                 to={s.url}
+                                className={cn(
+                                  "block rounded-md px-2 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand",
+                                  subActive && "bg-brand-soft text-brand dark:bg-primary/15 dark:text-primary",
+                                )}
                               >
                                 {s.title}
                               </Link>
@@ -294,14 +373,16 @@ export function AppSidebar() {
                 <Link
                   aria-current={active ? "page" : undefined}
                   aria-label={collapsed ? item.title : undefined}
+                  title={collapsed ? item.title : undefined}
+                  to={item.url!}
                   className={cn(
-                    "flex items-center gap-2 rounded-md px-2 py-2 text-sm hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand",
+                    "flex items-center rounded-md text-sm transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand",
+                    collapsed ? "h-10 justify-center px-0" : "gap-2 px-2 py-2",
                     active && "bg-accent",
                   )}
-                  to={item.url!}
                 >
-                  <item.icon className="h-4 w-4" aria-hidden="true" />
-                  {!collapsed && <span>{item.title}</span>}
+                  <item.icon className={cn("shrink-0", collapsed ? "h-5 w-5" : "h-4 w-4")} aria-hidden="true" />
+                  {!collapsed && <span className="truncate">{item.title}</span>}
                 </Link>
               </li>
             )
@@ -309,7 +390,15 @@ export function AppSidebar() {
         </ul>
       </nav>
 
-      {!collapsed && <div className="px-2 pb-3 text-xs text-muted-foreground">Tip: Cmd/Ctrl + B to toggle sidebar</div>}
+      {!collapsed && (
+        <div className="border-t border-border px-3 py-2.5 text-[10px] text-muted-foreground">
+          <kbd className="rounded border border-border bg-muted px-1 py-0.5 font-mono text-[10px]">⌘B</kbd> to toggle
+        </div>
+      )}
     </aside>
   )
+}
+
+function slug(s: string): string {
+  return s.replace(/\s+/g, "-").toLowerCase()
 }
