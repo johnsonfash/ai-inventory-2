@@ -1,113 +1,124 @@
-
 import * as React from "react"
-import { useSearchParams, useNavigate } from "react-router-dom"
+import { useNavigate, useSearchParams } from "react-router-dom"
+import {
+  Barcode,
+  CheckCircle2,
+  ClipboardList,
+  FileText,
+  Layers,
+  Printer,
+  RotateCcw,
+  Settings2,
+} from "lucide-react"
 import { PageShell } from "@/components/page-shell"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Dialog, DialogContent } from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
 import { BarcodeScannerInput } from "@/components/pos/barcode-scanner-input"
 import { InvoicePreview, ReceiptPreview, printInvoiceNode } from "@/components/pos/invoice-print"
+import { CatalogGrid } from "@/components/pos/catalog-grid"
+import { FloatingCart } from "@/components/pos/floating-cart"
+import { CartSheet } from "@/components/pos/cart-sheet"
+import { CartPanel } from "@/components/pos/cart-panel"
+import { CheckoutSheet } from "@/components/pos/checkout-sheet"
+import { PosSettingsSheet } from "@/components/pos/pos-settings-sheet"
+import { useIsMobile } from "@/hooks/use-mobile"
 import {
-  loadCatalog,
+  findVirtualAccount,
+  listCashiersForLocation,
+  listLocations,
+} from "@/lib/payments/virtual-accounts"
+import {
   genId,
   genInvoiceNumber,
-  saveDraft,
   getDraft,
+  loadCatalog,
+  saveDraft,
   saveInvoice,
+  seedPosDemo,
   type CartItem,
   type CatalogItem,
   type Invoice,
   type PaymentLine,
-  seedPosDemo,
 } from "@/lib/pos/storage"
-import { RecentTransactionsDialog } from "@/components/pos/recent-transactions-dialog"
 import { cn } from "@/lib/utils"
-import {
-  Barcode,
-  Printer,
-  Save,
-  Trash2,
-  Minus,
-  Plus,
-  FileText,
-  Layers,
-  RotateCcw,
-  ShoppingCart,
-  Grid3X3,
-  CheckCircle2,
-  PlusCircle,
-  X,
-  ArrowLeftRight,
-} from "lucide-react"
-import { CatalogGrid } from "@/components/pos/catalog-grid"
-import { VirtualAccountPanel } from "@/components/pos/virtual-account"
-import { listLocations, listCashiersForLocation, findVirtualAccount } from "@/lib/payments/virtual-accounts"
-import { CalcPopover } from "@/components/pos/calc-popover"
 
-type PaymentMethod = PaymentLine["method"]
+type Mode = "retail" | "restaurant" | "services" | "auto"
 
 export default function PointOfSale() {
   const navigate = useNavigate()
   const [search] = useSearchParams()
   const draftIdFromUrl = search.get("draftId")
+  const isMobile = useIsMobile()
 
-  // Seed demo data for UI
   React.useEffect(() => {
     seedPosDemo()
   }, [])
 
-  const [mode, setMode] = React.useState<"retail" | "restaurant" | "services" | "auto">("retail")
-  const catalog = React.useMemo(() => loadCatalog(mode), [mode])
-
-  const [cart, setCart] = React.useState<CartItem[]>([])
-  const [discount, setDiscount] = React.useState(0)
-  const [discountType, setDiscountType] = React.useState<"flat" | "percent">("flat")
-  const [orderTaxPercent, setOrderTaxPercent] = React.useState<number>(0)
-  const [shipping, setShipping] = React.useState<number>(0)
-  const [serviceFee, setServiceFee] = React.useState<number>(0)
-
-  const [customer, setCustomer] = React.useState<{ name?: string; email?: string; phone?: string }>({})
-  const [globalScan, setGlobalScan] = React.useState(true)
-
-  const [payments, setPayments] = React.useState<PaymentLine[]>([{ method: "cash", amount: 0 }])
-  const [mobileTab, setMobileTab] = React.useState<"catalog" | "cart">("catalog")
-
-  // Sales meta
-  const [location, setLocation] = React.useState(() => listLocations()[0] || "HQ")
-  const [cashier, setCashier] = React.useState(() => listCashiersForLocation(location)[0] || "Alice")
+  // ----- Session settings -----
+  const [mode, setMode] = React.useState<Mode>("retail")
   const [salesperson, setSalesperson] = React.useState("Alice")
   const [channel, setChannel] = React.useState("In-Store")
+  const [globalScan, setGlobalScan] = React.useState(true)
+  const [location, setLocation] = React.useState(() => listLocations()[0] || "HQ")
+  const [cashier, setCashier] = React.useState(() => listCashiersForLocation(location)[0] || "Alice")
 
+  const catalog = React.useMemo(() => loadCatalog(mode), [mode])
+
+  // ----- Cart + customer -----
+  const [cart, setCart] = React.useState<CartItem[]>([])
+  const [customer, setCustomer] = React.useState<{ name?: string; email?: string; phone?: string }>({})
+
+  // ----- Pricing adjustments -----
+  const [discount, setDiscount] = React.useState(0)
+  const [discountType, setDiscountType] = React.useState<"flat" | "percent">("flat")
+  const [orderTaxPercent, setOrderTaxPercent] = React.useState(0)
+  const [shipping, setShipping] = React.useState(0)
+  const [serviceFee, setServiceFee] = React.useState(0)
+
+  // ----- Payments -----
+  const [payments, setPayments] = React.useState<PaymentLine[]>([{ method: "cash", amount: 0 }])
+
+  // ----- Sheets / dialogs -----
+  const [cartOpen, setCartOpen] = React.useState(false)
+  const [checkoutOpen, setCheckoutOpen] = React.useState(false)
+  const [settingsOpen, setSettingsOpen] = React.useState(false)
+  const [previewOpen, setPreviewOpen] = React.useState(false)
+  const [receiptOpen, setReceiptOpen] = React.useState(false)
+  const [lastInvoice, setLastInvoice] = React.useState<Invoice | null>(null)
+
+  // ----- Restore draft if `?draftId=...` was passed in -----
   React.useEffect(() => {
     if (!draftIdFromUrl) return
     const d = getDraft(draftIdFromUrl)
-    if (d) {
-      setCart(d.items)
-      setDiscount(d.discount || 0)
-      setDiscountType(d.discountType || "flat")
-      setOrderTaxPercent(d.orderTaxPercent || 0)
-      setShipping(d.shipping || 0)
-      setServiceFee(d.serviceFee || 0)
-      setCustomer(d.customer || {})
-      setLocation(d.meta?.location || location)
-      setSalesperson(d.meta?.salesperson || salesperson)
-      setChannel(d.meta?.channel || channel)
-    }
+    if (!d) return
+    setCart(d.items)
+    setDiscount(d.discount || 0)
+    setDiscountType(d.discountType || "flat")
+    setOrderTaxPercent(d.orderTaxPercent || 0)
+    setShipping(d.shipping || 0)
+    setServiceFee(d.serviceFee || 0)
+    setCustomer(d.customer || {})
+    if (d.meta?.location) setLocation(d.meta.location)
+    if (d.meta?.salesperson) setSalesperson(d.meta.salesperson)
+    if (d.meta?.channel) setChannel(d.meta.channel)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [draftIdFromUrl])
 
+  // ----- Cart mutations -----
   const addItem = React.useCallback((item: CatalogItem, qty = 1) => {
     setCart((prev) => {
       const idx = prev.findIndex((p) => p.sku === item.sku)
-      if (idx === -1)
-        return [{ id: item.id, sku: item.sku, name: item.name, price: item.price, taxRate: item.taxRate, qty }, ...prev]
+      if (idx === -1) {
+        return [
+          { id: item.id, sku: item.sku, name: item.name, price: item.price, taxRate: item.taxRate, qty },
+          ...prev,
+        ]
+      }
       const copy = prev.slice()
-      copy[idx] = { ...copy[idx], qty: copy[idx].qty + qty }
+      copy[idx] = { ...copy[idx]!, qty: copy[idx]!.qty + qty }
       return copy
     })
-    setMobileTab("cart")
   }, [])
 
   const addByBarcode = (code: string) => {
@@ -115,13 +126,14 @@ export default function PointOfSale() {
       catalog.find((p) => p.barcode && p.barcode === code) ||
       catalog.find((p) => p.sku.toLowerCase() === code.toLowerCase()) ||
       catalog.find((p) => p.name.toLowerCase().includes(code.toLowerCase()))
-    if (found) {
-      addItem(found, 1)
-    } else alert(`No product found for "${code}"`)
+    if (found) addItem(found, 1)
+    else alert(`No product found for "${code}"`)
   }
 
   const updateQty = (sku: string, next: number) => {
-    setCart((prev) => prev.map((p) => (p.sku === sku ? { ...p, qty: Math.max(0, next) } : p)).filter((p) => p.qty > 0))
+    setCart((prev) =>
+      prev.map((p) => (p.sku === sku ? { ...p, qty: Math.max(0, next) } : p)).filter((p) => p.qty > 0),
+    )
   }
   const removeItem = (sku: string) => setCart((prev) => prev.filter((p) => p.sku !== sku))
 
@@ -133,9 +145,11 @@ export default function PointOfSale() {
     setOrderTaxPercent(0)
     setDiscountType("flat")
     setPayments([{ method: "cash", amount: 0 }])
+    setCustomer({})
   }
 
   const holdSale = () => {
+    if (cart.length === 0) return
     const id = genId("draft")
     saveDraft({
       id,
@@ -150,10 +164,11 @@ export default function PointOfSale() {
       customer,
       meta: { location, salesperson, channel },
     })
+    setCartOpen(false)
     navigate("/pos/drafts")
   }
 
-  // Totals
+  // ----- Totals -----
   const subtotal = cart.reduce((s, i) => s + i.qty * i.price, 0)
   const discountValue = discountType === "percent" ? (subtotal * (discount || 0)) / 100 : discount || 0
   const afterDiscount = Math.max(0, subtotal - discountValue)
@@ -164,39 +179,28 @@ export default function PointOfSale() {
     Math.round((afterDiscount + itemTax + orderTax + (shipping || 0) + (serviceFee || 0)) * 100) / 100,
   )
 
-  const paidSum = payments.reduce((s, p) => s + (Number.isFinite(p.amount) ? p.amount : 0), 0)
-  const remaining = Math.max(0, Math.round((total - paidSum) * 100) / 100)
-  const overpay = Math.max(0, Math.round((paidSum - total) * 100) / 100)
+  const totals = { subtotal, itemTax, orderTax, shipping, serviceFee, discountValue, total }
 
-  function addPaymentLine() {
-    setPayments((ps) => [...ps, { method: "card", amount: 0 }])
-  }
-  function removePaymentLine(idx: number) {
-    setPayments((ps) => ps.filter((_, i) => i !== idx))
-  }
-  function updatePayment(idx: number, part: Partial<PaymentLine>) {
+  // ----- Payment helpers -----
+  const addPayment = () => setPayments((ps) => [...ps, { method: "card", amount: 0 }])
+  const removePayment = (idx: number) => setPayments((ps) => ps.filter((_, i) => i !== idx))
+  const updatePayment = (idx: number, part: Partial<PaymentLine>) =>
     setPayments((ps) =>
-      ps.map((p, i) => (i === idx ? { ...p, ...part, amount: Number(part.amount ?? p.amount) || 0 } : p)),
+      ps.map((p, i) =>
+        i === idx ? { ...p, ...part, amount: Number(part.amount ?? p.amount) || 0 } : p,
+      ),
     )
-  }
 
-  // Confirmation + previews
-  const [confirmOpen, setConfirmOpen] = React.useState(false)
-  const [previewOpen, setPreviewOpen] = React.useState(false)
-  const [receiptOpen, setReceiptOpen] = React.useState(false)
-  const [lastInvoice, setLastInvoice] = React.useState<Invoice | null>(null)
-
-  function onConfirmPayment() {
-    if (paidSum < total) {
-      alert("Payment does not cover total.")
-      return
-    }
+  // ----- Confirm sale -----
+  const onConfirmPayment = () => {
+    const paid = payments.reduce((s, p) => s + (Number.isFinite(p.amount) ? p.amount : 0), 0)
+    if (paid < total) return // button is disabled in this case anyway
+    const change = Math.max(0, Math.round((paid - total) * 100) / 100)
     const augmented: PaymentLine[] = payments.map((p) => ({ ...p }))
-    if (overpay > 0) {
+    if (change > 0) {
       const cashIdx = augmented.findIndex((p) => p.method === "cash")
-      if (cashIdx >= 0) augmented[cashIdx].reference = `Change: $${overpay.toFixed(2)}`
+      if (cashIdx >= 0) augmented[cashIdx]!.reference = `Change: $${change.toFixed(2)}`
     }
-
     const invoice: Invoice = {
       id: genId("inv"),
       number: genInvoiceNumber(),
@@ -217,474 +221,190 @@ export default function PointOfSale() {
     }
     saveInvoice(invoice)
     setLastInvoice(invoice)
-    setConfirmOpen(false)
+    setCheckoutOpen(false)
+    setCartOpen(false)
     setReceiptOpen(true)
     clearCart()
   }
 
+  const va = findVirtualAccount(location, cashier)
+  const itemCount = cart.reduce((s, c) => s + c.qty, 0)
+
   return (
-    <PageShell title="Point of Sale" withToolbar={false}>
-      {/* Mobile tabs */}
-      <div className="mb-3 grid grid-cols-2 gap-2 lg:hidden">
+    <PageShell
+      title="Point of sale"
+      withToolbar={false}
+      mobileTrailing={
         <button
-          className={cn(
-            "inline-flex items-center justify-center rounded-md border px-3 py-2 text-sm",
-            mobileTab === "catalog" ? "bg-violet-600 text-white" : "bg-transparent hover:bg-accent",
-          )}
-          onClick={() => setMobileTab("catalog")}
+          type="button"
+          onClick={() => setSettingsOpen(true)}
+          aria-label="POS settings"
+          className="inline-flex h-9 w-9 items-center justify-center rounded-full text-foreground/80 hover:bg-accent active:bg-accent/70"
         >
-          <Grid3X3 className="mr-2 h-4 w-4" /> Catalog
+          <Settings2 className="h-4 w-4" />
         </button>
-        <button
-          className={cn(
-            "inline-flex items-center justify-center rounded-md border px-3 py-2 text-sm",
-            mobileTab === "cart" ? "bg-violet-600 text-white" : "bg-transparent hover:bg-accent",
-          )}
-          onClick={() => setMobileTab("cart")}
-        >
-          <ShoppingCart className="mr-2 h-4 w-4" /> Cart ({cart.length})
-        </button>
-      </div>
-
-      {/* Header actions */}
-      <div className="mb-4 flex flex-wrap items-center gap-2">
-        <div className="flex flex-wrap items-center gap-2 text-sm">
-          <label className="inline-flex cursor-pointer items-center gap-2">
-            <span className="text-muted-foreground">Mode</span>
-            <select
-              className="h-8 rounded-md border bg-background px-2 text-sm"
-              value={mode}
-              onChange={(e) => setMode(e.target.value as any)}
-            >
-              <option value="retail">Retail</option>
-              <option value="restaurant">Restaurant</option>
-              <option value="services">Services/Salon</option>
-              <option value="auto">Auto/Parts</option>
-            </select>
-          </label>
-          <label className="inline-flex cursor-pointer items-center gap-2">
-            <span className="text-muted-foreground">Salesperson</span>
-            <Input
-              className="h-8 w-40"
-              value={salesperson}
-              onChange={(e) => setSalesperson(e.target.value)}
-              placeholder="Name"
-            />
-          </label>
-          <label className="inline-flex cursor-pointer items-center gap-2">
-            <span className="text-muted-foreground">Channel</span>
-            <select
-              className="h-8 rounded-md border bg-background px-2 text-sm"
-              value={channel}
-              onChange={(e) => setChannel(e.target.value)}
-            >
-              <option>In-Store</option>
-              <option>Phone</option>
-              <option>Online</option>
-            </select>
-          </label>
-          <label className="ml-2 inline-flex cursor-pointer items-center gap-2">
-            <input
-              aria-label="Enable global barcode capture"
-              type="checkbox"
-              className="accent-violet-600"
-              checked={globalScan}
-              onChange={(e) => setGlobalScan(e.target.checked)}
-            />
-            Global scanner
-          </label>
+      }
+    >
+      <div className="flex flex-col gap-4">
+        {/* Quick action strip — drafts, invoices, returns, settings */}
+        <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 scrollbar-hide md:mx-0 md:px-0">
+          <PosQuickChip Icon={Layers} label="Drafts" onClick={() => navigate("/pos/drafts")} />
+          <PosQuickChip Icon={ClipboardList} label="Invoices" onClick={() => navigate("/pos/invoices")} />
+          <PosQuickChip Icon={RotateCcw} label="Returns" onClick={() => navigate("/pos/returns")} />
+          <PosQuickChip Icon={Settings2} label={`${mode} · ${location}`} onClick={() => setSettingsOpen(true)} className="hidden md:inline-flex" />
         </div>
 
-        <div className="ml-auto flex flex-wrap items-center gap-2">
-          <Button variant="outline" className="bg-transparent" onClick={() => navigate("/pos/returns")}>
-            <RotateCcw className="mr-2 h-4 w-4" /> Sell Return
-          </Button>
-          <RecentTransactionsDialog />
-          <Button variant="outline" className="bg-transparent" onClick={() => navigate("/pos/invoices")}>
-            Invoices
-          </Button>
-          <Button variant="outline" className="bg-transparent" onClick={() => navigate("/pos/drafts")}>
-            <Layers className="mr-2 h-4 w-4" /> Drafts
-          </Button>
-          <Button variant="outline" className="bg-transparent" onClick={holdSale} disabled={cart.length === 0}>
-            <Save className="mr-2 h-4 w-4" /> Suspend
-          </Button>
-          <Button variant="outline" className="bg-transparent" onClick={clearCart} disabled={cart.length === 0}>
-            <Trash2 className="mr-2 h-4 w-4" /> Clear
-          </Button>
-        </div>
-      </div>
-
-      <div className="grid gap-4 lg:grid-cols-12">
-        {/* Left Panel: Scan + Customer + VA */}
-        <section className={cn("space-y-4", mobileTab !== "catalog" ? "hidden lg:block" : "") + " lg:col-span-3"}>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="flex items-center">
-                <Barcode className="mr-2 h-5 w-5" /> Scan or Search
-              </CardTitle>
-              <CardDescription>Scan a barcode or enter SKU/name</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3">
+        {/* Scan bar */}
+        <div className="rounded-2xl border border-border bg-card p-3">
+          <div className="flex items-center gap-2">
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-soft text-brand dark:bg-primary/15 dark:text-primary">
+              <Barcode className="h-4 w-4" />
+            </span>
+            <div className="flex-1">
               <BarcodeScannerInput captureGlobal={globalScan} onScan={addByBarcode} />
-              <div className="grid grid-cols-1 gap-2">
-                <Input
-                  placeholder="Enter SKU or name and press Enter"
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") addByBarcode((e.target as HTMLInputElement).value)
-                  }}
-                />
-              </div>
-              <div className="text-xs text-muted-foreground">
-                Tip: Use a keyboard-wedge scanner for instant capture.
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle>Customer</CardTitle>
-              <CardDescription>Attach for receipts/loyalty</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <Input
-                placeholder="Name"
-                value={customer.name || ""}
-                onChange={(e) => setCustomer((c) => ({ ...c, name: e.target.value }))}
-              />
-              <Input
-                placeholder="Email"
-                value={customer.email || ""}
-                onChange={(e) => setCustomer((c) => ({ ...c, email: e.target.value }))}
-              />
-              <Input
-                placeholder="Phone"
-                value={customer.phone || ""}
-                onChange={(e) => setCustomer((c) => ({ ...c, phone: e.target.value }))}
-              />
-            </CardContent>
-          </Card>
-
-          <VirtualAccountPanel
-            location={location}
-            cashier={cashier}
-            onLocationChange={(loc) => {
-              setLocation(loc)
-              setCashier(listCashiersForLocation(loc)[0] || "")
-            }}
-            onCashierChange={setCashier}
-          />
-        </section>
-
-        {/* Center: Catalog */}
-        <section className={cn(mobileTab !== "catalog" ? "hidden lg:block" : "", "lg:col-span-6")}>
-          <CatalogGrid catalog={catalog} onAdd={(p) => addItem(p)} businessMode={mode} />
-        </section>
-
-        {/* Right: Cart + Checkout */}
-        <section className={cn(mobileTab !== "cart" ? "hidden lg:block" : "", "lg:col-span-3 space-y-4")}>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle>Cart</CardTitle>
-              <CardDescription>Items to sell</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="max-h-[36vh] overflow-auto rounded-lg border lg:max-h-[340px]">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Item</TableHead>
-                      <TableHead className="text-right">Qty</TableHead>
-                      <TableHead className="text-right">Unit</TableHead>
-                      <TableHead className="text-right">Line</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {cart.length === 0 ? (
-                      <TableRow>
-                        <TableCell colSpan={4} className="text-center text-muted-foreground">
-                          No items yet.
-                        </TableCell>
-                      </TableRow>
-                    ) : (
-                      cart.map((c) => (
-                        <TableRow key={c.sku}>
-                          <TableCell className="font-medium">
-                            <div className="line-clamp-1">{c.name}</div>
-                            <div className="font-mono text-xs text-muted-foreground">{c.sku}</div>
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <div className="ml-auto flex items-center justify-end gap-1">
-                              <Button
-                                variant="outline"
-                                className="bg-transparent"
-                                size="sm"
-                                onClick={() => updateQty(c.sku, c.qty - 1)}
-                              >
-                                <Minus className="h-3.5 w-3.5" />
-                              </Button>
-                              <Input
-                                className="w-14 text-right"
-                                type="number"
-                                value={c.qty}
-                                onChange={(e) => updateQty(c.sku, Number(e.target.value))}
-                                min={0}
-                              />
-                              <Button
-                                variant="outline"
-                                className="bg-transparent"
-                                size="sm"
-                                onClick={() => updateQty(c.sku, c.qty + 1)}
-                              >
-                                <Plus className="h-3.5 w-3.5" />
-                              </Button>
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-right tabular-nums">${c.price.toFixed(2)}</TableCell>
-                          <TableCell className="text-right tabular-nums">${(c.qty * c.price).toFixed(2)}</TableCell>
-                        </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
-
-              {/* Totals and adjustments */}
-              <div className="mt-3 space-y-2 text-sm">
-                <Row label="Subtotal" value={`$${subtotal.toFixed(2)}`} />
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-muted-foreground">Discount</span>
-                  <div className="flex items-center gap-2">
-                    <select
-                      className="h-8 rounded-md border bg-background px-2 text-sm"
-                      value={discountType}
-                      onChange={(e) => setDiscountType(e.target.value as any)}
-                    >
-                      <option value="flat">$</option>
-                      <option value="percent">%</option>
-                    </select>
-                    <Input
-                      className="w-24 text-right"
-                      type="number"
-                      value={discount}
-                      onChange={(e) => setDiscount(Math.max(0, Number(e.target.value) || 0))}
-                      min={0}
-                      step="0.01"
-                    />
-                  </div>
-                </div>
-                <Row
-                  label="Item Tax"
-                  value={`$${cart.reduce((s, i) => s + (i.taxRate || 0) * i.qty * i.price, 0).toFixed(2)}`}
-                />
-                <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">Order Tax %</span>
-                  <Input
-                    className="w-24 text-right"
-                    type="number"
-                    value={orderTaxPercent}
-                    onChange={(e) => setOrderTaxPercent(Math.max(0, Number(e.target.value) || 0))}
-                    min={0}
-                    step="0.1"
-                  />
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">Shipping</span>
-                  <Input
-                    className="w-24 text-right"
-                    type="number"
-                    value={shipping}
-                    onChange={(e) => setShipping(Math.max(0, Number(e.target.value) || 0))}
-                    min={0}
-                    step="0.01"
-                  />
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">Service Fee</span>
-                  <Input
-                    className="w-24 text-right"
-                    type="number"
-                    value={serviceFee}
-                    onChange={(e) => setServiceFee(Math.max(0, Number(e.target.value) || 0))}
-                    min={0}
-                    step="0.01"
-                  />
-                </div>
-                <div className="flex items-center justify-between text-base font-semibold">
-                  <span>Total</span>
-                  <span className="tabular-nums">${total.toFixed(2)}</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle>Payment</CardTitle>
-              <CardDescription>Split payments supported</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="space-y-2">
-                {payments.map((p, idx) => (
-                  <div key={idx} className="flex items-center gap-2">
-                    <select
-                      className="h-9 rounded-md border bg-background px-2 text-sm"
-                      value={p.method}
-                      onChange={(e) => updatePayment(idx, { method: e.target.value as PaymentMethod })}
-                    >
-                      <option value="cash">Cash</option>
-                      <option value="card">Card</option>
-                      <option value="paypal">PayPal</option>
-                      <option value="stripe">Stripe</option>
-                      <option value="other">Other</option>
-                    </select>
-                    <Input
-                      className="w-28"
-                      type="number"
-                      placeholder="Amount"
-                      value={p.amount}
-                      onChange={(e) => updatePayment(idx, { amount: Number(e.target.value) || 0 })}
-                    />
-                    <Input
-                      className="flex-1"
-                      placeholder="Reference (opt.)"
-                      value={p.reference || ""}
-                      onChange={(e) => updatePayment(idx, { reference: e.target.value })}
-                    />
-                    <Button
-                      variant="outline"
-                      className="bg-transparent"
-                      onClick={() => removePaymentLine(idx)}
-                      title="Remove"
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
-                ))}
-                <div className="flex items-center gap-2">
-                  <Button variant="outline" className="bg-transparent" onClick={addPaymentLine}>
-                    <PlusCircle className="mr-2 h-4 w-4" /> Add Split
-                  </Button>
-                  <CalcPopover />
-                  <div className="ml-auto text-sm">
-                    <span className="text-muted-foreground">Due</span>{" "}
-                    <span className="tabular-nums">${remaining.toFixed(2)}</span>{" "}
-                    {overpay > 0 && (
-                      <span className="ml-2 rounded bg-muted px-1.5 py-0.5 text-xs">Overpay ${overpay.toFixed(2)}</span>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex flex-wrap gap-2">
-                <Button onClick={() => setConfirmOpen(true)} disabled={cart.length === 0}>
-                  <CheckCircle2 className="mr-2 h-4 w-4" /> Confirm Payment
-                </Button>
-                <Button
-                  variant="outline"
-                  className="bg-transparent"
-                  onClick={() => setPreviewOpen(true)}
-                  disabled={cart.length === 0}
-                >
-                  <FileText className="mr-2 h-4 w-4" /> Invoice Preview
-                </Button>
-                <Button variant="outline" className="bg-transparent" onClick={holdSale} disabled={cart.length === 0}>
-                  <Save className="mr-2 h-4 w-4" /> Draft
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </section>
-      </div>
-
-      {/* Sticky footer summary on mobile */}
-      {cart.length > 0 && (
-        <div className="fixed inset-x-0 bottom-0 z-40 border-t bg-background p-3 shadow-lg lg:hidden">
-          <div className="flex items-center justify-between">
-            <div className="text-sm">
-              <div className="text-muted-foreground">Total</div>
-              <div className="text-lg font-semibold tabular-nums">${total.toFixed(2)}</div>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button variant="outline" className="bg-transparent" onClick={() => setMobileTab("cart")}>
-                <ShoppingCart className="mr-2 h-4 w-4" /> Cart
-              </Button>
-              <Button onClick={() => setConfirmOpen(true)}>
-                <ArrowLeftRight className="mr-2 h-4 w-4" /> Charge
-              </Button>
             </div>
           </div>
+          <Input
+            placeholder="…or type SKU / name and press Enter"
+            className="mt-2"
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                const v = (e.target as HTMLInputElement).value.trim()
+                if (v) {
+                  addByBarcode(v)
+                  ;(e.target as HTMLInputElement).value = ""
+                }
+              }
+            }}
+          />
         </div>
+
+        {/* Catalog + (desktop) cart panel */}
+        <div className="grid gap-4 lg:grid-cols-[1fr_360px]">
+          <CatalogGrid catalog={catalog} onAdd={addItem} businessMode={mode} cart={cart} />
+
+          <aside className="hidden lg:block">
+            <CartPanel
+              cart={cart}
+              customer={customer}
+              onCustomerChange={setCustomer}
+              onUpdateQty={updateQty}
+              onRemove={removeItem}
+              onClearCart={clearCart}
+              onHold={holdSale}
+              onCharge={() => setCheckoutOpen(true)}
+              discount={discount}
+              discountType={discountType}
+              onDiscountChange={setDiscount}
+              onDiscountTypeChange={setDiscountType}
+              orderTaxPercent={orderTaxPercent}
+              onOrderTaxPercentChange={setOrderTaxPercent}
+              shipping={shipping}
+              onShippingChange={setShipping}
+              serviceFee={serviceFee}
+              onServiceFeeChange={setServiceFee}
+              totals={totals}
+            />
+          </aside>
+        </div>
+
+        {/* Invoice preview button on desktop */}
+        <div className="hidden justify-end md:flex">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => setPreviewOpen(true)}
+            disabled={cart.length === 0}
+          >
+            <FileText className="h-4 w-4" /> Invoice preview
+          </Button>
+        </div>
+      </div>
+
+      {/* Mobile floating cart pill */}
+      {isMobile && (
+        <FloatingCart itemCount={itemCount} total={total} onOpen={() => setCartOpen(true)} />
       )}
 
-      {/* Confirm Payment Dialog */}
-      <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
-        <DialogContent className="max-w-lg">
-          <div className="mb-2 text-base font-semibold">Confirm Payment</div>
-          <div className="space-y-2 text-sm">
-            <div className="flex items-center justify-between">
-              <span className="text-muted-foreground">Total</span>
-              <span className="tabular-nums">${total.toFixed(2)}</span>
-            </div>
-            <div className="rounded-md border bg-muted/50 p-2 text-xs">
-              {payments.map((p, i) => (
-                <div key={i} className="flex items-center justify-between">
-                  <span className="uppercase">{p.method}</span>
-                  <span className="tabular-nums">${p.amount.toFixed(2)}</span>
-                </div>
-              ))}
-              <div className="mt-1 flex items-center justify-between font-medium">
-                <span>Paid</span>
-                <span className="tabular-nums">${paidSum.toFixed(2)}</span>
-              </div>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-muted-foreground">Salesperson</span>
-              <span>{salesperson}</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-muted-foreground">Location</span>
-              <span>{location}</span>
-            </div>
-            {findVirtualAccount(location, cashier) && (
-              <div className="rounded-md border bg-muted/50 p-2">
-                <div className="mb-1 text-xs font-medium">Virtual Account (for transfer)</div>
-                <div className="text-xs">
-                  {findVirtualAccount(location, cashier)?.bank} • {findVirtualAccount(location, cashier)?.accountNumber}{" "}
-                  • {findVirtualAccount(location, cashier)?.accountName}
-                </div>
-              </div>
-            )}
-          </div>
-          <div className="mt-3 flex justify-end gap-2">
-            <Button variant="outline" className="bg-transparent" onClick={() => setConfirmOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={onConfirmPayment}>
-              <CheckCircle2 className="mr-2 h-4 w-4" /> Confirm & Generate
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+      {/* Mobile sheets */}
+      <CartSheet
+        open={cartOpen}
+        onClose={() => setCartOpen(false)}
+        cart={cart}
+        customer={customer}
+        onCustomerChange={setCustomer}
+        onUpdateQty={updateQty}
+        onRemove={removeItem}
+        onClearCart={clearCart}
+        onHold={holdSale}
+        discount={discount}
+        discountType={discountType}
+        onDiscountChange={setDiscount}
+        onDiscountTypeChange={setDiscountType}
+        orderTaxPercent={orderTaxPercent}
+        onOrderTaxPercentChange={setOrderTaxPercent}
+        shipping={shipping}
+        onShippingChange={setShipping}
+        serviceFee={serviceFee}
+        onServiceFeeChange={setServiceFee}
+        totals={totals}
+        onCharge={() => {
+          setCartOpen(false)
+          setCheckoutOpen(true)
+        }}
+      />
 
-      {/* Invoice Preview Dialog */}
+      <CheckoutSheet
+        open={checkoutOpen}
+        onClose={() => setCheckoutOpen(false)}
+        total={total}
+        payments={payments}
+        onAddPayment={addPayment}
+        onRemovePayment={removePayment}
+        onUpdatePayment={updatePayment}
+        onConfirm={onConfirmPayment}
+        virtualAccount={va ?? null}
+      />
+
+      <PosSettingsSheet
+        open={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+        mode={mode}
+        onModeChange={setMode}
+        salesperson={salesperson}
+        onSalespersonChange={setSalesperson}
+        channel={channel}
+        onChannelChange={setChannel}
+        location={location}
+        locations={listLocations()}
+        onLocationChange={(l) => {
+          setLocation(l)
+          setCashier(listCashiersForLocation(l)[0] || "")
+        }}
+        cashier={cashier}
+        cashiers={listCashiersForLocation(location)}
+        onCashierChange={setCashier}
+        globalScan={globalScan}
+        onGlobalScanChange={setGlobalScan}
+      />
+
+      {/* Invoice preview (desktop) */}
       <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
         <DialogContent className="max-w-4xl">
           <div className="flex items-center justify-between">
-            <div className="text-base font-semibold">Invoice Preview</div>
+            <p className="text-base font-semibold">Invoice preview</p>
             <div className="flex items-center gap-2">
               <Button
+                type="button"
                 variant="outline"
-                className="bg-transparent"
                 onClick={() => {
                   const node = document.getElementById("invoice-print-root")
-                  if (!node) return
-                  printInvoiceNode(node)
+                  if (node) printInvoiceNode(node)
                 }}
               >
-                <Printer className="mr-2 h-4 w-4" /> Print
+                <Printer className="h-4 w-4" /> Print
               </Button>
-              <Button onClick={() => setPreviewOpen(false)}>Close</Button>
+              <Button type="button" onClick={() => setPreviewOpen(false)}>Close</Button>
             </div>
           </div>
           <div id="invoice-print-root">
@@ -712,18 +432,24 @@ export default function PointOfSale() {
         </DialogContent>
       </Dialog>
 
-      {/* Receipt Dialog (after confirmation) */}
+      {/* Receipt dialog after a successful sale */}
       <Dialog open={receiptOpen} onOpenChange={setReceiptOpen}>
         <DialogContent className="max-w-md">
           <div className="mb-2 flex items-center justify-between">
-            <div className="text-base font-semibold">Receipt</div>
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+              <p className="text-base font-semibold">Sale complete</p>
+            </div>
             {lastInvoice && (
               <Button
+                type="button"
                 variant="outline"
-                className="bg-transparent"
-                onClick={() => navigate(`/pos/returns/new?invoiceId=${encodeURIComponent(lastInvoice.id)}`)}
+                size="sm"
+                onClick={() =>
+                  navigate(`/pos/returns/new?invoiceId=${encodeURIComponent(lastInvoice.id)}`)
+                }
               >
-                Create Return
+                Refund
               </Button>
             )}
           </div>
@@ -736,16 +462,16 @@ export default function PointOfSale() {
           )}
           <div className="mt-3 flex justify-end gap-2">
             <Button
+              type="button"
               variant="outline"
-              className="bg-transparent"
               onClick={() => {
                 const node = document.getElementById("receipt-root")
                 if (node) printInvoiceNode(node)
               }}
             >
-              <Printer className="mr-2 h-4 w-4" /> Print
+              <Printer className="h-4 w-4" /> Print
             </Button>
-            <Button onClick={() => setReceiptOpen(false)}>Done</Button>
+            <Button type="button" onClick={() => setReceiptOpen(false)}>Done</Button>
           </div>
         </DialogContent>
       </Dialog>
@@ -753,11 +479,28 @@ export default function PointOfSale() {
   )
 }
 
-function Row({ label, value, valueNode }: { label: string; value?: string; valueNode?: React.ReactNode }) {
+function PosQuickChip({
+  Icon,
+  label,
+  onClick,
+  className,
+}: {
+  Icon: React.ElementType
+  label: string
+  onClick: () => void
+  className?: string
+}) {
   return (
-    <div className="flex items-center justify-between">
-      <span className="text-muted-foreground">{label}</span>
-      {valueNode ?? <span className="tabular-nums">{value}</span>}
-    </div>
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "inline-flex shrink-0 items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-accent",
+        className,
+      )}
+    >
+      <Icon className="h-3.5 w-3.5" />
+      <span className="capitalize">{label}</span>
+    </button>
   )
 }
