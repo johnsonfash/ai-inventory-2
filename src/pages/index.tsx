@@ -18,8 +18,7 @@ import { ActivityFeedCard } from "@/components/insights/activity-feed"
 import { InfoTooltip } from "@/components/info-tooltip"
 import { useRegisterPageRefresh } from "@/hooks/use-pull-to-refresh"
 import { generateInsights } from "@/lib/insights/engine"
-import { openTour } from "@/components/onboarding/tour"
-import { Compass } from "lucide-react"
+import { GettingStarted } from "@/components/onboarding/getting-started"
 
 // Spark series — tiny mock data per KPI. Replace with real series
 // from the analytics endpoint once the backend lands.
@@ -55,6 +54,11 @@ export default function Dashboard() {
   return (
     <PageShell title="Dashboard" withToolbar>
       <div className="flex flex-col gap-6">
+        {/* Getting Started — milestone checklist. Hides itself once
+            every step is done OR the user clicks "Hide this".
+            Survives reinstalls on native via the kv mirror. */}
+        <GettingStarted />
+
         {/* Welcome / period summary */}
         <div
           data-tour="hero"
@@ -85,15 +89,6 @@ export default function Dashboard() {
               </div>
             </div>
           </div>
-          <button
-            type="button"
-            onClick={openTour}
-            className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full border border-border bg-card/80 px-2.5 py-1 text-[11px] font-medium text-muted-foreground backdrop-blur transition-colors hover:bg-card hover:text-foreground"
-            aria-label="Replay product tour"
-          >
-            <Compass className="h-3 w-3" />
-            <span className="hidden sm:inline">Tour</span>
-          </button>
         </div>
 
         {/* AI Insights — Pallio's "what to pay attention to" strip.

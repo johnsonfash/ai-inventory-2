@@ -11,7 +11,6 @@ import { PWAInstaller } from "@/components/pwa-installer"
 import { NetworkBanner } from "@/components/network-banner"
 import { BiometricGate } from "@/components/biometric-gate"
 import { AppFrame } from "@/components/app-frame"
-import { TourAutoLauncher } from "@/components/onboarding/tour"
 import { PageMetaProvider } from "@/contexts/page-meta"
 import { useNative } from "@/hooks/use-native"
 import { useBackButton } from "@/hooks/use-back-button"
@@ -104,7 +103,6 @@ export default function App() {
                 </AppFrame>
               </PageRefreshProvider>
             </PageMetaProvider>
-            <TourAutoLauncher />
             <PWAInstaller />
           </BiometricGate>
           <Toaster position="bottom-right" richColors closeButton />
