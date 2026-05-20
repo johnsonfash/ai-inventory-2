@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { CommissionCalculator } from "@/components/team/commission-calculator"
 import { ExportCSVButton, ExportPDFButton } from "@/components/export-buttons"
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
+import { ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, XAxis, YAxis } from "recharts"
 import { aggregateSalesBySalesperson } from "@/lib/pos/storage"
 import { RoleGuard } from "@/components/auth/role-guard"
@@ -52,22 +52,21 @@ export default function MarketingCommissionsPage() {
               <CardDescription>Track commissions potential</CardDescription>
             </CardHeader>
             <CardContent className="h-[320px]">
-              <ChartContainer
-                config={{
-                  revenue: { label: "Revenue", color: "hsl(var(--chart-1))" },
-                }}
-                className="h-full"
-              >
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={data}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="salesperson" />
-                    <YAxis />
-                    <ChartTooltip content={<ChartTooltipContent />} />
-                    <Bar dataKey="revenue" fill="var(--color-revenue)" radius={[4, 4, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </ChartContainer>
+              {/* Use the canonical pattern from the other report pages —
+                  fill direct from --chart-1 CSS var. Wrapping in hsl()
+                  (the previous approach) was broken because our chart
+                  tokens are oklch() values, not HSL components, so
+                  hsl(oklch(...)) evaluates to invalid + falls back to
+                  black — invisible against the dark card. */}
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={data} margin={{ top: 10, right: 6, left: 0, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" strokeOpacity={0.5} />
+                  <XAxis dataKey="salesperson" stroke="var(--muted-foreground)" fontSize={11} tickLine={false} axisLine={false} />
+                  <YAxis stroke="var(--muted-foreground)" fontSize={11} tickLine={false} axisLine={false} />
+                  <ChartTooltip content={<ChartTooltipContent labelKey="salesperson" />} cursor={{ fill: "var(--muted)", fillOpacity: 0.35 }} />
+                  <Bar dataKey="revenue" fill="var(--chart-1)" radius={[6, 6, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
             </CardContent>
           </Card>
 

@@ -10,6 +10,8 @@ import { RouteTransition } from "@/components/route-transition"
 import { PWAInstaller } from "@/components/pwa-installer"
 import { NetworkBanner } from "@/components/network-banner"
 import { BiometricGate } from "@/components/biometric-gate"
+import { AppFrame } from "@/components/app-frame"
+import { PageMetaProvider } from "@/contexts/page-meta"
 import { useNative } from "@/hooks/use-native"
 import { useBackButton } from "@/hooks/use-back-button"
 import { useDeepLinks } from "@/hooks/use-deep-links"
@@ -26,11 +28,13 @@ const queryClient = new QueryClient({
   },
 })
 
-// Suspense fallback that shows a centered, brand-tinted spinner.
-// Used while a route chunk is still in flight.
-function RouteLoader() {
+// Content-area suspense fallback — a small inline spinner that
+// occupies only the page content slot (inside AppFrame's <main>).
+// The chrome (sidebar, mobile top bar, bottom nav, header, toolbar)
+// stays mounted, so navigations don't flash the whole UI.
+function ContentLoader() {
   return (
-    <div className="flex h-[100dvh] items-center justify-center bg-background" aria-hidden="true">
+    <div className="flex h-full min-h-[40vh] items-center justify-center" aria-hidden="true">
       <div className="flex flex-col items-center gap-3 text-muted-foreground">
         <Loader2 className="h-6 w-6 animate-spin text-brand dark:text-primary" />
         <span className="text-xs uppercase tracking-wider">Loading</span>
@@ -65,12 +69,13 @@ function RouterBootstrap() {
   return null
 }
 
-// Splits the Routes render so Suspense + AnimatePresence keys off
-// location. Required so the loader sits under the transition.
+// Suspense + AnimatePresence wraps ONLY the routes — the AppFrame
+// above stays mounted across navigations. The fallback is a small
+// content-area spinner instead of a full-screen one.
 function AppRoutes() {
   const location = useLocation()
   return (
-    <Suspense fallback={<RouteLoader />}>
+    <Suspense fallback={<ContentLoader />}>
       <RouteTransition>
         <Routes location={location}>
           {routes.map((r) => (
@@ -91,9 +96,13 @@ export default function App() {
           <RouterBootstrap />
           <BiometricGate>
             <NetworkBanner />
-            <PageRefreshProvider>
-              <AppRoutes />
-            </PageRefreshProvider>
+            <PageMetaProvider>
+              <PageRefreshProvider>
+                <AppFrame>
+                  <AppRoutes />
+                </AppFrame>
+              </PageRefreshProvider>
+            </PageMetaProvider>
             <PWAInstaller />
           </BiometricGate>
           <Toaster position="bottom-right" richColors closeButton />

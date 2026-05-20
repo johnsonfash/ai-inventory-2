@@ -456,59 +456,71 @@ export function AppSidebar() {
       {/* Collapsed-mode flyout. Portaled to body so the aside's
           overflow-auto on <nav> doesn't clip it. Positioned with
           `fixed` against the hovered button's bounding rect. The
-          top position is clamped so a button near the bottom of the
-          viewport still produces a fully-visible flyout. */}
+          panel itself owns max-height + overflow so a 13-item group
+          (Settings) doesn't get its tail clipped by the viewport. */}
       {typeof document !== "undefined" && collapsed && createPortal(
         <AnimatePresence>
-          {flyout && flyoutItem && (
-            <motion.div
-              key={flyout.title}
-              initial={{ opacity: 0, x: -4 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -4 }}
-              transition={{ duration: 0.12 }}
-              role="menu"
-              aria-label={flyoutItem.title}
-              onMouseEnter={cancelClose}
-              onMouseLeave={scheduleClose}
-              style={{
-                position: "fixed",
-                left: 64 + 6, // sidebar width + 6px gap
-                top: clamp(flyout.top, 8, typeof window === "undefined" ? 800 : window.innerHeight - 320),
-                zIndex: 60,
-              }}
-              className="w-60 rounded-xl border border-border bg-popover text-popover-foreground shadow-xl shadow-black/10 dark:shadow-black/40"
-            >
-              <div className="border-b border-border px-3 py-2">
-                <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                  {flyoutItem.title}
-                </p>
-              </div>
-              <ul className="max-h-[60vh] overflow-y-auto p-1.5">
-                {flyoutItem.sub?.map((s) => {
-                  const subActive = pathname === s.url
-                  return (
-                    <li key={s.url}>
-                      <Link
-                        to={s.url}
-                        onClick={() => setFlyout(null)}
-                        aria-current={subActive ? "page" : undefined}
-                        role="menuitem"
-                        className={cn(
-                          "block rounded-md px-2.5 py-1.5 text-xs transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand",
-                          subActive
-                            ? "bg-brand-soft text-brand dark:bg-primary/15 dark:text-primary"
-                            : "text-foreground",
-                        )}
-                      >
-                        {s.title}
-                      </Link>
-                    </li>
-                  )
-                })}
-              </ul>
-            </motion.div>
-          )}
+          {flyout && flyoutItem && (() => {
+            // Anchor: icon's top. But if there isn't enough room
+            // below the icon for a useful panel, push the panel up
+            // so it still fits. The internal overflow-y-auto on the
+            // list takes care of anything taller than the remaining
+            // viewport.
+            const vh = typeof window === "undefined" ? 800 : window.innerHeight
+            const MIN_PANEL = 200 // ensure at least 200px visible panel even near the bottom edge
+            const top = clamp(flyout.top, 8, vh - MIN_PANEL - 8)
+            const maxHeight = vh - top - 12
+            return (
+              <motion.div
+                key={flyout.title}
+                initial={{ opacity: 0, x: -4 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -4 }}
+                transition={{ duration: 0.12 }}
+                role="menu"
+                aria-label={flyoutItem.title}
+                onMouseEnter={cancelClose}
+                onMouseLeave={scheduleClose}
+                style={{
+                  position: "fixed",
+                  left: 64 + 6,
+                  top,
+                  maxHeight,
+                  zIndex: 60,
+                }}
+                className="flex w-60 flex-col rounded-xl border border-border bg-popover text-popover-foreground shadow-xl shadow-black/10 dark:shadow-black/40"
+              >
+                <div className="shrink-0 border-b border-border px-3 py-2">
+                  <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    {flyoutItem.title}
+                  </p>
+                </div>
+                <ul className="min-h-0 flex-1 overflow-y-auto p-1.5">
+                  {flyoutItem.sub?.map((s) => {
+                    const subActive = pathname === s.url
+                    return (
+                      <li key={s.url}>
+                        <Link
+                          to={s.url}
+                          onClick={() => setFlyout(null)}
+                          aria-current={subActive ? "page" : undefined}
+                          role="menuitem"
+                          className={cn(
+                            "block rounded-md px-2.5 py-1.5 text-xs transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand",
+                            subActive
+                              ? "bg-brand-soft text-brand dark:bg-primary/15 dark:text-primary"
+                              : "text-foreground",
+                          )}
+                        >
+                          {s.title}
+                        </Link>
+                      </li>
+                    )
+                  })}
+                </ul>
+              </motion.div>
+            )
+          })()}
         </AnimatePresence>,
         document.body,
       )}
