@@ -5,6 +5,7 @@ import { PageShell } from "@/components/page-shell"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useRegisterPageRefresh } from "@/hooks/use-pull-to-refresh"
+import { useChatKeyboard } from "@/hooks/use-chat-keyboard"
 import { EmptyState } from "@/components/lists/empty-state"
 import { RoleGuard } from "@/components/auth/role-guard"
 import { cn } from "@/lib/utils"
@@ -68,7 +69,10 @@ export default function TeamChatPage() {
   const [text, setText] = React.useState("")
   const [channel, setChannel] = React.useState<Channel>("general")
   const [messages, setMsgs] = React.useState<Message[]>(getMessages)
-  const scrollRef = React.useRef<HTMLDivElement>(null)
+  // Chat-aware keyboard handling on native. The hook owns the scroll
+  // ref so the ResizeObserver auto-snap can fire on keyboard show.
+  const kb = useChatKeyboard()
+  const scrollRef = kb.scrollContainerRef
 
   useRegisterPageRefresh(React.useCallback(async () => { await new Promise((r) => setTimeout(r, 200)) }, []))
 
@@ -167,8 +171,18 @@ export default function TeamChatPage() {
             ))}
           </aside>
 
-          {/* Chat column */}
-          <div className="relative flex flex-col overflow-hidden rounded-2xl border border-border bg-card">
+          {/* Chat column. On native iOS, when the composer takes
+              focus, pad-bottom by the live keyboard height so the
+              composer rides above the keyboard. See useChatKeyboard
+              for the full rationale (it also disables Capacitor's
+              built-in resize on this route to avoid double-shifting). */}
+          <div
+            className="relative flex flex-col overflow-hidden rounded-2xl border border-border bg-card"
+            style={{
+              paddingBottom: kb.composerFocused ? kb.kbHeight : 0,
+              transition: "padding-bottom 200ms cubic-bezier(0.25, 1, 0.5, 1)",
+            }}
+          >
             {/* Header (mobile: channel switcher; desktop: title) */}
             <div className="flex items-center gap-2 border-b border-border px-3 py-2.5">
               <Hash className="h-4 w-4 text-muted-foreground" />
@@ -253,7 +267,10 @@ export default function TeamChatPage() {
             </div>
 
             {/* Composer */}
-            <div className="border-t border-border bg-card p-3">
+            <div
+              {...kb.composerZoneProps}
+              className={cn("border-t border-border bg-card p-3", kb.composerZoneProps.className)}
+            >
               <form
                 onSubmit={(e) => {
                   e.preventDefault()

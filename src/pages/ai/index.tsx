@@ -20,6 +20,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { aiChat } from "@/lib/api-mocks/ai-chat"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { useRegisterPageRefresh } from "@/hooks/use-pull-to-refresh"
+import { useChatKeyboard } from "@/hooks/use-chat-keyboard"
 import { BottomSheet } from "@/components/mobile/bottom-sheet"
 import { SwitchField } from "@/components/forms/switch-field"
 import { cn } from "@/lib/utils"
@@ -45,7 +46,12 @@ const newId = () => `m-${++msgIdSeq}`
 
 export default function AIChat() {
   const isMobile = useIsMobile()
-  const scrollRef = React.useRef<HTMLDivElement>(null)
+  // Chat-aware keyboard handling on native. `scrollRef` is the same
+  // ref the auto-scroll effect uses; the hook owns it so the
+  // ResizeObserver auto-snap can read .scrollHeight + reattach when
+  // the messages container resizes due to keyboard padding.
+  const kb = useChatKeyboard()
+  const scrollRef = kb.scrollContainerRef
 
   const [msgs, setMsgs] = React.useState<Msg[]>([
     {
@@ -187,8 +193,19 @@ export default function AIChat() {
       }
     >
       <div className="grid gap-4 lg:grid-cols-[1fr_300px]">
-        {/* Chat column */}
-        <div className="relative flex h-[calc(100dvh-180px)] flex-col rounded-2xl border border-border bg-card lg:h-[calc(100dvh-200px)]">
+        {/* Chat column. When the composer is focused on native iOS,
+            pad the bottom by the live keyboard height so the
+            composer rides above the keyboard instead of being
+            obscured (capacitor.config has Keyboard.resize: Native at
+            the app level; useChatKeyboard locally switches it to
+            None for this route — see hook comments). */}
+        <div
+          className="relative flex h-[calc(100dvh-180px)] flex-col rounded-2xl border border-border bg-card lg:h-[calc(100dvh-200px)]"
+          style={{
+            paddingBottom: kb.composerFocused ? kb.kbHeight : 0,
+            transition: "padding-bottom 200ms cubic-bezier(0.25, 1, 0.5, 1)",
+          }}
+        >
           {/* Header */}
           <div className="flex items-center gap-3 border-b border-border px-4 py-3">
             <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-brand to-fuchsia-500 text-white shadow-sm shadow-brand/30">
@@ -283,7 +300,10 @@ export default function AIChat() {
           )}
 
           {/* Composer */}
-          <div className="border-t border-border bg-card p-3">
+          <div
+            {...kb.composerZoneProps}
+            className={cn("border-t border-border bg-card p-3", kb.composerZoneProps.className)}
+          >
             <form
               onSubmit={(e) => {
                 e.preventDefault()
