@@ -7,15 +7,18 @@ import {
   Boxes,
   Bot,
   CheckCircle2,
+  ChevronDown,
   ClipboardList,
   CreditCard,
   Globe,
   Megaphone,
   PackageCheck,
+  PackagePlus,
   Play,
   ShieldCheck,
   ShoppingCart,
   Sparkles,
+  Store,
   TrendingUp,
   Users,
   Zap,
@@ -42,11 +45,14 @@ export default function LandingPage() {
       <Hero />
       <TrustBar />
       <Features />
+      <HowItWorks />
       <DeviceShowcase />
       <DashboardShowcase />
       <InsightsShowcase />
+      <Integrations />
       <Stats />
       <Testimonials />
+      <FaqTeaser />
       <FinalCTA />
     </>
   )
@@ -645,3 +651,176 @@ function FinalCTA() {
     </section>
   )
 }
+
+// ---- How it works ----
+// Four-step "0 → 1" walkthrough aimed at first-time visitors.
+function HowItWorks() {
+  const STEPS: { Icon: LucideIcon; title: string; body: string }[] = [
+    { Icon: Sparkles,    title: "Sign up — free for 30 days",     body: "Create your Pallio account in 30 seconds. No card. Full Scale-tier access for the first month." },
+    { Icon: PackagePlus, title: "Add your items + locations",      body: "CSV-import your catalog or add it by hand. Pallio's Getting Started checklist walks you through the rest." },
+    { Icon: ShoppingCart,title: "Start selling, online + in-store",body: "Open the POS for the floor, invoice your wholesale customers, list on Marketplace + Instagram — all from one app." },
+    { Icon: TrendingUp,  title: "Watch the AI nudge you",          body: "Pallio surfaces what to restock, where margin slipped, which campaign to pause. Your evenings come back." },
+  ]
+  return (
+    <section className="px-4 py-16 md:px-6 md:py-24">
+      <div className="mx-auto max-w-7xl">
+        <motion.div
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, amount: 0.3 }}
+          variants={fadeIn}
+          className="mx-auto max-w-2xl text-center"
+        >
+          <p className="text-xs font-semibold uppercase tracking-wider text-brand dark:text-primary">How it works</p>
+          <h2 className="mt-2 text-3xl font-bold tracking-tight md:text-4xl">
+            From signup to <span className="text-muted-foreground">first sale</span> in under an hour.
+          </h2>
+        </motion.div>
+        <ol className="mt-12 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {STEPS.map((s, i) => (
+            <motion.li
+              key={s.title}
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.3 }}
+              transition={{ delay: i * 0.06, type: "spring", damping: 24, stiffness: 220 }}
+              className="relative rounded-2xl border border-border bg-card p-5"
+            >
+              <span className="absolute -top-3 left-5 inline-flex h-6 items-center gap-1 rounded-full bg-gradient-to-r from-brand to-fuchsia-500 px-2 text-[10px] font-bold uppercase tracking-wider text-white shadow-md shadow-brand/40">
+                Step {i + 1}
+              </span>
+              <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand-soft text-brand dark:bg-primary/15 dark:text-primary">
+                <s.Icon className="h-5 w-5" />
+              </span>
+              <h3 className="mt-4 text-base font-bold tracking-tight">{s.title}</h3>
+              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{s.body}</p>
+            </motion.li>
+          ))}
+        </ol>
+      </div>
+    </section>
+  )
+}
+
+// ---- Integrations strip ----
+// Three columns of integrations — Payments / Storefronts / Comms.
+// Heavily weighted toward the Nigerian SMB stack (Paystack +
+// Flutterwave + Opay + PalmPay) but with international rails so
+// growing across borders doesn't mean migrating.
+function Integrations() {
+  const PAYMENTS = ["Paystack", "Flutterwave", "Opay", "PalmPay", "Stripe", "Apple Pay", "Google Pay", "Bank transfer"]
+  const COMMERCE = ["Shopify", "WooCommerce", "Facebook Shop", "Instagram Shop", "TikTok Shop", "WhatsApp Business", "Custom REST API"]
+  const COMMS    = ["Twilio SMS", "Mailgun", "Postmark", "WhatsApp Cloud", "Slack", "Discord"]
+
+  return (
+    <section className="relative overflow-hidden border-y border-border/60 bg-card/40 px-4 py-16 md:px-6 md:py-20">
+      <div className="mx-auto max-w-7xl">
+        <motion.div
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, amount: 0.3 }}
+          variants={fadeIn}
+          className="mx-auto max-w-2xl text-center"
+        >
+          <p className="text-xs font-semibold uppercase tracking-wider text-brand dark:text-primary">
+            Built for Nigerian SMBs, ready for the world
+          </p>
+          <h2 className="mt-2 text-3xl font-bold tracking-tight md:text-4xl">
+            Connects to the things <span className="text-muted-foreground">you already use.</span>
+          </h2>
+          <p className="mt-3 text-base text-muted-foreground">
+            Naira-first pricing + native support for the payment + marketplace + messaging stack Nigerian businesses actually run on. International rails included so growing across borders doesn't mean migrating.
+          </p>
+        </motion.div>
+
+        <div className="mt-12 grid gap-4 lg:grid-cols-3">
+          <LogoColumn title="Payments" items={PAYMENTS} accent="bg-brand-soft text-brand dark:bg-primary/15 dark:text-primary" />
+          <LogoColumn title="Storefronts + commerce" items={COMMERCE} accent="bg-emerald-500/15 text-emerald-700 dark:text-emerald-300" />
+          <LogoColumn title="Comms" items={COMMS} accent="bg-fuchsia-500/15 text-fuchsia-700 dark:text-fuchsia-300" />
+        </div>
+
+        <p className="mt-8 text-center text-xs text-muted-foreground">
+          Don't see your stack? <Link to="/contact" className="font-semibold text-brand hover:underline dark:text-primary">Ask us</Link> — we ship a new integration every other week.
+        </p>
+      </div>
+    </section>
+  )
+}
+
+function LogoColumn({ title, items, accent }: { title: string; items: string[]; accent: string }) {
+  return (
+    <div className="rounded-2xl border border-border bg-card p-5">
+      <h3 className="text-xs font-semibold uppercase tracking-wider text-foreground/80">{title}</h3>
+      <ul className="mt-4 flex flex-wrap gap-2">
+        {items.map((it) => (
+          <li
+            key={it}
+            className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background px-2.5 py-1 text-[11px] font-semibold"
+          >
+            <span className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-[9px] font-bold ${accent}`}>
+              {it[0]}
+            </span>
+            {it}
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
+// ---- FAQ teaser ----
+function FaqTeaser() {
+  const ITEMS = [
+    { q: "Do I need a credit card to start?", a: "No. The first 30 days are free with full Scale-tier access. We only ask for a card when you pick a paid plan." },
+    { q: "How do payments work?",            a: "Connect Paystack, Flutterwave, Opay, PalmPay, Stripe, or bank transfer. Pallio doesn't take a transaction fee — you pay your processor what they charge, that's it." },
+    { q: "Will my data survive a reinstall?",a: "Yes. POS drafts, team chat history, and your toggles mirror to native storage that survives app reinstalls + cache clears." },
+    { q: "Can sales reps see real-time inventory?", a: "Yes — reps get a read-only live view that updates as items sell across every location." },
+  ]
+  const [open, setOpen] = React.useState<number | null>(0)
+  return (
+    <section className="px-4 py-16 md:px-6 md:py-24">
+      <div className="mx-auto max-w-5xl">
+        <div className="grid gap-10 md:grid-cols-[1fr_2fr]">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wider text-brand dark:text-primary">FAQ</p>
+            <h2 className="mt-2 text-3xl font-bold tracking-tight md:text-4xl">
+              Common questions, <span className="text-muted-foreground">straight answers.</span>
+            </h2>
+            <p className="mt-3 text-sm text-muted-foreground">
+              The biggest 4. Read the long version, or reach us on WhatsApp.
+            </p>
+            <div className="mt-5 flex flex-wrap gap-2">
+              <Link to="/faq"><Button variant="outline" size="sm">Full FAQ</Button></Link>
+              <Link to="/contact"><Button size="sm">Talk to us</Button></Link>
+            </div>
+          </div>
+          <ul className="divide-y divide-border overflow-hidden rounded-2xl border border-border bg-card">
+            {ITEMS.map((it, i) => {
+              const isOpen = open === i
+              return (
+                <li key={it.q}>
+                  <button
+                    type="button"
+                    onClick={() => setOpen(isOpen ? null : i)}
+                    aria-expanded={isOpen}
+                    className="flex w-full items-center justify-between gap-3 px-4 py-3.5 text-left transition-colors hover:bg-accent/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+                  >
+                    <span className="text-sm font-semibold md:text-base">{it.q}</span>
+                    <ChevronDown className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform ${isOpen ? "rotate-180" : ""}`} aria-hidden />
+                  </button>
+                  {isOpen && (
+                    <p className="px-4 pb-4 text-sm leading-relaxed text-muted-foreground">{it.a}</p>
+                  )}
+                </li>
+              )
+            })}
+          </ul>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+// Keep Store icon import alive — used by future merchant-mode badges.
+const _UnusedStore = Store
+void _UnusedStore

@@ -5,6 +5,7 @@ import { ArrowRight, Github, Instagram, Linkedin, Menu, Twitter, X } from "lucid
 import { Button } from "@/components/ui/button"
 import { ModeToggle } from "@/components/mode-toggle"
 import { SignInModal } from "@/components/marketing/sign-in-modal"
+import { WhatsAppButton } from "@/components/marketing/whatsapp-button"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { cn } from "@/lib/utils"
 
@@ -111,6 +112,7 @@ export function MarketingFrame({ children }: { children: React.ReactNode }) {
       <Footer />
 
       <SignInModal open={signInOpen} onClose={() => setSignInOpen(false)} />
+      <WhatsAppButton />
     </div>
   )
 }

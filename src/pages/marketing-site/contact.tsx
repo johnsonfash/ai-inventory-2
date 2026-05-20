@@ -1,6 +1,7 @@
 import * as React from "react"
 import { motion } from "framer-motion"
 import { AtSign, Building2, Mail, MapPin, MessageSquare, Phone, Send } from "lucide-react"
+import { WhatsAppMark } from "@/components/marketing/whatsapp-button"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -95,6 +96,28 @@ export default function ContactPage() {
             <div className="rounded-2xl border border-border bg-card p-6">
               <h3 className="text-base font-bold tracking-tight">Reach us directly</h3>
               <ul className="mt-4 flex flex-col gap-3 text-sm">
+                <li id="chat" className="flex items-start gap-3">
+                  <a
+                    href="https://wa.me/2349036723177?text=Hi%20Pallio%2C%20I%E2%80%99d%20like%20to%20learn%20more."
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-500/15 text-emerald-700 transition-colors hover:bg-emerald-500 hover:text-white dark:text-emerald-300"
+                    aria-label="Open WhatsApp"
+                  >
+                    <WhatsAppMark className="h-4 w-4" />
+                  </a>
+                  <div>
+                    <p className="font-semibold">WhatsApp · fastest</p>
+                    <a
+                      href="https://wa.me/2349036723177?text=Hi%20Pallio%2C%20I%E2%80%99d%20like%20to%20learn%20more."
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-muted-foreground hover:text-foreground"
+                    >
+                      +234 903 672 3177
+                    </a>
+                  </div>
+                </li>
                 <li className="flex items-start gap-3">
                   <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand-soft text-brand dark:bg-primary/15 dark:text-primary">
                     <Mail className="h-4 w-4" />
@@ -107,23 +130,15 @@ export default function ContactPage() {
                   </div>
                 </li>
                 <li className="flex items-start gap-3">
-                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-500/15 text-emerald-700 dark:text-emerald-300">
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-sky-500/15 text-sky-700 dark:text-sky-300">
                     <Phone className="h-4 w-4" />
                   </span>
                   <div>
-                    <p className="font-semibold">Phone (US)</p>
-                    <a href="tel:+15129990000" className="text-muted-foreground hover:text-foreground">
-                      +1 (512) 999‑0000
+                    <p className="font-semibold">Call</p>
+                    <a href="tel:+2349036723177" className="text-muted-foreground hover:text-foreground">
+                      +234 903 672 3177
                     </a>
-                  </div>
-                </li>
-                <li id="chat" className="flex items-start gap-3">
-                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-fuchsia-500/15 text-fuchsia-700 dark:text-fuchsia-300">
-                    <MessageSquare className="h-4 w-4" />
-                  </span>
-                  <div>
-                    <p className="font-semibold">Live chat</p>
-                    <p className="text-muted-foreground">9am-6pm CT, Monday-Friday</p>
+                    <p className="text-[11px] text-muted-foreground">9am-6pm WAT, Mon-Sat</p>
                   </div>
                 </li>
               </ul>
@@ -137,17 +152,17 @@ export default function ContactPage() {
                     <MapPin className="h-4 w-4" />
                   </span>
                   <div>
-                    <p className="font-semibold">Austin, TX</p>
-                    <p className="text-muted-foreground">200 Congress Ave, Austin, TX 78701</p>
+                    <p className="font-semibold">Lagos, Nigeria</p>
+                    <p className="text-muted-foreground">Yaba tech corridor · open-door Tuesdays</p>
                   </div>
                 </li>
                 <li className="flex items-start gap-3">
-                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-sky-500/15 text-sky-700 dark:text-sky-300">
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-fuchsia-500/15 text-fuchsia-700 dark:text-fuchsia-300">
                     <MapPin className="h-4 w-4" />
                   </span>
                   <div>
                     <p className="font-semibold">Remote-first team</p>
-                    <p className="text-muted-foreground">Engineering across 4 time zones.</p>
+                    <p className="text-muted-foreground">Engineering across Lagos, Abuja + Nairobi.</p>
                   </div>
                 </li>
               </ul>
