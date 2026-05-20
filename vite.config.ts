@@ -23,9 +23,10 @@ export default defineConfig({
       registerType: "prompt",
       injectRegister: null,
 
-      // Use the existing handwritten /public/manifest.json as the single
-      // source of truth — disable the auto-generated webmanifest so they
-      // can't drift.
+      // The handwritten manifest at `public/manifest.json` is the single
+      // source of truth — index.html references `/manifest.json` directly.
+      // Disable the plugin's auto-generated `manifest.webmanifest` so the two
+      // can't drift out of sync.
       manifest: false,
 
       devOptions: {
@@ -48,24 +49,6 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
-  build: {
-    chunkSizeWarningLimit: 800,
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          // Every page imports react + router — pin them in one cache-friendly chunk.
-          "react-vendor": ["react", "react-dom", "react-router-dom"],
-          // Used by data-heavy pages (analytics, AI panel). Separate so it
-          // doesn't pad the cold-start chunk.
-          "query-vendor": ["@tanstack/react-query"],
-          // Recharts is huge — only Reports + Dashboard widgets use it.
-          "charts-vendor": ["recharts"],
-          // PDF / image-export libs only used by the Reports printer + invoice print.
-          "export-vendor": ["html2canvas", "jspdf"],
-        },
-      },
-    },
-  },
   server: {
     host: "0.0.0.0",
     port: 3000,
@@ -82,4 +65,48 @@ export default defineConfig({
     },
   },
   publicDir: "public",
+  build: {
+    sourcemap: true,
+    outDir: "dist",
+    chunkSizeWarningLimit: 1024,
+    rollupOptions: {
+      output: {
+        // Function-based manualChunks (sleekr pattern). More flexible than
+        // the object form — handles arbitrary nested deps and any vendor
+        // path Rollup throws at it. The rule: split anything heavy + lazy;
+        // keep React + router in the eager bundle.
+        manualChunks: (id) => {
+          if (!id.includes("node_modules")) return undefined
+
+          // Heavy + lazy: only loaded by /reporting + Dashboard charts.
+          if (id.includes("recharts")) return "charts-vendor"
+
+          // PDF + image export: Reports PDF + invoice print only.
+          if (id.includes("jspdf") || id.includes("html2canvas") || id.includes("/dompurify/")) return "export-vendor"
+
+          // Animation runtime touches every route (page transitions),
+          // but it's chunky enough to be worth a dedicated cache slot.
+          if (id.includes("framer-motion")) return "motion-vendor"
+
+          // Used by data-heavy pages (analytics, AI panel).
+          if (id.includes("@tanstack/react-query")) return "query-vendor"
+
+          // Capacitor runtime — only loaded inside the native shell.
+          if (id.includes("@capacitor")) return "capacitor-vendor"
+
+          // Core React stays in the main bundle — small + on every page.
+          // Splitting it can trigger cross-chunk init cycles on iOS Safari
+          // (see sleekr's vite.config notes — same WKWebView lives inside
+          // our Capacitor build).
+          if (id.includes("react/") || id.includes("react-dom/") || id.includes("react-router")) {
+            return undefined
+          }
+
+          // Everything else: one shared vendor chunk. Lumped so we don't
+          // fragment too far.
+          return "vendor"
+        },
+      },
+    },
+  },
 })

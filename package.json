@@ -3,16 +3,31 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
+  "engines": {
+    "node": "22.x"
+  },
   "scripts": {
     "dev": "node ip.js && vite --port 3000 --host",
     "build": "tsc --noEmit && vite build",
     "typecheck": "tsc --noEmit",
     "preview": "vite preview",
-    "cap:sync": "npm run build && cap sync",
-    "ios": "npm run cap:sync && cap open ios",
-    "ios:run": "npm run cap:sync && cap run ios",
-    "android": "npm run cap:sync && cap open android",
-    "android:run": "npm run cap:sync && cap run android"
+    "https": "cloudflared tunnel --protocol http2 --url http://127.0.0.1:3000",
+    "https2": "ssh -R 80:127.0.0.1:3000 serveo.net",
+    "build:native": "node ip.js && npm run build && npx cap sync",
+    "cap:sync": "npx cap sync",
+    "cap:doctor": "npx cap doctor",
+    "ios:add": "npx cap add ios",
+    "ios:open": "npx cap open ios",
+    "ios:run": "npx cap run ios",
+    "ios:build": "npm run build:native && npx cap run ios",
+    "ios:clean": "xcodebuild -workspace ios/App/App.xcworkspace -scheme App clean",
+    "ios:fresh": "npm run ios:clean && npm run build:native && npx cap run ios",
+    "android:add": "npx cap add android",
+    "android:open": "npx cap open android",
+    "android:run": "npx cap run android",
+    "android:build": "npm run build:native && npx cap run android",
+    "android:clean": "cd android && ./gradlew clean",
+    "android:fresh": "npm run android:clean && npm run build:native && npx cap run android"
   },
   "dependencies": {
     "@capacitor/android": "^8.3.4",
@@ -38,6 +53,7 @@
     "tailwind-merge": "^2.6.0"
   },
   "devDependencies": {
+    "@capacitor/assets": "^3.0.5",
     "@capacitor/cli": "^8.3.4",
     "@tailwindcss/postcss": "^4.0.0",
     "@types/node": "^22.10.5",
@@ -51,5 +67,9 @@
     "vite": "^6.0.7",
     "vite-plugin-pwa": "^1.3.0",
     "workbox-window": "^7.4.1"
+  },
+  "overrides": {
+    "tar": "^7.4.3",
+    "minimatch": "^9.0.5"
   }
 }

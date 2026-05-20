@@ -1,63 +1,80 @@
-// Pre-dev hook. Rewrites the API base URL in `.env.local` to point at
-// this machine's current LAN IPv4, so phones / tablets / other laptops
-// on the same Wi-Fi can hit `https://<lan-ip>:3000` and have the app
-// resolve its API to the same host instead of `localhost` (which means
-// nothing once you leave this machine).
+// Pre-build / pre-dev hook. Rewrites the API base + WebSocket URLs in
+// `.env.local` to point at this machine's current LAN IP, so the dev
+// server can be hit from any device on the same network (browser on
+// another laptop, the iPhone running the Capacitor build, etc.).
 //
-// Pallio's frontend currently runs on dummy data, so this file is
-// front-running the day a real backend lands. The variable name
-// matches what `axios.instances.ts` / the future API client will read:
-//   - VITE_API_BASE_URL
-//
-// To regenerate / rotate the mkcert HTTPS certs:
-//   mkcert localhost 127.0.0.1 ::1 <your-lan-ip>
-//   mv localhost+3.pem      localhost.pem
-//   mv localhost+3-key.pem  localhost-key.pem
+// Variable names MUST match what the app actually reads:
+//   - axios.instances.ts → `VITE_API_BASE_URL`
+//   - useSocket.ts       → `VITE_WEB_SOCKET_URL`
+// (An earlier version of this script wrote `VITE_BASE_URL` /
+// `VITE_WEB_SOCKET` which the code never reads — the dev server still
+// worked because the axios fallback resolves against window.location
+// when localhost happens to be on the same machine. iPhone builds
+// have no such luck.)
 
-import fs from "fs"
-import { execSync } from "child_process"
+import fs from 'fs';
+import { execSync } from 'child_process';
 
 // 1. Resolve the current active LAN IPv4. `ifconfig` order varies by
-//    machine; we look for the first non-loopback interface that has
-//    the classic "netmask … broadcast …" format the en0 (Wi-Fi)
-//    interface always carries on Apple Silicon.
-const output = execSync("ifconfig").toString()
-const match = output.match(/inet (\d+\.\d+\.\d+\.\d+) netmask .* broadcast .*/)
-const ip = match ? match[1] : null
+// machine; we look for the first non-loopback interface that has the
+// classic "netmask … broadcast …" format the en0 (Wi-Fi) interface
+// always carries on Apple Silicon.
+const output = execSync('ifconfig').toString();
+const match = output.match(/inet (\d+\.\d+\.\d+\.\d+) netmask .* broadcast .*/);
+const ip = match ? match[1] : null;
 
 if (!ip) {
-  console.error("[ip.js] No active LAN IPv4 found — is Wi-Fi up?")
-  process.exit(1)
+  console.error('No active IP found');
+  process.exit(1);
 }
 
-const envFile = ".env.local"
-
-// 2. Bootstrap .env.local on first run from .env.example, so a fresh
-//    clone doesn't crash here.
+// 2. Read .env.local (create it from a minimal template if missing,
+// so a fresh checkout doesn't crash here).
+const envFile = '.env.local';
 if (!fs.existsSync(envFile)) {
-  const seed = fs.existsSync(".env.example")
-    ? fs.readFileSync(".env.example", "utf8")
-    : `VITE_API_BASE_URL="https://${ip}:8000/v1"\nVITE_ENV="dev"\n`
-  fs.writeFileSync(envFile, seed)
-  console.log(`[ip.js] Created ${envFile} from .env.example`)
+  fs.writeFileSync(
+    envFile,
+    [
+      `VITE_API_BASE_URL="https://${ip}:8000/v1"`,
+      `VITE_WEB_SOCKET_URL="wss://${ip}:8000/ws"`,
+      `VITE_ENV="dev"`,
+      ``,
+    ].join('\n'),
+  );
+  console.log(`Created ${envFile} with IP ${ip}`);
+  process.exit(0);
 }
 
-let env = fs.readFileSync(envFile, "utf8")
-const before = env
+let env = fs.readFileSync(envFile, 'utf8');
 
-// 3. Replace the host in the API URL. Match the full URL including
-//    scheme + port so the regex is anchored.
-env = env.replace(/(VITE_API_BASE_URL="https?:\/\/)([^/:]+)(:\d+\/[^"]*")/, `$1${ip}$3`)
+// 3. Replace the host in both URLs. Match the full URL including
+// scheme + port so the regex is anchored and can't grab an unrelated
+// value lower in the file (e.g. a Firebase project id that happens
+// to contain a digit run).
+const before = env;
+env = env
+  .replace(
+    /(VITE_API_BASE_URL="https?:\/\/)([^/:]+)(:8000\/v1")/,
+    `$1${ip}$3`,
+  )
+  .replace(
+    /(VITE_WEB_SOCKET_URL="wss?:\/\/)([^/:]+)(:8000\/ws")/,
+    `$1${ip}$3`,
+  );
 
-// 4. If the key is missing entirely, append it. Handles legacy
-//    .env.local files without asking for a hand-edit.
+// 4. If either key is missing entirely, append it. This handles the
+// "old .env.local with the wrong variable names" migration without
+// asking the developer to hand-edit.
 if (!/VITE_API_BASE_URL=/.test(env)) {
-  env = `VITE_API_BASE_URL="https://${ip}:8000/v1"\n` + env
+  env = `VITE_API_BASE_URL="https://${ip}:8000/v1"\n` + env;
+}
+if (!/VITE_WEB_SOCKET_URL=/.test(env)) {
+  env = `VITE_WEB_SOCKET_URL="wss://${ip}:8000/ws"\n` + env;
 }
 
 if (env !== before) {
-  fs.writeFileSync(envFile, env)
-  console.log(`[ip.js] Updated IP in ${envFile} → ${ip}`)
+  fs.writeFileSync(envFile, env);
+  console.log(`Updated IP in ${envFile} to: ${ip}`);
 } else {
-  console.log(`[ip.js] IP in ${envFile} already current: ${ip}`)
+  console.log(`IP in ${envFile} already current: ${ip}`);
 }
