@@ -11,45 +11,33 @@ import { OpenPosCard } from "@/components/dashboard/open-pos-card"
 import { QuickActionsCard } from "@/components/dashboard/quick-actions-card"
 import { RecentSalesCard } from "@/components/dashboard/recent-sales-card"
 import { SectionHeader } from "@/components/dashboard/section-header"
+import { InsightCard } from "@/components/insights/insight-card"
+import { ForecastCard } from "@/components/insights/forecast-card"
+import { RestockCard } from "@/components/insights/restock-card"
+import { ActivityFeedCard } from "@/components/insights/activity-feed"
+import { InfoTooltip } from "@/components/info-tooltip"
 import { useRegisterPageRefresh } from "@/hooks/use-pull-to-refresh"
+import { generateInsights } from "@/lib/insights/engine"
+import { openTour } from "@/components/onboarding/tour"
+import { Compass } from "lucide-react"
 
 // Spark series — tiny mock data per KPI. Replace with real series
 // from the analytics endpoint once the backend lands.
 const sparkRevenue = [
-  { x: "M", y: 220 },
-  { x: "T", y: 280 },
-  { x: "W", y: 240 },
-  { x: "T", y: 310 },
-  { x: "F", y: 380 },
-  { x: "S", y: 350 },
-  { x: "S", y: 420 },
+  { x: "M", y: 220 }, { x: "T", y: 280 }, { x: "W", y: 240 },
+  { x: "T", y: 310 }, { x: "F", y: 380 }, { x: "S", y: 350 }, { x: "S", y: 420 },
 ]
 const sparkUnits = [
-  { x: "M", y: 14 },
-  { x: "T", y: 22 },
-  { x: "W", y: 18 },
-  { x: "T", y: 24 },
-  { x: "F", y: 31 },
-  { x: "S", y: 28 },
-  { x: "S", y: 36 },
+  { x: "M", y: 14 }, { x: "T", y: 22 }, { x: "W", y: 18 },
+  { x: "T", y: 24 }, { x: "F", y: 31 }, { x: "S", y: 28 }, { x: "S", y: 36 },
 ]
 const sparkOrders = [
-  { x: "M", y: 8 },
-  { x: "T", y: 12 },
-  { x: "W", y: 10 },
-  { x: "T", y: 14 },
-  { x: "F", y: 16 },
-  { x: "S", y: 13 },
-  { x: "S", y: 19 },
+  { x: "M", y: 8 }, { x: "T", y: 12 }, { x: "W", y: 10 },
+  { x: "T", y: 14 }, { x: "F", y: 16 }, { x: "S", y: 13 }, { x: "S", y: 19 },
 ]
 const sparkOOS = [
-  { x: "M", y: 18 },
-  { x: "T", y: 16 },
-  { x: "W", y: 19 },
-  { x: "T", y: 15 },
-  { x: "F", y: 14 },
-  { x: "S", y: 13 },
-  { x: "S", y: 12 },
+  { x: "M", y: 18 }, { x: "T", y: 16 }, { x: "W", y: 19 },
+  { x: "T", y: 15 }, { x: "F", y: 14 }, { x: "S", y: 13 }, { x: "S", y: 12 },
 ]
 
 export default function Dashboard() {
@@ -62,11 +50,16 @@ export default function Dashboard() {
     }, []),
   )
 
+  const insights = React.useMemo(() => generateInsights().slice(0, 6), [])
+
   return (
     <PageShell title="Dashboard" withToolbar>
       <div className="flex flex-col gap-6">
         {/* Welcome / period summary */}
-        <div className="relative overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-brand-soft via-card to-emerald-50/50 p-5 dark:from-primary/10 dark:via-card dark:to-emerald-950/15">
+        <div
+          data-tour="hero"
+          className="relative overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-brand-soft via-card to-emerald-50/50 p-5 dark:from-primary/10 dark:via-card dark:to-emerald-950/15"
+        >
           <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-brand/20 blur-3xl dark:bg-primary/20" aria-hidden />
           <div className="relative flex flex-wrap items-end justify-between gap-3">
             <div>
@@ -92,56 +85,66 @@ export default function Dashboard() {
               </div>
             </div>
           </div>
+          <button
+            type="button"
+            onClick={openTour}
+            className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full border border-border bg-card/80 px-2.5 py-1 text-[11px] font-medium text-muted-foreground backdrop-blur transition-colors hover:bg-card hover:text-foreground"
+            aria-label="Replay product tour"
+          >
+            <Compass className="h-3 w-3" />
+            <span className="hidden sm:inline">Tour</span>
+          </button>
         </div>
 
-        {/* KPI carousel — snap-scroll on mobile, 4-col grid on md+. */}
-        <KpiCarousel
-          items={[
-            {
-              title: "Revenue (7d)",
-              value: "$18,420",
-              delta: "+12.4%",
-              trend: "up",
-              caption: "vs last week",
-              Icon: DollarSign,
-              tone: "violet",
-              data: sparkRevenue,
-            },
-            {
-              title: "Units in stock",
-              value: "15,940",
-              delta: "+1.1%",
-              trend: "up",
-              caption: "across 4 locations",
-              Icon: Layers,
-              tone: "emerald",
-              data: sparkUnits,
-            },
-            {
-              title: "Open orders",
-              value: "87",
-              delta: "+5.6%",
-              trend: "up",
-              caption: "pending fulfillment",
-              Icon: ShoppingCart,
-              tone: "sky",
-              data: sparkOrders,
-            },
-            {
-              title: "Out of stock",
-              value: "12",
-              delta: "−4 SKUs",
-              trend: "down",
-              caption: "improving",
-              Icon: Package,
-              tone: "rose",
-              data: sparkOOS,
-            },
-          ]}
-        />
+        {/* AI Insights — Pallio's "what to pay attention to" strip.
+            Mobile: horizontal snap-scroll. Desktop: 3-col grid. */}
+        <section className="flex flex-col gap-3" data-tour="insights">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-baseline gap-1.5">
+              <h3 className="text-base font-semibold tracking-tight md:text-lg">Pallio noticed</h3>
+              <InfoTooltip label="AI Insights" size="xs">
+                Rule-based + ML-style observations Pallio surfaces from
+                your live data — low stock with sales velocity,
+                margin drift, ROAS swings, vendor lateness, anomalies.
+                Each card has a one-tap action to address it.
+              </InfoTooltip>
+            </div>
+            <span className="text-[11px] text-muted-foreground">{insights.length} new</span>
+          </div>
+          <div
+            className={
+              // Mobile: -mx negative to bleed edge-to-edge then padded
+              // inside; snap-x for one-card-at-a-time swiping.
+              "-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-2 scrollbar-hide " +
+              // Desktop: grid, no swipe.
+              "md:mx-0 md:grid md:snap-none md:overflow-visible md:px-0 md:pb-0 md:[grid-template-columns:repeat(auto-fill,minmax(18rem,1fr))]"
+            }
+          >
+            {insights.map((insight) => (
+              <InsightCard key={insight.id} insight={insight} />
+            ))}
+          </div>
+        </section>
 
-        {/* Charts row — single column on mobile, 3-col on desktop with
-            Stock vs Sold spanning 2. */}
+        {/* KPI carousel — snap-scroll on mobile, 4-col grid on md+. */}
+        <div data-tour="kpis">
+          <KpiCarousel
+            items={[
+              { title: "Revenue (7d)",   value: "$18,420", delta: "+12.4%", trend: "up",   caption: "vs last week",         Icon: DollarSign,   tone: "violet",  data: sparkRevenue },
+              { title: "Units in stock", value: "15,940",  delta: "+1.1%",  trend: "up",   caption: "across 4 locations",   Icon: Layers,       tone: "emerald", data: sparkUnits },
+              { title: "Open orders",    value: "87",      delta: "+5.6%",  trend: "up",   caption: "pending fulfillment",  Icon: ShoppingCart, tone: "sky",     data: sparkOrders },
+              { title: "Out of stock",   value: "12",      delta: "−4 SKUs", trend: "down", caption: "improving",           Icon: Package,      tone: "rose",    data: sparkOOS },
+            ]}
+          />
+        </div>
+
+        {/* Forecast + Restock — paired on desktop, stacked on mobile. */}
+        <section className="grid gap-4 lg:grid-cols-2" data-tour="forecast">
+          <ForecastCard />
+          <RestockCard />
+        </section>
+
+        {/* Charts row */}
         <section className="flex flex-col gap-4">
           <SectionHeader title="Performance" subtitle="Stock movement and sales mix" />
 
@@ -149,9 +152,13 @@ export default function Dashboard() {
             <Card className="lg:col-span-2">
               <CardHeader className="pb-2">
                 <div className="flex items-center justify-between">
-                  <div>
+                  <div className="flex items-baseline gap-1.5">
                     <CardTitle className="text-base">Stock vs Sold</CardTitle>
-                    <CardDescription>Last 6 months</CardDescription>
+                    <InfoTooltip label="Stock vs Sold" size="xs">
+                      Tracks how much you held vs how much you sold each
+                      month. A widening gap means inventory is growing
+                      faster than demand — review reorder points.
+                    </InfoTooltip>
                   </div>
                   <div className="hidden items-center gap-3 text-[11px] text-muted-foreground sm:flex">
                     <span className="inline-flex items-center gap-1.5">
@@ -162,6 +169,7 @@ export default function Dashboard() {
                     </span>
                   </div>
                 </div>
+                <CardDescription>Last 6 months</CardDescription>
               </CardHeader>
               <CardContent className="pt-2">
                 <StockLevelsChart />
@@ -170,7 +178,15 @@ export default function Dashboard() {
 
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-base">Category mix</CardTitle>
+                <div className="flex items-baseline gap-1.5">
+                  <CardTitle className="text-base">Category mix</CardTitle>
+                  <InfoTooltip label="Category mix" size="xs">
+                    Revenue share by product category over the current
+                    period. Use this to spot dependence on a single
+                    category — Pallio flags it as a risk if any single
+                    category exceeds 60%.
+                  </InfoTooltip>
+                </div>
                 <CardDescription>Share by category</CardDescription>
               </CardHeader>
               <CardContent className="pt-2">
@@ -182,9 +198,14 @@ export default function Dashboard() {
           <Card>
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
-                <div>
+                <div className="flex items-baseline gap-1.5">
                   <CardTitle className="text-base">Sales vs Purchases</CardTitle>
-                  <CardDescription>Weekly movement</CardDescription>
+                  <InfoTooltip label="Sales vs Purchases" size="xs">
+                    Cash in (sales) vs cash out for inventory (purchases)
+                    by week. A healthy retail business runs purchases ~10‑20%
+                    below sales — wider negative gaps starve cash; wider
+                    positive gaps mean you're stocking ahead of demand.
+                  </InfoTooltip>
                 </div>
                 <div className="hidden items-center gap-3 text-[11px] text-muted-foreground sm:flex">
                   <span className="inline-flex items-center gap-1.5">
@@ -195,6 +216,7 @@ export default function Dashboard() {
                   </span>
                 </div>
               </div>
+              <CardDescription>Weekly movement</CardDescription>
             </CardHeader>
             <CardContent className="pt-2">
               <SalesVsPurchaseChart />
@@ -203,7 +225,7 @@ export default function Dashboard() {
         </section>
 
         {/* Operations row */}
-        <section className="flex flex-col gap-4">
+        <section className="flex flex-col gap-4" data-tour="ops">
           <SectionHeader title="Operations" subtitle="What needs attention right now" />
           <div className="grid gap-4 lg:grid-cols-3">
             <LowStockCard />
@@ -212,14 +234,22 @@ export default function Dashboard() {
           </div>
         </section>
 
-        {/* Bottom row — quick actions + best-sellers */}
+        {/* Activity + side cards row */}
         <section className="flex flex-col gap-4">
-          <SectionHeader title="At a glance" />
+          <SectionHeader title="Live activity" subtitle="What's happening right now" />
           <div className="grid gap-4 lg:grid-cols-3">
-            <QuickActionsCard />
-            <TopSelling />
-            <TopMovers />
+            <ActivityFeedCard className="lg:col-span-2" />
+            <div className="flex flex-col gap-4">
+              <QuickActionsCard />
+              <TopMovers />
+            </div>
           </div>
+        </section>
+
+        {/* Best sellers row */}
+        <section className="flex flex-col gap-4">
+          <SectionHeader title="Best sellers" />
+          <TopSelling />
         </section>
       </div>
     </PageShell>
