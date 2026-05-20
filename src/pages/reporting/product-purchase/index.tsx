@@ -1,38 +1,59 @@
-import { PageShell } from "@/components/page-shell"
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
-import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table"
+import * as React from "react"
+import { DollarSign, Package, Receipt, Truck } from "lucide-react"
+import { ReportShell } from "@/components/reports/report-shell"
+import { KpiBand } from "@/components/reports/kpi-band"
+import { DataTable, type Column } from "@/components/reports/data-table"
+import { useRegisterPageRefresh } from "@/hooks/use-pull-to-refresh"
+import { type Period } from "@/components/reports/period-chips"
+
+type Row = { sku: string; name: string; vendor: string; qty: number; amount: number; lastReceived: string }
+
+const rows: Row[] = [
+  { sku: "EL-2109", name: "USB‑C Hub 6‑in‑1", vendor: "Cobalt", qty: 120, amount: 2160, lastReceived: "2026-05-18" },
+  { sku: "AP-4012", name: "Cotton Tee — Black", vendor: "Delta", qty: 200, amount: 1100, lastReceived: "2026-05-15" },
+  { sku: "HM-2205", name: "Ceramic Mug 12oz", vendor: "Porcel", qty: 80, amount: 256, lastReceived: "2026-05-12" },
+  { sku: "BT-9091", name: "Hydrating Serum", vendor: "Glow Co", qty: 60, amount: 510, lastReceived: "2026-05-10" },
+  { sku: "EL-1001", name: "Wireless Mouse", vendor: "Acme", qty: 40, amount: 480, lastReceived: "2026-05-08" },
+]
+
+const cols: Column<Row>[] = [
+  { key: "sku", header: "SKU", render: (_, v) => <span className="font-mono text-xs">{v as string}</span> },
+  { key: "name", header: "Item", primary: true },
+  { key: "vendor", header: "Vendor" },
+  { key: "qty", header: "Qty", align: "right" },
+  { key: "amount", header: "Amount", align: "right", render: (_, v) => `$${(v as number).toLocaleString()}` },
+  { key: "lastReceived", header: "Last received", hideOnMobile: true },
+]
+
 export default function ProductPurchase() {
-  const rows = [{ sku: "EL-2109", qty: 120, amount: 1500 }]
+  const [period, setPeriod] = React.useState<Period>("30d")
+  useRegisterPageRefresh(React.useCallback(async () => { await new Promise((r) => setTimeout(r, 400)) }, []))
+
+  const totalQty = rows.reduce((s, r) => s + r.qty, 0)
+  const totalAmount = rows.reduce((s, r) => s + r.amount, 0)
+  const vendors = new Set(rows.map((r) => r.vendor)).size
+
   return (
-    <PageShell title="Reporting — Product Purchase" withToolbar={false}>
-      <Card>
-        <CardHeader>
-          <CardTitle>Product Purchases</CardTitle>
-          <CardDescription>Qty and amount by SKU</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-auto rounded-lg border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>SKU</TableHead>
-                  <TableHead className="text-right">Qty</TableHead>
-                  <TableHead className="text-right">Amount</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {rows.map((r) => (
-                  <TableRow key={r.sku}>
-                    <TableCell className="font-mono text-xs">{r.sku}</TableCell>
-                    <TableCell className="text-right tabular-nums">{r.qty}</TableCell>
-                    <TableCell className="text-right tabular-nums">${r.amount.toLocaleString()}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        </CardContent>
-      </Card>
-    </PageShell>
+    <ReportShell
+      title="Product purchase"
+      description="Item-level inbound history"
+      period={period}
+      onPeriodChange={setPeriod}
+      exportFilename={`pallio-product-purchase-${period}`}
+      exportRows={rows.map((r) => ({ SKU: r.sku, Name: r.name, Vendor: r.vendor, Qty: r.qty, Amount: r.amount, "Last received": r.lastReceived }))}
+    >
+      <KpiBand
+        items={[
+          { title: "Total spend", value: `$${totalAmount.toLocaleString()}`, delta: "+8%", trend: "up", caption: "vs last period", Icon: DollarSign, tone: "violet" },
+          { title: "Units received", value: totalQty.toLocaleString(), Icon: Package, tone: "emerald" },
+          { title: "Distinct vendors", value: String(vendors), Icon: Truck, tone: "amber" },
+          { title: "Line items", value: String(rows.length), Icon: Receipt, tone: "sky" },
+        ]}
+      />
+      <div className="rounded-2xl border border-border bg-card">
+        <div className="border-b border-border px-4 py-3"><p className="text-sm font-semibold">Item-level inbound</p></div>
+        <div className="p-3"><DataTable columns={cols} rows={rows} rowKey={(r) => r.sku} /></div>
+      </div>
+    </ReportShell>
   )
 }

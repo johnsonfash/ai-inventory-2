@@ -1,48 +1,76 @@
-import { PageShell } from "@/components/page-shell"
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
-import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table"
+import * as React from "react"
+import { Building2, HandshakeIcon, TrendingUp, Wallet } from "lucide-react"
+import { ReportShell } from "@/components/reports/report-shell"
+import { KpiBand } from "@/components/reports/kpi-band"
+import { DataTable, type Column } from "@/components/reports/data-table"
+import { StatusBadge } from "@/components/lists/status-badge"
+import { useRegisterPageRefresh } from "@/hooks/use-pull-to-refresh"
+import { type Period } from "@/components/reports/period-chips"
+
+type Side = "supplier" | "customer"
+type Row = { side: Side; party: string; outstanding: number; settled: number; transactions: number }
+
+const rows: Row[] = [
+  { side: "supplier", party: "Cobalt Distributors", outstanding: 4820, settled: 18400, transactions: 14 },
+  { side: "supplier", party: "Glow Co", outstanding: 1240, settled: 6240, transactions: 6 },
+  { side: "supplier", party: "Acme Supplies", outstanding: 920, settled: 8120, transactions: 9 },
+  { side: "customer", party: "NovaApps", outstanding: 0, settled: 12180, transactions: 58 },
+  { side: "customer", party: "BrightLane", outstanding: 320, settled: 4910, transactions: 24 },
+  { side: "customer", party: "Acme Co", outstanding: 1480, settled: 16940, transactions: 86 },
+]
+
+const cols: Column<Row>[] = [
+  {
+    key: "side",
+    header: "Side",
+    render: (_, v) => (
+      <StatusBadge tone={v === "supplier" ? "info" : "brand"}>{v as string}</StatusBadge>
+    ),
+  },
+  { key: "party", header: "Party", primary: true },
+  { key: "transactions", header: "Txns", align: "right", hideOnMobile: true },
+  { key: "settled", header: "Settled", align: "right", render: (_, v) => `$${(v as number).toLocaleString()}` },
+  {
+    key: "outstanding",
+    header: "Outstanding",
+    align: "right",
+    render: (r) => (
+      <span className={r.outstanding > 0 ? "font-semibold text-amber-600 dark:text-amber-400" : "text-muted-foreground"}>
+        ${r.outstanding.toLocaleString()}
+      </span>
+    ),
+  },
+]
 
 export default function SupplierCustomer() {
-  const rows = [
-    { name: "Cobalt (Vendor)", purchase: 8200, payments: 8200 },
-    { name: "NovaApps (Customer)", sales: 4200, payments: 4200 },
-  ]
+  const [period, setPeriod] = React.useState<Period>("30d")
+  useRegisterPageRefresh(React.useCallback(async () => { await new Promise((r) => setTimeout(r, 400)) }, []))
+
+  const suppOutstanding = rows.filter((r) => r.side === "supplier").reduce((s, r) => s + r.outstanding, 0)
+  const custOutstanding = rows.filter((r) => r.side === "customer").reduce((s, r) => s + r.outstanding, 0)
+  const totalSettled = rows.reduce((s, r) => s + r.settled, 0)
+
   return (
-    <PageShell title="Reporting — Supplier & Customer" withToolbar={false}>
-      <Card>
-        <CardHeader>
-          <CardTitle>Supplier & Customer</CardTitle>
-          <CardDescription>Balances and activity</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-auto rounded-lg border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead className="text-right">Purchases</TableHead>
-                  <TableHead className="text-right">Sales</TableHead>
-                  <TableHead className="text-right">Payments</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {rows.map((r) => (
-                  <TableRow key={r.name}>
-                    <TableCell>{r.name}</TableCell>
-                    <TableCell className="text-right tabular-nums">
-                      ${(r as any).purchase?.toLocaleString?.() ?? "-"}
-                    </TableCell>
-                    <TableCell className="text-right tabular-nums">
-                      ${(r as any).sales?.toLocaleString?.() ?? "-"}
-                    </TableCell>
-                    <TableCell className="text-right tabular-nums">${r.payments.toLocaleString()}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        </CardContent>
-      </Card>
-    </PageShell>
+    <ReportShell
+      title="Supplier & customer"
+      description="Two-sided ledger of receivables and payables"
+      period={period}
+      onPeriodChange={setPeriod}
+      exportFilename={`pallio-supplier-customer-${period}`}
+      exportRows={rows.map((r) => ({ Side: r.side, Party: r.party, Transactions: r.transactions, Settled: r.settled, Outstanding: r.outstanding }))}
+    >
+      <KpiBand
+        items={[
+          { title: "AR outstanding", value: `$${custOutstanding.toLocaleString()}`, caption: "owed by customers", Icon: HandshakeIcon, tone: "amber" },
+          { title: "AP outstanding", value: `$${suppOutstanding.toLocaleString()}`, caption: "owed to suppliers", Icon: Building2, tone: "rose" },
+          { title: "Settled", value: `$${totalSettled.toLocaleString()}`, delta: "+12%", trend: "up", Icon: Wallet, tone: "emerald" },
+          { title: "Parties", value: String(rows.length), Icon: TrendingUp, tone: "violet" },
+        ]}
+      />
+      <div className="rounded-2xl border border-border bg-card">
+        <div className="border-b border-border px-4 py-3"><p className="text-sm font-semibold">Counter-parties</p></div>
+        <div className="p-3"><DataTable columns={cols} rows={rows} rowKey={(r) => `${r.side}-${r.party}`} /></div>
+      </div>
+    </ReportShell>
   )
 }

@@ -1,18 +1,39 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Pallio">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Pallio 10 — price-tag P (commerce)">
+  <!-- 10. Commerce-forward. P inside a tilted price-tag silhouette. -->
   <defs>
-    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+    <linearGradient id="g10" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0%" stop-color="#7c3aed"/>
-      <stop offset="100%" stop-color="#a855f7"/>
+      <stop offset="100%" stop-color="#4c1d95"/>
     </linearGradient>
   </defs>
-  <rect width="512" height="512" rx="96" fill="url(#g)"/>
-  <g transform="translate(0,4)">
-    <path d="M96 144 L256 80 L416 144 L256 208 Z" fill="#ffffff" fill-opacity="0.95"/>
-    <path d="M96 144 L96 320 L256 384 L256 208 Z" fill="#ffffff" fill-opacity="0.78"/>
-    <path d="M416 144 L416 320 L256 384 L256 208 Z" fill="#ffffff" fill-opacity="0.62"/>
-    <path d="M176 112 L336 112 L336 176 L256 208 Z" fill="#ffffff" fill-opacity="0.55"/>
-  </g>
-  <g transform="translate(180 256)">
-    <text x="76" y="60" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-weight="800" font-size="120" fill="#ffffff">P</text>
+  <rect width="512" height="512" rx="112" fill="#f5f3ff"/>
+  <!-- Price-tag silhouette, tilted -45° around its center -->
+  <g transform="rotate(-12 256 256)">
+    <path d="M 112 144
+             L 320 144
+             L 432 256
+             L 320 368
+             L 112 368
+             Z"
+          fill="url(#g10)"/>
+    <!-- Tag hole -->
+    <circle cx="370" cy="256" r="22" fill="#f5f3ff"/>
+    <!-- P inside the tag, white -->
+    <path
+      d="M 156 184
+         L 156 328
+         L 196 328
+         L 196 286
+         L 232 286
+         Q 296 286 296 235
+         Q 296 184 232 184
+         Z
+         M 196 218
+         L 230 218
+         Q 256 218 256 235
+         Q 256 252 230 252
+         L 196 252
+         Z"
+      fill="#ffffff"/>
   </g>
 </svg>
