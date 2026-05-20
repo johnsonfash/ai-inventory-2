@@ -1,8 +1,7 @@
 import * as React from "react"
 import { Link } from "react-router-dom"
 import { motion } from "framer-motion"
-import { ChevronDown, Loader2 } from "lucide-react"
-import { Input } from "@/components/ui/input"
+import { ChevronDown, Loader2, Search } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ModeToggle } from "@/components/mode-toggle"
 import { OrgLocationSwitch } from "@/components/org-location-switch"
@@ -13,6 +12,7 @@ import { MobileMoreDrawer } from "@/components/mobile/mobile-more-drawer"
 import { usePullToRefresh, usePageRefreshHandler } from "@/hooks/use-pull-to-refresh"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { usePageMeta } from "@/contexts/page-meta"
+import { useSetCommandPalette } from "@/contexts/command-palette"
 import { cn } from "@/lib/utils"
 
 // Stable app chrome. Mounted once at the top of the tree (inside
@@ -28,6 +28,7 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
   const isMobile = useIsMobile()
   const [moreOpen, setMoreOpen] = React.useState(false)
   const meta = usePageMeta()
+  const openPalette = useSetCommandPalette()
 
   const pageRefresh = usePageRefreshHandler()
   const { bind, pull, armed, refreshing } = usePullToRefresh({
@@ -35,10 +36,24 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
     enabled: isMobile,
   })
 
+  // Default mobile-trailing slot is a Search button that opens the
+  // command palette. Pages that publish their own mobileTrailing
+  // (e.g. settings sheets) override this.
+  const defaultMobileTrailing = (
+    <button
+      type="button"
+      onClick={() => openPalette(true)}
+      aria-label="Search (⌘K)"
+      className="inline-flex h-9 w-9 items-center justify-center rounded-full text-foreground/80 hover:bg-accent active:bg-accent/70 transition-colors"
+    >
+      <Search className="h-4 w-4" />
+    </button>
+  )
+
   if (isMobile) {
     return (
       <div className="flex h-[100dvh] min-h-0 flex-col overflow-hidden bg-background">
-        <MobileTopBar title={meta.title} trailing={meta.mobileTrailing} />
+        <MobileTopBar title={meta.title} trailing={meta.mobileTrailing ?? defaultMobileTrailing} />
 
         {/* Pull-to-refresh indicator. Anchored to the top of the
             scroll container; opacity scales with pull distance. */}
@@ -90,9 +105,19 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
           <h1 className="text-base font-semibold tracking-tight">{meta.title}</h1>
           <div className="ml-auto flex items-center gap-2">
             <OrgLocationSwitch />
-            <div className="hidden md:block">
-              <Input placeholder="Search items, orders…" className="w-[260px]" />
-            </div>
+            {/* Command-palette trigger. Tap or hit ⌘K to open. The
+                button is read-only — the actual input lives inside
+                the palette. */}
+            <button
+              type="button"
+              onClick={() => openPalette(true)}
+              aria-label="Search the app (Cmd+K)"
+              className="hidden h-9 w-[260px] items-center gap-2 rounded-md border border-input bg-background px-3 text-left text-sm text-muted-foreground transition-colors hover:bg-accent md:flex"
+            >
+              <Search className="h-4 w-4" />
+              <span className="flex-1 truncate">Search items, orders…</span>
+              <kbd className="rounded border border-border bg-muted px-1.5 py-0.5 font-mono text-[10px]">⌘K</kbd>
+            </button>
             <ModeToggle />
             <div className="ml-1 flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-brand to-fuchsia-500 text-xs font-semibold text-white shadow-sm shadow-brand/30">
               P
