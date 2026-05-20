@@ -1,32 +1,68 @@
-import { PageShell } from "@/components/page-shell"
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
-import { Label } from "@/components/ui/label"
+import { ArrowLeftRight, Globe, KeyRound, ShoppingBag } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-export default function WooCommerceConfig() {
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { FormSection } from "@/components/forms/form-section"
+import { FormGrid } from "@/components/forms/form-grid"
+import { FormField } from "@/components/forms/form-field"
+import { SwitchField } from "@/components/forms/switch-field"
+import { IntegrationShell } from "@/components/settings/integration-shell"
+
+export default function WoocommerceConfig() {
   return (
-    <PageShell title="Integrations — WooCommerce" withToolbar={false}>
-      <Card>
-        <CardHeader>
-          <CardTitle>WooCommerce</CardTitle>
-          <CardDescription>Connect your WordPress store</CardDescription>
-        </CardHeader>
-        <CardContent className="grid gap-3 sm:max-w-xl">
-          <div className="grid gap-2">
-            <Label>Store URL</Label>
-            <Input placeholder="https://store.example.com" />
-          </div>
-          <div className="grid gap-2">
-            <Label>Consumer Key</Label>
-            <Input placeholder="ck_..." />
-          </div>
-          <div className="grid gap-2">
-            <Label>Consumer Secret</Label>
-            <Input placeholder="cs_..." />
-          </div>
-          <Button className="w-fit">Save</Button>
-        </CardContent>
-      </Card>
-    </PageShell>
+    <IntegrationShell
+      name="WooCommerce"
+      category="E-commerce"
+      description="Sync products, orders, and stock with your WooCommerce / WordPress store."
+      Icon={ShoppingBag}
+      tone="violet"
+      status="available"
+      docsHref="https://woocommerce.com/document/woocommerce-rest-api/"
+      footer={
+        <div className="flex items-center justify-between gap-2">
+          <Button type="button" variant="outline">Cancel</Button>
+          <Button type="button">Connect</Button>
+        </div>
+      }
+    >
+      <FormSection title="Site" description="The WordPress site running WooCommerce" Icon={Globe}>
+        <FormGrid cols={2}>
+          <FormField label="Site URL" required hint="Include https:// — no trailing slash.">
+            <Input placeholder="https://shop.example.com" />
+          </FormField>
+          <FormField label="Storefront name">
+            <Input placeholder="Acme Co Shop" />
+          </FormField>
+        </FormGrid>
+      </FormSection>
+
+      <FormSection title="REST API keys" description="WooCommerce → Settings → Advanced → REST API" Icon={KeyRound}>
+        <FormGrid cols={2}>
+          <FormField label="Consumer key" required>
+            <Input placeholder="ck_…" />
+          </FormField>
+          <FormField label="Consumer secret" required>
+            <Input type="password" placeholder="cs_…" />
+          </FormField>
+        </FormGrid>
+      </FormSection>
+
+      <FormSection title="Sync" description="Direction and scope" Icon={ArrowLeftRight}>
+        <FormGrid cols={1}>
+          <FormField label="Inventory direction">
+            <Select defaultValue="pallio-source">
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="pallio-source">Pallio → WooCommerce</SelectItem>
+                <SelectItem value="woo-source">WooCommerce → Pallio</SelectItem>
+                <SelectItem value="two-way">Two-way</SelectItem>
+              </SelectContent>
+            </Select>
+          </FormField>
+          <SwitchField label="Pull orders automatically" description="Every 5 minutes." defaultChecked />
+          <SwitchField label="Update Woo stock after POS sales" description="Decrement Woo stock when items sell at the register." defaultChecked />
+        </FormGrid>
+      </FormSection>
+    </IntegrationShell>
   )
 }

@@ -1,28 +1,55 @@
-import { PageShell } from "@/components/page-shell"
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
-import { Label } from "@/components/ui/label"
+import { DollarSign, KeyRound, Youtube } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-export default function YouTubeAdSenseConfig() {
+import { FormSection } from "@/components/forms/form-section"
+import { FormGrid } from "@/components/forms/form-grid"
+import { FormField } from "@/components/forms/form-field"
+import { SwitchField } from "@/components/forms/switch-field"
+import { IntegrationShell } from "@/components/settings/integration-shell"
+
+export default function YoutubeAdsenseConfig() {
   return (
-    <PageShell title="Integrations — YouTube & AdSense" withToolbar={false}>
-      <Card>
-        <CardHeader>
-          <CardTitle>YouTube & AdSense</CardTitle>
-          <CardDescription>Channel and ads settings</CardDescription>
-        </CardHeader>
-        <CardContent className="grid gap-3 sm:max-w-xl">
-          <div className="grid gap-2">
-            <Label>API Key</Label>
-            <Input placeholder="AIza..." />
-          </div>
-          <div className="grid gap-2">
-            <Label>Channel ID</Label>
-            <Input placeholder="UC..." />
-          </div>
-          <Button className="w-fit">Save</Button>
-        </CardContent>
-      </Card>
-    </PageShell>
+    <IntegrationShell
+      name="YouTube & AdSense"
+      category="Marketing"
+      description="Track affiliate placements and AdSense earnings from your monetised channels."
+      Icon={Youtube}
+      tone="rose"
+      status="available"
+      docsHref="https://developers.google.com/youtube/v3"
+      footer={
+        <div className="flex items-center justify-between gap-2">
+          <Button type="button" variant="outline">Cancel</Button>
+          <Button type="button">Connect</Button>
+        </div>
+      }
+    >
+      <FormSection title="YouTube channel" Icon={Youtube}>
+        <FormGrid cols={2}>
+          <FormField label="Channel ID" required>
+            <Input placeholder="UC…" />
+          </FormField>
+          <FormField label="API key" required>
+            <Input type="password" placeholder="AIza…" />
+          </FormField>
+        </FormGrid>
+      </FormSection>
+
+      <FormSection title="AdSense" Icon={DollarSign}>
+        <FormGrid cols={2}>
+          <FormField label="Publisher ID">
+            <Input placeholder="pub-1234567890123456" />
+          </FormField>
+          <FormField label="Property URL" hint="Used for revenue attribution.">
+            <Input placeholder="https://acme.com" />
+          </FormField>
+        </FormGrid>
+      </FormSection>
+
+      <FormSection title="Behaviour" Icon={KeyRound}>
+        <SwitchField label="Pull weekly revenue" description="Refresh AdSense numbers every Monday." defaultChecked />
+        <SwitchField label="Include in commissions report" description="Roll affiliate earnings into the marketing-team commissions page." />
+      </FormSection>
+    </IntegrationShell>
   )
 }

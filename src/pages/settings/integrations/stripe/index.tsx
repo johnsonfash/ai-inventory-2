@@ -1,33 +1,80 @@
-import { PageShell } from "@/components/page-shell"
-import { Card, CardHeader, CardContent, CardTitle, CardDescription } from "@/components/ui/card"
-import { Label } from "@/components/ui/label"
+import { CreditCard, KeyRound, Webhook } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { FormSection } from "@/components/forms/form-section"
+import { FormGrid } from "@/components/forms/form-grid"
+import { FormField } from "@/components/forms/form-field"
+import { SwitchField } from "@/components/forms/switch-field"
+import { IntegrationShell } from "@/components/settings/integration-shell"
 
 export default function StripeConfig() {
   return (
-    <PageShell title="Integrations — Stripe" withToolbar={false}>
-      <Card>
-        <CardHeader>
-          <CardTitle>Stripe Configuration</CardTitle>
-          <CardDescription>Connect Stripe to accept card payments</CardDescription>
-        </CardHeader>
-        <CardContent className="grid gap-3 sm:max-w-xl">
-          <div className="grid gap-2">
-            <Label>Publishable Key</Label>
-            <Input placeholder="pk_live_..." />
-          </div>
-          <div className="grid gap-2">
-            <Label>Secret Key</Label>
-            <Input placeholder="sk_live_..." />
-          </div>
-          <div className="grid gap-2">
-            <Label>Webhook Secret</Label>
-            <Input placeholder="whsec_..." />
-          </div>
-          <Button className="w-fit">Save</Button>
-        </CardContent>
-      </Card>
-    </PageShell>
+    <IntegrationShell
+      name="Stripe"
+      category="Payments"
+      description="Accept Visa, Mastercard, Amex, Apple Pay, and Google Pay. Handles payouts to your bank."
+      Icon={CreditCard}
+      tone="violet"
+      status="connected"
+      lastSynced="3 minutes ago"
+      docsHref="https://docs.stripe.com"
+      footer={
+        <div className="flex items-center justify-between gap-2">
+          <Button type="button" variant="outline">Disconnect</Button>
+          <Button type="button">Save changes</Button>
+        </div>
+      }
+    >
+      <FormSection title="API keys" description="Stored encrypted, never shown after save" Icon={KeyRound}>
+        <FormGrid cols={2}>
+          <FormField label="Publishable key" required hint="Starts with pk_live_ or pk_test_">
+            <Input placeholder="pk_live_…" defaultValue="pk_live_*****************************WJ4" />
+          </FormField>
+          <FormField label="Secret key" required hint="Starts with sk_live_ or sk_test_">
+            <Input type="password" placeholder="sk_live_…" defaultValue="sk_live_*********************************K2" />
+          </FormField>
+          <FormField label="Mode">
+            <Select defaultValue="live">
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="live">Live (production)</SelectItem>
+                <SelectItem value="test">Test (sandbox)</SelectItem>
+              </SelectContent>
+            </Select>
+          </FormField>
+          <FormField label="Default currency">
+            <Select defaultValue="USD">
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="USD">USD</SelectItem>
+                <SelectItem value="EUR">EUR</SelectItem>
+                <SelectItem value="GBP">GBP</SelectItem>
+              </SelectContent>
+            </Select>
+          </FormField>
+        </FormGrid>
+      </FormSection>
+
+      <FormSection title="Webhook" description="Stripe will POST events to this URL" Icon={Webhook}>
+        <FormGrid cols={1}>
+          <FormField label="Webhook URL" hint="Add this URL in Stripe Dashboard → Developers → Webhooks.">
+            <Input readOnly defaultValue="https://pallio.app/api/webhooks/stripe" />
+          </FormField>
+          <FormField label="Webhook signing secret" required>
+            <Input type="password" placeholder="whsec_…" defaultValue="whsec_*********************************" />
+          </FormField>
+        </FormGrid>
+      </FormSection>
+
+      <FormSection title="Behaviour" description="What Stripe does on your behalf" Icon={CreditCard}>
+        <div className="space-y-2">
+          <SwitchField label="Auto-capture payments" description="Capture funds immediately on authorisation." defaultChecked />
+          <SwitchField label="Save customer cards" description="Re-charge returning customers without re-entering details." defaultChecked />
+          <SwitchField label="Send Stripe receipt email" description="In addition to the Pallio invoice." />
+          <SwitchField label="Enable Apple Pay / Google Pay" description="Show tap-to-pay buttons on web checkout." defaultChecked />
+        </div>
+      </FormSection>
+    </IntegrationShell>
   )
 }
