@@ -1,5 +1,7 @@
 
 import * as React from "react"
+import { createPortal } from "react-dom"
+import { AnimatePresence, motion } from "framer-motion"
 import { Link, useLocation } from "react-router-dom"
 import {
   BarChart3,
@@ -236,6 +238,58 @@ export function AppSidebar() {
 
   const toggle = (title: string) => setOpenStates((p) => ({ ...p, [title]: !p[title] }))
 
+  // -------- Collapsed-mode flyout --------
+  // When the sidebar is collapsed, hovering / clicking a group icon
+  // pops a fixed-positioned panel with the sub-items, anchored to
+  // the right of the icon. Replaces the previous "click expands the
+  // whole sidebar" behaviour which was disorienting.
+  type FlyoutState = { title: string; top: number } | null
+  const [flyout, setFlyout] = React.useState<FlyoutState>(null)
+  const closeTimerRef = React.useRef<number | null>(null)
+
+  const cancelClose = React.useCallback(() => {
+    if (closeTimerRef.current != null) {
+      clearTimeout(closeTimerRef.current)
+      closeTimerRef.current = null
+    }
+  }, [])
+
+  const scheduleClose = React.useCallback(() => {
+    cancelClose()
+    closeTimerRef.current = window.setTimeout(() => {
+      setFlyout(null)
+      closeTimerRef.current = null
+    }, 140)
+  }, [cancelClose])
+
+  const openFlyout = React.useCallback((title: string, anchor: HTMLElement) => {
+    cancelClose()
+    const rect = anchor.getBoundingClientRect()
+    setFlyout({ title, top: rect.top })
+  }, [cancelClose])
+
+  // Close on Escape; close on route change (sub-item nav fires
+  // pathname update, which we already key effects off).
+  React.useEffect(() => {
+    if (!flyout) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setFlyout(null)
+    }
+    window.addEventListener("keydown", onKey)
+    return () => window.removeEventListener("keydown", onKey)
+  }, [flyout])
+
+  React.useEffect(() => { setFlyout(null) }, [pathname])
+
+  // If the user expands the sidebar, drop the flyout so it doesn't
+  // hang in space at the wrong position.
+  React.useEffect(() => { if (!collapsed) setFlyout(null) }, [collapsed])
+
+  // Clean up the timer on unmount.
+  React.useEffect(() => () => cancelClose(), [cancelClose])
+
+  const flyoutItem = flyout ? nav.find((n) => n.title === flyout.title) : null
+
   // When the route changes, re-expand the matching group so deep
   // links open into the right tree.
   React.useEffect(() => {
@@ -300,19 +354,20 @@ export function AppSidebar() {
                 <li key={item.title}>
                   <button
                     type="button"
-                    onClick={() => {
-                      // Collapsed: clicking a group should re-expand
-                      // the sidebar and open its tree, since the
-                      // children are otherwise unreachable from this
-                      // state.
+                    onClick={(e) => {
+                      // Collapsed: clicking the icon opens the flyout
+                      // (touch devices have no hover; click is the
+                      // fallback). Expanded: toggles the inline tree.
                       if (collapsed) {
-                        setCollapsed(false)
-                        setOpenStates((p) => ({ ...p, [item.title]: true }))
+                        openFlyout(item.title, e.currentTarget)
                         return
                       }
                       toggle(item.title)
                     }}
-                    aria-expanded={!collapsed && isOpen}
+                    onMouseEnter={collapsed ? (e) => openFlyout(item.title, e.currentTarget) : undefined}
+                    onMouseLeave={collapsed ? scheduleClose : undefined}
+                    onFocus={collapsed ? (e) => openFlyout(item.title, e.currentTarget) : undefined}
+                    aria-expanded={collapsed ? flyout?.title === item.title : isOpen}
                     aria-controls={!collapsed ? `nav-${slug(item.title)}` : undefined}
                     aria-label={collapsed ? item.title : undefined}
                     title={collapsed ? item.title : undefined}
@@ -320,6 +375,7 @@ export function AppSidebar() {
                       "flex w-full items-center rounded-md text-sm transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand",
                       collapsed ? "h-10 justify-center px-0" : "gap-2 px-2 py-2",
                       active && "bg-accent",
+                      collapsed && flyout?.title === item.title && "bg-accent",
                     )}
                   >
                     <item.icon className={cn("shrink-0", collapsed ? "h-5 w-5" : "h-4 w-4")} aria-hidden="true" />
@@ -375,6 +431,7 @@ export function AppSidebar() {
                   aria-label={collapsed ? item.title : undefined}
                   title={collapsed ? item.title : undefined}
                   to={item.url!}
+                  onMouseEnter={collapsed ? () => { cancelClose(); setFlyout(null) } : undefined}
                   className={cn(
                     "flex items-center rounded-md text-sm transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand",
                     collapsed ? "h-10 justify-center px-0" : "gap-2 px-2 py-2",
@@ -395,8 +452,72 @@ export function AppSidebar() {
           <kbd className="rounded border border-border bg-muted px-1 py-0.5 font-mono text-[10px]">⌘B</kbd> to toggle
         </div>
       )}
+
+      {/* Collapsed-mode flyout. Portaled to body so the aside's
+          overflow-auto on <nav> doesn't clip it. Positioned with
+          `fixed` against the hovered button's bounding rect. The
+          top position is clamped so a button near the bottom of the
+          viewport still produces a fully-visible flyout. */}
+      {typeof document !== "undefined" && collapsed && createPortal(
+        <AnimatePresence>
+          {flyout && flyoutItem && (
+            <motion.div
+              key={flyout.title}
+              initial={{ opacity: 0, x: -4 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -4 }}
+              transition={{ duration: 0.12 }}
+              role="menu"
+              aria-label={flyoutItem.title}
+              onMouseEnter={cancelClose}
+              onMouseLeave={scheduleClose}
+              style={{
+                position: "fixed",
+                left: 64 + 6, // sidebar width + 6px gap
+                top: clamp(flyout.top, 8, typeof window === "undefined" ? 800 : window.innerHeight - 320),
+                zIndex: 60,
+              }}
+              className="w-60 rounded-xl border border-border bg-popover text-popover-foreground shadow-xl shadow-black/10 dark:shadow-black/40"
+            >
+              <div className="border-b border-border px-3 py-2">
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  {flyoutItem.title}
+                </p>
+              </div>
+              <ul className="max-h-[60vh] overflow-y-auto p-1.5">
+                {flyoutItem.sub?.map((s) => {
+                  const subActive = pathname === s.url
+                  return (
+                    <li key={s.url}>
+                      <Link
+                        to={s.url}
+                        onClick={() => setFlyout(null)}
+                        aria-current={subActive ? "page" : undefined}
+                        role="menuitem"
+                        className={cn(
+                          "block rounded-md px-2.5 py-1.5 text-xs transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand",
+                          subActive
+                            ? "bg-brand-soft text-brand dark:bg-primary/15 dark:text-primary"
+                            : "text-foreground",
+                        )}
+                      >
+                        {s.title}
+                      </Link>
+                    </li>
+                  )
+                })}
+              </ul>
+            </motion.div>
+          )}
+        </AnimatePresence>,
+        document.body,
+      )}
     </aside>
   )
+}
+
+function clamp(value: number, min: number, max: number): number {
+  return Math.max(min, Math.min(max, value))
 }
 
 function slug(s: string): string {
