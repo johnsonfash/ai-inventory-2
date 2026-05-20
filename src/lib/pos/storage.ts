@@ -1,3 +1,4 @@
+import { kvJson } from "@/lib/storage/kv"
 
 export type CatalogItem = {
   id: string
@@ -89,19 +90,20 @@ const INVOICES_KEY = "pos:invoices"
 const RETURNS_KEY = "pos:returns"
 const CATALOG_KEY = "pos:catalog:mode"
 
-// -------------- LS Helpers --------------
+// -------------- KV Helpers --------------
+// Backed by src/lib/storage/kv.ts — reads are sync (localStorage),
+// writes mirror to @capacitor/preferences on native so drafts /
+// invoices / returns survive app reinstalls + WebView eviction.
 function getLS<T>(key: string, fallback: T): T {
   if (typeof window === "undefined") return fallback
-  try {
-    const raw = localStorage.getItem(key)
-    return raw ? (JSON.parse(raw) as T) : fallback
-  } catch {
-    return fallback
-  }
+  const v = kvJson.get<T>(key)
+  return v ?? fallback
 }
 function setLS<T>(key: string, value: T) {
   if (typeof window === "undefined") return
-  localStorage.setItem(key, JSON.stringify(value))
+  // Fire-and-forget. localStorage is updated synchronously inside
+  // kv.set; the Preferences mirror happens in the background.
+  void kvJson.set(key, value)
 }
 
 export function genId(prefix: string) {

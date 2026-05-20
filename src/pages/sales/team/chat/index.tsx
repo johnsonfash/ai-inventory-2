@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useRegisterPageRefresh } from "@/hooks/use-pull-to-refresh"
 import { useChatKeyboard } from "@/hooks/use-chat-keyboard"
+import { kvJson } from "@/lib/storage/kv"
 import { EmptyState } from "@/components/lists/empty-state"
 import { RoleGuard } from "@/components/auth/role-guard"
 import { cn } from "@/lib/utils"
@@ -18,15 +19,16 @@ type Channel = (typeof CHANNELS)[number]
 
 function getMessages(): Message[] {
   if (typeof window === "undefined") return []
-  try {
-    const raw = localStorage.getItem(KEY)
-    return raw ? (JSON.parse(raw) as Message[]) : seed
-  } catch {
-    return []
-  }
+  // kvJson reads sync from localStorage (hydrated from
+  // @capacitor/preferences on app start), so chat history survives
+  // app reinstalls on native.
+  return kvJson.get<Message[]>(KEY) ?? seed
 }
 function setMessagesStorage(msgs: Message[]) {
-  localStorage.setItem(KEY, JSON.stringify(msgs))
+  // Fire-and-forget. localStorage writes synchronously inside
+  // kvJson.set; the native Preferences mirror happens in the
+  // background.
+  void kvJson.set(KEY, msgs)
 }
 
 const seed: Message[] = [
