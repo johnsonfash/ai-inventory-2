@@ -1,48 +1,116 @@
-
 import * as React from "react"
+import { Printer, ScanLine, Search, Tag } from "lucide-react"
 import { PageShell } from "@/components/page-shell"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useRegisterPageRefresh } from "@/hooks/use-pull-to-refresh"
+import { SummaryStrip } from "@/components/lists/summary-strip"
+import { cn } from "@/lib/utils"
+
+type Item = { sku: string; name: string; price: number; checked: boolean; qty: number }
+
+const seed: Item[] = [
+  { sku: "EL-2109", name: "USB‑C Hub 6‑in‑1", price: 39.99, checked: true, qty: 1 },
+  { sku: "AP-4012", name: "Cotton Tee — Black", price: 12.0, checked: false, qty: 1 },
+  { sku: "HM-2205", name: "Ceramic Mug 12oz", price: 8.0, checked: false, qty: 1 },
+  { sku: "BT-9091", name: "Hydrating Serum", price: 18.95, checked: false, qty: 1 },
+  { sku: "EL-1001", name: "Wireless Mouse", price: 22.0, checked: false, qty: 1 },
+]
 
 export default function LabelPrint() {
-  const [sku, setSku] = React.useState("EL-2109")
-  const [qty, setQty] = React.useState(6)
+  const [items, setItems] = React.useState<Item[]>(seed)
+  const [query, setQuery] = React.useState("")
+  const [template, setTemplate] = React.useState<"standard" | "minimal" | "full">("standard")
+
+  useRegisterPageRefresh(React.useCallback(async () => { await new Promise((r) => setTimeout(r, 400)) }, []))
+
+  const filtered = React.useMemo(() => {
+    const q = query.trim().toLowerCase()
+    if (!q) return items
+    return items.filter((i) => i.name.toLowerCase().includes(q) || i.sku.toLowerCase().includes(q))
+  }, [items, query])
+
+  const selected = items.filter((i) => i.checked)
+  const totalLabels = selected.reduce((s, i) => s + i.qty, 0)
+
+  const setQty = (sku: string, qty: number) =>
+    setItems((p) => p.map((i) => (i.sku === sku ? { ...i, qty: Math.max(1, qty) } : i)))
+
+  const toggle = (sku: string) =>
+    setItems((p) => p.map((i) => (i.sku === sku ? { ...i, checked: !i.checked } : i)))
 
   return (
-    <PageShell title="Inventory — Label Print" withToolbar={false}>
-      <Card>
-        <CardHeader>
-          <CardTitle>Print Labels</CardTitle>
-          <CardDescription>Generate barcode/QR labels for shelves and items</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-3 gap-3">
-            <div className="grid gap-2">
-              <Label>SKU</Label>
-              <Input value={sku} onChange={(e) => setSku(e.target.value)} />
-            </div>
-            <div className="grid gap-2">
-              <Label>Quantity</Label>
-              <Input type="number" value={qty} onChange={(e) => setQty(Number(e.target.value))} />
-            </div>
-            <div className="flex items-end">
-              <Button onClick={() => window.print()} className="bg-violet-600 hover:bg-violet-600/90">
-                Print
-              </Button>
-            </div>
+    <PageShell title="Print labels" withToolbar={false}>
+      <div className="flex flex-col gap-4">
+        <SummaryStrip
+          tiles={[
+            { label: "Selected", value: String(selected.length), tone: "brand", hint: "SKUs" },
+            { label: "Labels to print", value: String(totalLabels), tone: "info", hint: "total" },
+            { label: "Template", value: template, tone: "warning", hint: "active" },
+            { label: "Default printer", value: "Zebra ZD420", tone: "success", hint: "WH-A" },
+          ]}
+        />
+
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="relative min-w-[180px] flex-1">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search SKU or name…" className="pl-9" />
           </div>
-          <div className="grid grid-cols-3 gap-4 print:block">
-            {Array.from({ length: qty }).map((_, i) => (
-              <div key={i} className="rounded border p-3 text-center">
-                <div className="font-mono text-sm">{sku}</div>
-                <div className="mt-2 text-xs text-muted-foreground">{"|| | | || ||| | |"}</div>
+          <Select value={template} onValueChange={(v) => v && setTemplate(v as "standard" | "minimal" | "full")}>
+            <SelectTrigger className="w-44"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="standard">Standard</SelectItem>
+              <SelectItem value="minimal">Minimal (barcode only)</SelectItem>
+              <SelectItem value="full">Full (logo + price)</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button disabled={totalLabels === 0}>
+            <Printer className="h-4 w-4" /> Print {totalLabels || ""}
+          </Button>
+        </div>
+
+        <ul className="space-y-2">
+          {filtered.map((i) => (
+            <li
+              key={i.sku}
+              className={cn(
+                "flex items-center gap-3 rounded-2xl border bg-card p-3 transition-colors",
+                i.checked ? "border-brand/40 bg-brand-soft/30 dark:bg-primary/10" : "border-border",
+              )}
+            >
+              <input
+                type="checkbox"
+                checked={i.checked}
+                onChange={() => toggle(i.sku)}
+                className="h-4 w-4 accent-violet-600"
+              />
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-muted text-muted-foreground">
+                <Tag className="h-4 w-4" />
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-semibold">{i.name}</p>
+                <p className="font-mono text-[11px] text-muted-foreground">{i.sku} · ${i.price.toFixed(2)}</p>
               </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+              <div className="flex shrink-0 items-center gap-1.5">
+                <span className="text-[10px] uppercase text-muted-foreground">Qty</span>
+                <Input
+                  type="number"
+                  min={1}
+                  value={i.qty}
+                  onChange={(e) => setQty(i.sku, Number(e.target.value) || 1)}
+                  className="h-9 w-16 text-center"
+                />
+              </div>
+            </li>
+          ))}
+        </ul>
+
+        <div className="flex items-center gap-2 rounded-2xl border border-dashed border-border bg-muted/30 p-3 text-xs text-muted-foreground">
+          <ScanLine className="h-4 w-4" />
+          Use a connected barcode scanner to instantly select items by scanning them.
+        </div>
+      </div>
     </PageShell>
   )
 }
