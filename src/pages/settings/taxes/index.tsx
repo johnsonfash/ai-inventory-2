@@ -1,40 +1,145 @@
+import * as React from "react"
+import { Edit3, Plus, Search, Tags, Trash2 } from "lucide-react"
 import { PageShell } from "@/components/page-shell"
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
-import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { useIsMobile } from "@/hooks/use-mobile"
+import { useRegisterPageRefresh } from "@/hooks/use-pull-to-refresh"
+import { EmptyState } from "@/components/lists/empty-state"
+import { StatusBadge, type StatusTone } from "@/components/lists/status-badge"
+import { SummaryStrip } from "@/components/lists/summary-strip"
+
+type Row = {
+  id: string
+  name: string
+  rate: number
+  scope: "global" | "category" | "region"
+  appliesTo: string
+  default: boolean
+  active: boolean
+}
+
+const rows: Row[] = [
+  { id: "TX-1", name: "Standard VAT", rate: 20, scope: "global", appliesTo: "All taxable items", default: true, active: true },
+  { id: "TX-2", name: "Reduced VAT", rate: 5, scope: "category", appliesTo: "Books · Beauty", default: false, active: true },
+  { id: "TX-3", name: "Zero-rated", rate: 0, scope: "category", appliesTo: "Food", default: false, active: true },
+  { id: "TX-4", name: "Sales tax · TX", rate: 8.25, scope: "region", appliesTo: "Austin warehouses", default: false, active: true },
+  { id: "TX-5", name: "Sales tax · CA", rate: 7.25, scope: "region", appliesTo: "West Hub", default: false, active: false },
+]
+
+const scopeTone: Record<Row["scope"], StatusTone> = {
+  global: "brand",
+  category: "info",
+  region: "warning",
+}
+
 export default function TaxRates() {
-  const rows = [{ name: "Standard", rate: 8 }]
+  const isMobile = useIsMobile()
+  const [query, setQuery] = React.useState("")
+
+  useRegisterPageRefresh(React.useCallback(async () => { await new Promise((r) => setTimeout(r, 400)) }, []))
+
+  const filtered = React.useMemo(() => {
+    const q = query.trim().toLowerCase()
+    if (!q) return rows
+    return rows.filter((r) =>
+      r.name.toLowerCase().includes(q) ||
+      r.appliesTo.toLowerCase().includes(q),
+    )
+  }, [query])
+
+  const active = rows.filter((r) => r.active).length
+  const defaultRate = rows.find((r) => r.default)?.rate ?? 0
+  const avgRate = rows.reduce((s, r) => s + r.rate, 0) / rows.length
+
   return (
-    <PageShell title="Settings — Tax Rates" withToolbar={false}>
-      <Card>
-        <CardHeader className="flex items-center justify-between">
-          <div>
-            <CardTitle>Tax Rates</CardTitle>
-            <CardDescription>Jurisdictions and rates</CardDescription>
+    <PageShell title="Tax rates" withToolbar={false}>
+      <div className="flex flex-col gap-4">
+        <SummaryStrip
+          tiles={[
+            { label: "Active rates", value: String(active), tone: "success", hint: "live" },
+            { label: "Default rate", value: `${defaultRate}%`, tone: "brand", hint: "fallback" },
+            { label: "Average", value: `${avgRate.toFixed(1)}%`, tone: "info", hint: "blended" },
+            { label: "Total", value: String(rows.length), tone: "warning", hint: "configured" },
+          ]}
+        />
+
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="relative min-w-[180px] flex-1">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search rates or scope…" className="pl-9" />
           </div>
-          <Button>Add Rate</Button>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-auto rounded-lg border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead className="text-right">Rate (%)</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {rows.map((r) => (
-                  <TableRow key={r.name}>
-                    <TableCell>{r.name}</TableCell>
-                    <TableCell className="text-right tabular-nums">{r.rate}</TableCell>
-                  </TableRow>
+          <Button className="hidden md:inline-flex"><Plus className="h-4 w-4" /> Add rate</Button>
+        </div>
+
+        {filtered.length === 0 ? (
+          <Card><CardContent className="p-0">
+            <EmptyState Icon={Tags} title="No rates match" description="Add a rate to start applying it to items or regions." />
+          </CardContent></Card>
+        ) : isMobile ? (
+          <ul className="space-y-2">
+            {filtered.map((r) => (
+              <li key={r.id} className={`rounded-2xl border ${r.active ? "border-border" : "border-dashed border-border opacity-60"} bg-card p-3`}>
+                <div className="flex items-start gap-3">
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-300">
+                    <Tags className="h-4 w-4" />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="truncate text-sm font-semibold">{r.name}</p>
+                      <p className="shrink-0 text-base font-bold tabular-nums">{r.rate}%</p>
+                    </div>
+                    <p className="mt-0.5 text-[11px] text-muted-foreground">{r.appliesTo}</p>
+                    <div className="mt-2 flex items-center gap-1.5">
+                      <StatusBadge tone={scopeTone[r.scope]}>{r.scope}</StatusBadge>
+                      {r.default && <StatusBadge tone="success">default</StatusBadge>}
+                      {!r.active && <StatusBadge tone="neutral">inactive</StatusBadge>}
+                    </div>
+                  </div>
+                </div>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <div className="overflow-hidden rounded-xl border border-border bg-card">
+            <table className="w-full text-sm">
+              <thead className="bg-muted/40 text-left text-[11px] uppercase tracking-wider text-muted-foreground">
+                <tr>
+                  <th className="px-3 py-2.5 font-medium">Name</th>
+                  <th className="px-3 py-2.5 text-right font-medium">Rate</th>
+                  <th className="px-3 py-2.5 font-medium">Scope</th>
+                  <th className="px-3 py-2.5 font-medium">Applies to</th>
+                  <th className="px-3 py-2.5 font-medium">Flags</th>
+                  <th className="px-3 py-2.5 text-right font-medium" />
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {filtered.map((r) => (
+                  <tr key={r.id} className={r.active ? "transition-colors hover:bg-accent/30" : "opacity-60 transition-colors hover:bg-accent/30"}>
+                    <td className="px-3 py-2.5 font-medium">{r.name}</td>
+                    <td className="px-3 py-2.5 text-right font-bold tabular-nums">{r.rate}%</td>
+                    <td className="px-3 py-2.5"><StatusBadge tone={scopeTone[r.scope]} withDot>{r.scope}</StatusBadge></td>
+                    <td className="px-3 py-2.5 text-muted-foreground">{r.appliesTo}</td>
+                    <td className="px-3 py-2.5">
+                      <div className="flex items-center gap-1">
+                        {r.default && <StatusBadge tone="success">default</StatusBadge>}
+                        {!r.active && <StatusBadge tone="neutral">inactive</StatusBadge>}
+                      </div>
+                    </td>
+                    <td className="px-3 py-2.5 text-right">
+                      <div className="inline-flex items-center gap-1">
+                        <Button size="sm" variant="ghost"><Edit3 className="h-3.5 w-3.5" /></Button>
+                        <Button size="sm" variant="ghost"><Trash2 className="h-3.5 w-3.5" /></Button>
+                      </div>
+                    </td>
+                  </tr>
                 ))}
-              </TableBody>
-            </Table>
+              </tbody>
+            </table>
           </div>
-        </CardContent>
-      </Card>
+        )}
+      </div>
     </PageShell>
   )
 }
