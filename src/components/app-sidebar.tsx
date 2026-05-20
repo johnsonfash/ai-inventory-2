@@ -84,6 +84,7 @@ const nav: Item[] = [
       { title: "New Order", url: "/sales/orders/new" },
       { title: "Invoices", url: "/sales/invoices" },
       { title: "New Invoice", url: "/sales/invoices/new" },
+      { title: "Receipts", url: "/sales/receipts" },
       { title: "Shipments", url: "/sales/shipments" },
       { title: "New Shipment", url: "/sales/shipments/new" },
       { title: "Returns", url: "/sales/returns" },

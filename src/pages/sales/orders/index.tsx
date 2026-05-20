@@ -1,337 +1,245 @@
 import * as React from "react"
 import { Link } from "react-router-dom"
 import {
+  ArrowRight,
+  Check,
   ChevronRight,
   ClipboardList,
-  Filter,
+  FileText,
   Plus,
-  Printer,
   Search,
-  XCircle,
 } from "lucide-react"
 import { PageShell } from "@/components/page-shell"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { useIsMobile } from "@/hooks/use-mobile"
-import { useRegisterPageRefresh } from "@/hooks/use-pull-to-refresh"
 import { StatusBadge, type StatusTone } from "@/components/lists/status-badge"
+import { SummaryStrip } from "@/components/lists/summary-strip"
 import { EmptyState } from "@/components/lists/empty-state"
-import { FilterChips, type FilterChip } from "@/components/lists/filter-chips"
-import { FilterButton } from "@/components/lists/filter-button"
-import {
-  FilterPillGroup,
-  FilterSection,
-  FilterSheet,
-} from "@/components/lists/filter-sheet"
-import { SwipeableRow } from "@/components/mobile/swipeable-row"
+import { InfoTooltip } from "@/components/info-tooltip"
+import { useRegisterPageRefresh } from "@/hooks/use-pull-to-refresh"
+import { useIsMobile } from "@/hooks/use-mobile"
+import { INVOICES, ORDERS, invoiceByOrder } from "@/lib/sales/data"
+import type { Order, OrderStatus } from "@/lib/sales/types"
+import { cn } from "@/lib/utils"
 
-type OrderStatus = "fulfilled" | "pending" | "processing" | "cancelled"
-type Channel = "online" | "retail" | "wholesale"
-
-type Order = {
-  id: string
-  customer: string
-  items: number
-  total: number
-  status: OrderStatus
-  date: string
-  channel: Channel
-}
-
-const orders: Order[] = [
-  { id: "SO-7842", customer: "NovaApps", items: 4, total: 420.0, status: "fulfilled", date: "2026-05-19", channel: "online" },
-  { id: "SO-7849", customer: "BrightLane", items: 2, total: 120.0, status: "pending", date: "2026-05-20", channel: "wholesale" },
-  { id: "SO-7851", customer: "Aisha N.", items: 1, total: 28.5, status: "processing", date: "2026-05-20", channel: "retail" },
-  { id: "SO-7846", customer: "Daniel K.", items: 6, total: 1284.0, status: "fulfilled", date: "2026-05-18", channel: "online" },
-  { id: "SO-7833", customer: "Linda M.", items: 3, total: 92.15, status: "cancelled", date: "2026-05-17", channel: "retail" },
-  { id: "SO-7828", customer: "Acme Co", items: 12, total: 3210.0, status: "processing", date: "2026-05-16", channel: "wholesale" },
+const STEPS: { key: OrderStatus | "paid"; label: string }[] = [
+  { key: "draft",     label: "Draft" },
+  { key: "sent",      label: "Sent" },
+  { key: "accepted",  label: "Accepted" },
+  { key: "invoiced",  label: "Invoiced" },
+  { key: "paid",      label: "Paid" },
+  { key: "fulfilled", label: "Fulfilled" },
 ]
 
-const STATUS_OPTIONS = [
-  { value: "fulfilled", label: "Fulfilled" },
-  { value: "processing", label: "Processing" },
-  { value: "pending", label: "Pending" },
-  { value: "cancelled", label: "Cancelled" },
-] as const
-const CHANNEL_OPTIONS = [
-  { value: "online", label: "Online" },
-  { value: "retail", label: "Retail" },
-  { value: "wholesale", label: "Wholesale" },
-] as const
-const PERIOD_OPTIONS = [
-  { value: "all", label: "All time" },
-  { value: "today", label: "Today" },
-  { value: "7d", label: "Last 7 days" },
-  { value: "30d", label: "Last 30 days" },
-] as const
-
-type Period = (typeof PERIOD_OPTIONS)[number]["value"]
-
-const statusTone: Record<OrderStatus, StatusTone> = {
+const STATUS_TONE: Record<OrderStatus, StatusTone> = {
+  draft: "neutral",
+  sent: "info",
+  accepted: "warning",
+  invoiced: "info",
   fulfilled: "success",
-  processing: "info",
-  pending: "warning",
   cancelled: "danger",
 }
 
+// True if a given step has been reached for this order.
+function stepReached(order: Order, step: (typeof STEPS)[number]["key"]): boolean {
+  if (order.status === "cancelled") return false
+  const inv = order.invoiceId ? INVOICES.find((i) => i.id === order.invoiceId) : undefined
+  const paid = inv?.status === "paid"
+  switch (step) {
+    case "draft":     return true
+    case "sent":      return order.status !== "draft"
+    case "accepted":  return ["accepted", "invoiced", "fulfilled"].includes(order.status)
+    case "invoiced":  return ["invoiced", "fulfilled"].includes(order.status) || !!inv
+    case "paid":      return !!paid
+    case "fulfilled": return order.status === "fulfilled"
+    default:          return false
+  }
+}
+
+function fmtMoney(n: number): string {
+  return `$${n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+}
+function fmtDate(iso: string): string {
+  return new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric" })
+}
+
 export default function SalesOrders() {
+  useRegisterPageRefresh(React.useCallback(async () => { await new Promise((r) => setTimeout(r, 400)) }, []))
   const isMobile = useIsMobile()
   const [query, setQuery] = React.useState("")
-  const [filterOpen, setFilterOpen] = React.useState(false)
-
-  const [statuses, setStatuses] = React.useState<OrderStatus[]>([])
-  const [channels, setChannels] = React.useState<Channel[]>([])
-  const [period, setPeriod] = React.useState<Period>("all")
-
-  const [stagedStatuses, setStagedStatuses] = React.useState<OrderStatus[]>([])
-  const [stagedChannels, setStagedChannels] = React.useState<Channel[]>([])
-  const [stagedPeriod, setStagedPeriod] = React.useState<Period>("all")
-
-  React.useEffect(() => {
-    if (filterOpen) {
-      setStagedStatuses(statuses)
-      setStagedChannels(channels)
-      setStagedPeriod(period)
-    }
-  }, [filterOpen, statuses, channels, period])
-
-  useRegisterPageRefresh(
-    React.useCallback(async () => {
-      await new Promise((r) => setTimeout(r, 400))
-    }, []),
-  )
+  const [statusFilter, setStatusFilter] = React.useState<OrderStatus | "all">("all")
 
   const filtered = React.useMemo(() => {
-    let list = orders
     const q = query.trim().toLowerCase()
-    if (q) {
-      list = list.filter(
-        (o) => o.id.toLowerCase().includes(q) || o.customer.toLowerCase().includes(q),
-      )
-    }
-    if (statuses.length > 0) list = list.filter((o) => statuses.includes(o.status))
-    if (channels.length > 0) list = list.filter((o) => channels.includes(o.channel))
-    return list
-  }, [query, statuses, channels])
+    return ORDERS.filter((o) => statusFilter === "all" || o.status === statusFilter).filter((o) => {
+      if (!q) return true
+      return o.number.toLowerCase().includes(q) || o.customer.name.toLowerCase().includes(q)
+    })
+  }, [query, statusFilter])
 
-  const chips: FilterChip[] = React.useMemo(() => {
-    const c: FilterChip[] = []
-    for (const s of statuses) {
-      c.push({
-        key: `s:${s}`,
-        label: STATUS_OPTIONS.find((o) => o.value === s)!.label,
-        onRemove: () => setStatuses((p) => p.filter((x) => x !== s)),
-      })
-    }
-    for (const ch of channels) {
-      c.push({
-        key: `c:${ch}`,
-        label: CHANNEL_OPTIONS.find((o) => o.value === ch)!.label,
-        onRemove: () => setChannels((p) => p.filter((x) => x !== ch)),
-      })
-    }
-    if (period !== "all") {
-      c.push({
-        key: `p:${period}`,
-        label: PERIOD_OPTIONS.find((o) => o.value === period)!.label,
-        onRemove: () => setPeriod("all"),
-      })
-    }
-    return c
-  }, [statuses, channels, period])
-
-  const appliedCount = chips.length
-
-  const totalRevenue = orders.reduce((s, o) => (o.status === "fulfilled" ? s + o.total : s), 0)
-  const fulfilledCount = orders.filter((o) => o.status === "fulfilled").length
-  const processingCount = orders.filter((o) => o.status === "processing").length
-  const pendingCount = orders.filter((o) => o.status === "pending").length
+  const total = ORDERS.reduce((s, o) => s + o.totalUsd, 0)
+  const invoiced = ORDERS.filter((o) => o.invoiceId).length
+  const drafts = ORDERS.filter((o) => o.status === "draft").length
+  const fulfilled = ORDERS.filter((o) => o.status === "fulfilled").length
 
   return (
-    <PageShell
-      title="Orders"
-      withToolbar
-      mobileTrailing={<FilterButton onClick={() => setFilterOpen(true)} count={appliedCount} />}
-    >
+    <PageShell title="Sales orders" withToolbar>
       <div className="flex flex-col gap-4">
-        <div className="-mx-4 flex gap-2.5 overflow-x-auto px-4 pb-1 scrollbar-hide snap-x snap-mandatory md:mx-0 md:grid md:grid-cols-4 md:gap-3 md:overflow-visible md:px-0">
-          {[
-            { label: "Revenue", value: `$${totalRevenue.toLocaleString()}`, tone: "brand" as StatusTone },
-            { label: "Fulfilled", value: String(fulfilledCount), tone: "success" as StatusTone },
-            { label: "Processing", value: String(processingCount), tone: "info" as StatusTone },
-            { label: "Pending", value: String(pendingCount), tone: "warning" as StatusTone },
-          ].map((t) => (
-            <div
-              key={t.label}
-              className="min-w-[140px] snap-start rounded-2xl border border-border bg-card p-3 md:min-w-0"
-            >
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{t.label}</p>
-              <p className="mt-1 text-xl font-bold tabular-nums">{t.value}</p>
-              <div className="mt-1.5">
-                <StatusBadge tone={t.tone} withDot>
-                  this period
-                </StatusBadge>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="relative min-w-[180px] flex-1">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search order # or customer…"
-              className="pl-9"
-            />
-          </div>
-          <Button variant="outline" className="hidden md:inline-flex" onClick={() => setFilterOpen(true)}>
-            <Filter className="h-4 w-4" /> Filters {appliedCount ? `(${appliedCount})` : ""}
-          </Button>
-          <Link to="/sales/orders/new" className="hidden md:inline-flex">
-            <Button>
-              <Plus className="h-4 w-4" /> New order
-            </Button>
-          </Link>
-        </div>
-
-        <FilterChips
-          chips={chips}
-          onClearAll={
-            appliedCount > 0
-              ? () => {
-                  setStatuses([])
-                  setChannels([])
-                  setPeriod("all")
-                }
-              : undefined
-          }
+        <SummaryStrip
+          tiles={[
+            { label: "Orders",     value: String(ORDERS.length),         tone: "brand",   hint: "all time" },
+            { label: "Drafts",     value: String(drafts),                tone: "warning", hint: "in progress" },
+            { label: "Invoiced",   value: String(invoiced),              tone: "info",    hint: "billed out" },
+            { label: "Open total", value: `$${total.toLocaleString()}`,  tone: "success", hint: "across pipeline" },
+          ]}
         />
 
-        {filtered.length === 0 ? (
-          <Card>
-            <CardContent className="p-0">
-              <EmptyState
-                Icon={ClipboardList}
-                title="No orders match"
-                description="Adjust filters or clear search to broaden the result set."
-              />
-            </CardContent>
-          </Card>
-        ) : isMobile ? (
-          <ul className="space-y-2">
-            {filtered.map((o) => (
-              <li key={o.id}>
-                <SwipeableRow
-                  rightActions={[
-                    { label: "Print", tone: "neutral", icon: <Printer className="h-4 w-4" />, onPress: () => {} },
-                    { label: "Cancel", tone: "danger", icon: <XCircle className="h-4 w-4" />, onPress: () => {} },
-                  ]}
-                >
-                  <Link to={`/sales/orders`} className="flex items-center gap-3 p-3">
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center justify-between gap-2">
-                        <p className="truncate text-sm font-semibold">{o.customer}</p>
-                        <p className="shrink-0 text-sm font-semibold tabular-nums">${o.total.toFixed(2)}</p>
-                      </div>
-                      <div className="mt-0.5 flex items-center justify-between gap-2 text-[11px] text-muted-foreground">
-                        <span className="truncate">
-                          <span className="font-mono">{o.id}</span> · {o.items} items · {o.channel}
-                        </span>
-                        <StatusBadge tone={statusTone[o.status]}>{o.status}</StatusBadge>
-                      </div>
-                      <div className="mt-1 text-[10px] tabular-nums text-muted-foreground">{o.date}</div>
-                    </div>
-                    <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
-                  </Link>
-                </SwipeableRow>
-              </li>
+        {/* Filters + new */}
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="-mx-4 flex gap-1.5 overflow-x-auto px-4 scrollbar-hide sm:mx-0 sm:px-0">
+            {(["all", "draft", "sent", "accepted", "invoiced", "fulfilled", "cancelled"] as const).map((f) => (
+              <button
+                key={f}
+                type="button"
+                onClick={() => setStatusFilter(f)}
+                className={cn(
+                  "shrink-0 rounded-full border px-3 py-1.5 text-xs font-semibold capitalize transition-colors",
+                  statusFilter === f
+                    ? "border-transparent bg-brand text-brand-foreground dark:bg-primary dark:text-primary-foreground"
+                    : "border-border bg-card text-muted-foreground hover:bg-accent hover:text-foreground",
+                )}
+              >
+                {f === "all" ? "All" : f}
+              </button>
             ))}
-          </ul>
-        ) : (
-          <div className="overflow-hidden rounded-xl border border-border bg-card">
-            <table className="w-full text-sm">
-              <thead className="bg-muted/40 text-left text-[11px] uppercase tracking-wider text-muted-foreground">
-                <tr>
-                  <th className="px-3 py-2.5 font-medium">Order</th>
-                  <th className="px-3 py-2.5 font-medium">Customer</th>
-                  <th className="px-3 py-2.5 font-medium">Channel</th>
-                  <th className="px-3 py-2.5 text-right font-medium">Items</th>
-                  <th className="px-3 py-2.5 text-right font-medium">Total</th>
-                  <th className="px-3 py-2.5 font-medium">Status</th>
-                  <th className="px-3 py-2.5 font-medium">Date</th>
-                  <th className="px-3 py-2.5 text-right font-medium" />
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {filtered.map((o) => (
-                  <tr key={o.id} className="transition-colors hover:bg-accent/30">
-                    <td className="px-3 py-2.5 font-mono text-xs">{o.id}</td>
-                    <td className="px-3 py-2.5 font-medium">{o.customer}</td>
-                    <td className="px-3 py-2.5 capitalize text-muted-foreground">{o.channel}</td>
-                    <td className="px-3 py-2.5 text-right tabular-nums">{o.items}</td>
-                    <td className="px-3 py-2.5 text-right tabular-nums">${o.total.toFixed(2)}</td>
-                    <td className="px-3 py-2.5">
-                      <StatusBadge tone={statusTone[o.status]} withDot>
-                        {o.status}
-                      </StatusBadge>
-                    </td>
-                    <td className="px-3 py-2.5 text-muted-foreground">{o.date}</td>
-                    <td className="px-3 py-2.5 text-right">
-                      <Button size="sm" variant="ghost" asChild>
-                        <Link to="/sales/orders">Open</Link>
-                      </Button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
           </div>
+          <div className="flex gap-2">
+            <div className="relative min-w-0 flex-1">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search number, customer…" className="pl-9" />
+            </div>
+            <Link to="/sales/orders/new" className="hidden sm:inline-flex">
+              <Button><Plus className="h-4 w-4" /> New order</Button>
+            </Link>
+          </div>
+        </div>
+
+        {/* Pipeline explainer */}
+        <div className="flex items-baseline gap-1.5">
+          <h3 className="text-sm font-semibold md:text-base">Pipeline</h3>
+          <InfoTooltip label="Order pipeline" size="xs">
+            Each row shows where the order sits in your fulfillment process —
+            Draft → Sent → Accepted → Invoiced → Paid → Fulfilled. Click an
+            order to open its invoice + record payment.
+          </InfoTooltip>
+        </div>
+
+        {filtered.length === 0 ? (
+          <EmptyState
+            Icon={ClipboardList}
+            title="No orders match"
+            description="Try a different filter or search."
+            action={
+              <Link to="/sales/orders/new">
+                <Button><Plus className="h-4 w-4" /> New order</Button>
+              </Link>
+            }
+          />
+        ) : (
+          <ul className="flex flex-col gap-2">
+            {filtered.map((o) => {
+              const invoice = invoiceByOrder(o.id)
+              return (
+                <li key={o.id}>
+                  <article className="rounded-2xl border border-border bg-card p-3 transition-colors hover:border-brand/40">
+                    <div className="flex flex-wrap items-start gap-3">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <p className="truncate text-sm font-semibold">{o.customer.name}</p>
+                          <StatusBadge tone={STATUS_TONE[o.status]} withDot>{o.status}</StatusBadge>
+                          {invoice && (
+                            <Link
+                              to={`/sales/invoices/${invoice.id}`}
+                              className="inline-flex items-center gap-1 rounded-full border border-brand/40 bg-brand-soft px-1.5 py-0.5 text-[10px] font-semibold text-brand transition-colors hover:bg-brand hover:text-brand-foreground dark:bg-primary/15 dark:text-primary"
+                            >
+                              <FileText className="h-2.5 w-2.5" /> {invoice.number}
+                            </Link>
+                          )}
+                        </div>
+                        <p className="mt-0.5 text-[11px] text-muted-foreground">
+                          <span className="font-mono">{o.number}</span> · {o.lines.length} line{o.lines.length === 1 ? "" : "s"} · {fmtDate(o.createdAt)}
+                          {o.expectedFulfillBy && <> · fulfil by {fmtDate(o.expectedFulfillBy)}</>}
+                        </p>
+                      </div>
+                      <p className="text-right text-sm font-bold tabular-nums">
+                        {fmtMoney(o.totalUsd)}
+                      </p>
+                    </div>
+
+                    {/* Pipeline row */}
+                    <ol className={cn(
+                      "mt-3 flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-hide",
+                      isMobile ? "" : "",
+                    )}>
+                      {STEPS.map((step, idx) => {
+                        const done = stepReached(o, step.key)
+                        const isLast = idx === STEPS.length - 1
+                        return (
+                          <li key={step.key} className="flex items-center gap-1.5">
+                            <span
+                              aria-label={`${step.label} ${done ? "complete" : "pending"}`}
+                              className={cn(
+                                "flex h-5 items-center gap-1 rounded-full border px-2 text-[10px] font-semibold uppercase tracking-wider",
+                                done
+                                  ? "border-emerald-500/40 bg-emerald-500/15 text-emerald-700 dark:text-emerald-300"
+                                  : "border-border bg-background text-muted-foreground",
+                              )}
+                            >
+                              {done && <Check className="h-2.5 w-2.5" />}
+                              {step.label}
+                            </span>
+                            {!isLast && (
+                              <span aria-hidden className={cn("h-0.5 w-3 sm:w-4", done ? "bg-emerald-500/40" : "bg-border")} />
+                            )}
+                          </li>
+                        )
+                      })}
+                    </ol>
+
+                    {/* Trailing action — open invoice when one exists,
+                        otherwise prompt to invoice it. */}
+                    <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-border pt-2">
+                      <p className="text-[11px] text-muted-foreground">
+                        {invoice ? (
+                          <>Balance{" "}
+                            <span className={cn("font-bold tabular-nums", invoice.balanceUsd > 0 ? "text-amber-700 dark:text-amber-300" : "text-emerald-700 dark:text-emerald-300")}>
+                              {fmtMoney(invoice.balanceUsd)}
+                            </span>{" "}
+                            on {invoice.number}
+                          </>
+                        ) : (
+                          "Not yet invoiced."
+                        )}
+                      </p>
+                      {invoice ? (
+                        <Link to={`/sales/invoices/${invoice.id}`} className="inline-flex items-center gap-1 text-xs font-semibold text-brand hover:text-brand/80 dark:text-primary">
+                          Open invoice <ArrowRight className="h-3 w-3" />
+                        </Link>
+                      ) : o.status === "accepted" ? (
+                        <Link to="/sales/invoices/new">
+                          <Button size="sm"><Plus className="h-3.5 w-3.5" /> Invoice this order</Button>
+                        </Link>
+                      ) : (
+                        <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                      )}
+                    </div>
+                  </article>
+                </li>
+              )
+            })}
+          </ul>
         )}
       </div>
-
-      <FilterSheet
-        open={filterOpen}
-        onClose={() => setFilterOpen(false)}
-        onApply={() => {
-          setStatuses(stagedStatuses)
-          setChannels(stagedChannels)
-          setPeriod(stagedPeriod)
-        }}
-        onReset={() => {
-          setStagedStatuses([])
-          setStagedChannels([])
-          setStagedPeriod("all")
-        }}
-        appliedCount={appliedCount}
-        title="Filter orders"
-      >
-        <FilterSection title="Status">
-          <FilterPillGroup
-            multi
-            options={STATUS_OPTIONS as unknown as { value: OrderStatus; label: string }[]}
-            value={stagedStatuses}
-            onChange={(v) => setStagedStatuses(Array.isArray(v) ? v : v ? [v] : [])}
-          />
-        </FilterSection>
-        <FilterSection title="Channel">
-          <FilterPillGroup
-            multi
-            options={CHANNEL_OPTIONS as unknown as { value: Channel; label: string }[]}
-            value={stagedChannels}
-            onChange={(v) => setStagedChannels(Array.isArray(v) ? v : v ? [v] : [])}
-          />
-        </FilterSection>
-        <FilterSection title="Period">
-          <FilterPillGroup
-            options={PERIOD_OPTIONS as unknown as { value: Period; label: string }[]}
-            value={stagedPeriod}
-            onChange={(v) => setStagedPeriod((v as Period) ?? "all")}
-          />
-        </FilterSection>
-      </FilterSheet>
     </PageShell>
   )
 }
