@@ -11,6 +11,7 @@ import { PWAInstaller } from "@/components/pwa-installer"
 import { NetworkBanner } from "@/components/network-banner"
 import { useNative } from "@/hooks/use-native"
 import { useBackButton } from "@/hooks/use-back-button"
+import { useDeepLinks } from "@/hooks/use-deep-links"
 import { useKeyboardHeightCapture } from "@/hooks/use-chat-keyboard"
 import { routes } from "./routes"
 
@@ -49,10 +50,12 @@ function NativeBootstrap() {
 }
 
 // Lives inside the Router so useNavigate is available. Wires Android's
-// hardware back button to React Router history + emits a toast hint on
-// the first back press at a root route.
+// hardware back button to React Router history, routes deep links
+// + app-icon shortcuts via appUrlOpen, and emits a toast hint on the
+// first back press at a root route.
 function RouterBootstrap() {
   useBackButton()
+  useDeepLinks()
   useEffect(() => {
     const onHint = () => toast("Press back again to exit", { duration: 1800 })
     window.addEventListener("pallio:back-exit-hint", onHint)

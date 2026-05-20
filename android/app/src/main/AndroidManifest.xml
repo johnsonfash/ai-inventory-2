@@ -18,6 +18,35 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
+            <!-- App-icon shortcuts (long-press launcher icon) — see
+                 res/xml/shortcuts.xml for the four definitions. -->
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
+
+            <!-- Custom scheme: app.pallio://<path> — used by iOS
+                 shortcuts (converted in AppDelegate) and any device
+                 that doesn't support universal links. -->
+            <intent-filter android:autoVerify="false">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="app.pallio" />
+            </intent-filter>
+
+            <!-- Universal links: https://pallio.app/* — autoVerify=true
+                 requires a /.well-known/assetlinks.json on the domain.
+                 Until that file is published, the OS treats this as a
+                 normal intent-filter (user gets the "open with" picker
+                 on the first deep link). See CAPACITOR.md for the
+                 assetlinks.json fingerprint format. -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" android:host="pallio.app" />
+            </intent-filter>
         </activity>
 
         <provider

@@ -4,6 +4,22 @@
 <dict>
     <key>CAPACITOR_DEBUG</key>
 	<string>$(CAPACITOR_DEBUG)</string>
+	<!-- Custom URL scheme: app.pallio://<path> — used by app-icon
+	     shortcuts (translated in AppDelegate to a deep link the
+	     JS appUrlOpen listener routes). -->
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>app.pallio</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>app.pallio</string>
+			</array>
+		</dict>
+	</array>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
