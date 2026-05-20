@@ -153,13 +153,27 @@ export default defineConfig({
           // Capacitor runtime — only loaded inside the native shell.
           if (id.includes("/@capacitor/")) return "capacitor-vendor"
 
-          // Core React stays in the main bundle — small + on every page.
-          // Splitting it can trigger cross-chunk init cycles on iOS Safari
-          // (see sleekr's vite.config notes — same WKWebView lives inside
-          // our Capacitor build).
-          if (id.includes("/react/") || id.includes("/react-dom/") || id.includes("/react-router")) {
-            return undefined
-          }
+          // Core React + react-dom + scheduler + the JSX runtime go in
+          // their own dedicated chunk. Every other vendor chunk depends
+          // on this one, so the browser loads it first deterministically.
+          //
+          // Earlier we tried returning `undefined` here to keep React in
+          // the main entry. Rollup interpreted that as "you decide" and
+          // co-located React with query-vendor (the first vendor chunk
+          // to import it). Other vendor chunks (lucide-react etc.) then
+          // imported React via the query-vendor module — and on cold
+          // load, evaluating an icon-using module before query-vendor
+          // finished initialising raised `Cannot read properties of
+          // undefined (reading 'forwardRef')`. Pinning React to its own
+          // named chunk makes the dep graph explicit.
+          if (
+            id.includes("/react/") ||
+            id.includes("/react-dom/") ||
+            id.includes("/scheduler/") ||
+            id.includes("/react/jsx-runtime") ||
+            id.includes("/react/jsx-dev-runtime")
+          ) return "react-vendor"
+          if (id.includes("/react-router") || id.includes("/@remix-run/router/")) return "react-vendor"
 
           // Everything else: one shared vendor chunk. Lumped so we don't
           // fragment too far.
