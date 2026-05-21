@@ -3,6 +3,8 @@ import { Link } from "react-router-dom"
 import { ArrowDownLeft, ArrowUpRight, ChevronRight, Receipt, RotateCcw, Search } from "lucide-react"
 import { PageShell } from "@/components/page-shell"
 import { Input } from "@/components/ui/input"
+import { Card, CardContent } from "@/components/ui/card"
+import { useIsMobile } from "@/hooks/use-mobile"
 import { useRegisterPageRefresh } from "@/hooks/use-pull-to-refresh"
 import { EmptyState } from "@/components/lists/empty-state"
 import { StatusBadge } from "@/components/lists/status-badge"
@@ -31,6 +33,7 @@ function relTime(ms: number) {
 }
 
 export default function TransactionsPage() {
+  const isMobile = useIsMobile()
   const [query, setQuery] = React.useState("")
   const [filter, setFilter] = React.useState<"all" | "invoice" | "return">("all")
   const [rows, setRows] = React.useState<Row[]>(() => loadRows())
@@ -113,7 +116,7 @@ export default function TransactionsPage() {
             title={rows.length === 0 ? "No transactions yet" : "No transactions match"}
             description={rows.length === 0 ? "Make a sale at the POS to see transactions here." : "Try a different search or filter."}
           />
-        ) : (
+        ) : isMobile ? (
           <ul className="space-y-2">
             {filtered.map((r) => {
               const isInvoice = r.type === "invoice"
@@ -158,6 +161,67 @@ export default function TransactionsPage() {
               )
             })}
           </ul>
+        ) : (
+          // Desktop: dense table
+          <Card>
+            <CardContent className="p-0">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="bg-muted/40 text-left text-[10px] uppercase tracking-wider text-muted-foreground">
+                    <tr>
+                      <th className="px-3 py-2.5 font-medium">Type</th>
+                      <th className="px-3 py-2.5 font-medium">Number</th>
+                      <th className="px-3 py-2.5 font-medium">When</th>
+                      <th className="px-3 py-2.5 font-medium">Customer</th>
+                      <th className="px-3 py-2.5 text-right font-medium">Amount</th>
+                      <th className="px-3 py-2.5 text-right font-medium" />
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {filtered.map((r) => {
+                      const isInvoice = r.type === "invoice"
+                      return (
+                        <tr key={`${r.type}-${r.id}`} className="transition-colors hover:bg-accent/30">
+                          <td className="px-3 py-2.5">
+                            <StatusBadge tone={isInvoice ? "success" : "danger"}>
+                              {isInvoice ? <Receipt className="h-3 w-3" /> : <RotateCcw className="h-3 w-3" />}
+                              {isInvoice ? "sale" : "refund"}
+                            </StatusBadge>
+                          </td>
+                          <td className="px-3 py-2.5">
+                            <Link
+                              to={isInvoice ? `/pos/invoices/${r.id}` : `/pos/returns/${r.id}`}
+                              className="font-mono text-xs font-bold text-brand hover:underline dark:text-primary"
+                            >
+                              {r.number}
+                            </Link>
+                          </td>
+                          <td className="px-3 py-2.5 text-xs text-muted-foreground">
+                            {new Date(r.date).toLocaleString()} <span className="text-muted-foreground/60">· {relTime(r.date)}</span>
+                          </td>
+                          <td className="px-3 py-2.5 text-xs">{r.customerName}</td>
+                          <td className={cn(
+                            "px-3 py-2.5 text-right text-xs font-bold tabular-nums",
+                            isInvoice ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400",
+                          )}>
+                            {isInvoice ? "+" : "−"}{formatPrice(Math.abs(r.total))}
+                          </td>
+                          <td className="px-3 py-2.5 text-right">
+                            <Link
+                              to={isInvoice ? `/pos/invoices/${r.id}` : `/pos/returns/${r.id}`}
+                              className="inline-flex items-center text-xs font-semibold text-brand hover:underline dark:text-primary"
+                            >
+                              View <ChevronRight className="h-3.5 w-3.5" />
+                            </Link>
+                          </td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </CardContent>
+          </Card>
         )}
       </div>
     </PageShell>

@@ -10,6 +10,7 @@ import { EmptyState } from "@/components/lists/empty-state"
 import { StatusBadge } from "@/components/lists/status-badge"
 import { SummaryStrip } from "@/components/lists/summary-strip"
 import { SwipeableRow } from "@/components/mobile/swipeable-row"
+import { OnboardingNudge } from "@/components/onboarding/onboarding-nudge"
 import { deleteDraft, listDrafts, type Draft } from "@/lib/pos/storage"
 import { useCurrency } from "@/contexts/currency"
 
@@ -67,6 +68,7 @@ export default function DraftsPage() {
       }
     >
       <div className="flex flex-col gap-4">
+        <OnboardingNudge stepKey="first-sale" cta="Make first sale" />
         <SummaryStrip
           tiles={[
             { label: "Drafts", value: String(drafts.length), tone: "brand", hint: "held" },
