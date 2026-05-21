@@ -39,7 +39,7 @@ export function CelebrationModal({ open, onClose }: { open: boolean; onClose: ()
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         transition={{ duration: 0.2 }}
-        className="fixed inset-0 z-[130] flex items-end justify-center bg-black/60 backdrop-blur-sm p-3 sm:items-center"
+        className="fixed inset-0 z-[130] flex items-center justify-center overflow-y-auto bg-black/60 px-3 pb-24 pt-6 backdrop-blur-sm sm:pb-3 sm:pt-3"
         role="alertdialog"
         aria-modal="true"
         aria-label="You're all set"
@@ -76,7 +76,7 @@ export function CelebrationModal({ open, onClose }: { open: boolean; onClose: ()
           animate={{ y: 0, opacity: 1, scale: 1 }}
           exit={{ y: 24, opacity: 0, scale: 0.96 }}
           transition={{ type: "spring", damping: 24, stiffness: 280 }}
-          className="relative w-full max-w-md overflow-hidden rounded-3xl border border-border bg-card shadow-2xl shadow-black/40"
+          className="relative my-auto w-full max-w-md overflow-hidden rounded-3xl border border-border bg-card shadow-2xl shadow-black/40"
           onClick={(e) => e.stopPropagation()}
         >
           <div className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-gradient-to-br from-emerald-400/40 via-brand/30 to-transparent blur-3xl" aria-hidden />

@@ -67,7 +67,7 @@ export function FirstRunModal() {
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         transition={{ duration: 0.18 }}
-        className="fixed inset-0 z-[120] flex items-end justify-center bg-black/60 backdrop-blur-sm p-3 sm:items-center"
+        className="fixed inset-0 z-[120] flex items-center justify-center overflow-y-auto bg-black/60 px-3 pb-24 pt-6 backdrop-blur-sm sm:pb-3 sm:pt-3"
         role="dialog"
         aria-modal="true"
         aria-label="Welcome to Pallio"
@@ -77,7 +77,7 @@ export function FirstRunModal() {
           animate={{ y: 0, opacity: 1, scale: 1 }}
           exit={{ y: 24, opacity: 0, scale: 0.97 }}
           transition={{ type: "spring", damping: 26, stiffness: 280 }}
-          className="relative w-full max-w-lg overflow-hidden rounded-3xl border border-border bg-card shadow-2xl shadow-black/40 sm:rounded-3xl"
+          className="relative my-auto w-full max-w-lg overflow-hidden rounded-3xl border border-border bg-card shadow-2xl shadow-black/40"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Brand glow */}
