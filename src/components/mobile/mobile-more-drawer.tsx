@@ -25,12 +25,12 @@ type Props = {
 // State resets on close so the next open always starts at ROOT.
 
 const grid = {
-  open:   { transition: { staggerChildren: 0.018, delayChildren: 0.04 } },
+  open:   { transition: { staggerChildren: 0.012, delayChildren: 0.02 } },
   closed: {},
 }
 const tile = {
-  open:   { opacity: 1, y: 0, transition: { type: "spring" as const, damping: 22, stiffness: 280 } },
-  closed: { opacity: 0, y: 8 },
+  open:   { opacity: 1, y: 0, transition: { duration: 0.18, ease: [0.32, 0.72, 0, 1] as const } },
+  closed: { opacity: 0, y: 6 },
 }
 
 export function MobileMoreDrawer({ open, onClose }: Props) {
@@ -86,13 +86,14 @@ export function MobileMoreDrawer({ open, onClose }: Props) {
     )
   }, [query, allTargets])
 
-  // Slide variants — used by the AnimatePresence swap between ROOT
-  // and SECTION views.
+  // Slide variants — iOS-style ease curve + short duration for a
+  // snappy native feel (was a spring, felt sluggish at ~250ms).
   const slide = {
-    enter:  (dir: 1 | -1) => ({ x: dir > 0 ? 40 : -40, opacity: 0 }),
+    enter:  (dir: 1 | -1) => ({ x: dir > 0 ? 24 : -24, opacity: 0 }),
     center: { x: 0, opacity: 1 },
-    exit:   (dir: 1 | -1) => ({ x: dir > 0 ? -40 : 40, opacity: 0 }),
+    exit:   (dir: 1 | -1) => ({ x: dir > 0 ? -24 : 24, opacity: 0 }),
   }
+  const slideTransition = { duration: 0.16, ease: [0.32, 0.72, 0, 1] as const }
 
   return (
     <BottomSheet
@@ -129,7 +130,7 @@ export function MobileMoreDrawer({ open, onClose }: Props) {
 
       {filtered ? (
         // ---- SEARCH: flat global results, ignores drill state ----
-        <ul className="divide-y divide-border rounded-xl border border-border bg-muted/30">
+        <ul className="mb-10 divide-y divide-border rounded-xl border border-border bg-muted/30">
           {filtered.length === 0 && (
             <li className="px-4 py-6 text-center text-sm text-muted-foreground">No matches</li>
           )}
@@ -170,7 +171,8 @@ export function MobileMoreDrawer({ open, onClose }: Props) {
               initial="enter"
               animate="center"
               exit="exit"
-              transition={{ type: "spring", damping: 26, stiffness: 280 }}
+              transition={slideTransition}
+              className="pb-10"
             >
               {/* Hero card for this section */}
               <div className="mb-3 flex items-center gap-3 rounded-2xl border border-brand/30 bg-brand-soft/40 p-3 dark:bg-primary/10">
@@ -213,7 +215,8 @@ export function MobileMoreDrawer({ open, onClose }: Props) {
               initial="enter"
               animate="center"
               exit="exit"
-              transition={{ type: "spring", damping: 26, stiffness: 280 }}
+              transition={slideTransition}
+              className="pb-10"
             >
               <motion.ul
                 className="grid grid-cols-3 gap-2.5 sm:grid-cols-4"
