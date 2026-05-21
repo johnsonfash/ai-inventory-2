@@ -285,7 +285,12 @@ export default function PointOfSale() {
                 <PosQuickChip Icon={Settings2} label={`${mode} · ${location}`} onClick={() => setSettingsOpen(true)} />
               </div>
 
-              <div className="rounded-2xl border border-border bg-card p-3">
+              {/* Sticky on desktop at top-20 — same offset as the
+                  CartPanel, so the scan card stays reachable while
+                  the cashier scrolls the catalog. z-20 keeps it
+                  above the catalog's own sticky search bar which
+                  pins right below it (see CatalogGrid). */}
+              <div className="sticky top-20 z-20 rounded-2xl border border-border bg-card p-3 shadow-sm">
                 <div className="flex items-center gap-2">
                   <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-soft text-brand dark:bg-primary/15 dark:text-primary">
                     <Barcode className="h-4 w-4" />

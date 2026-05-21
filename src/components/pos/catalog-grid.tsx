@@ -52,10 +52,11 @@ export function CatalogGrid({ catalog, onAdd, cart, onScanRequest, onOverflowReq
           catalog so search + category filters are always reachable.
           - Mobile: top-0 (right under the mobile top bar; <main> is
             already below the top bar so top-0 is correct).
-          - Desktop: top-20 to match the CartPanel's sticky offset
-            (cart-panel.tsx uses sticky top-20). Both sit on the same
-            horizontal line as you scroll. */}
-      <div className="sticky top-0 z-10 -mx-4 border-b border-border bg-background px-4 pt-2 pb-2 md:top-20 md:mx-0 md:px-0 md:pt-1 md:pb-3">
+          - Desktop: top-48 (192px) so it stacks BELOW the sticky
+            scan card (which pins at top-20 = 80px and is ~104px
+            tall). The two form a layered sticky header — scan card
+            on top, search + chips below it. */}
+      <div className="sticky top-0 z-10 -mx-4 border-b border-border bg-background px-4 pt-2 pb-2 md:top-48 md:mx-0 md:px-0 md:pt-1 md:pb-3">
         <div className="flex items-stretch gap-1.5">
           {/* Mobile scan launcher — only renders when parent provides
               the callback (mobile POS does). Brand-filled to read as
