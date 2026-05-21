@@ -130,7 +130,7 @@ export function MobileMoreDrawer({ open, onClose }: Props) {
 
       {filtered ? (
         // ---- SEARCH: flat global results, ignores drill state ----
-        <ul className="mb-10 divide-y divide-border rounded-xl border border-border bg-muted/30">
+        <ul className="divide-y divide-border rounded-xl border border-border bg-muted/30">
           {filtered.length === 0 && (
             <li className="px-4 py-6 text-center text-sm text-muted-foreground">No matches</li>
           )}
@@ -172,7 +172,6 @@ export function MobileMoreDrawer({ open, onClose }: Props) {
               animate="center"
               exit="exit"
               transition={slideTransition}
-              className="pb-10"
             >
               {/* Hero card for this section */}
               <div className="mb-3 flex items-center gap-3 rounded-2xl border border-brand/30 bg-brand-soft/40 p-3 dark:bg-primary/10">
@@ -216,7 +215,6 @@ export function MobileMoreDrawer({ open, onClose }: Props) {
               animate="center"
               exit="exit"
               transition={slideTransition}
-              className="pb-10"
             >
               <motion.ul
                 className="grid grid-cols-3 gap-2.5 sm:grid-cols-4"

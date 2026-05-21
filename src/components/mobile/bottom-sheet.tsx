@@ -161,21 +161,24 @@ export function BottomSheet({
             {/* Body — `pwa-bottom` adds the iOS home-indicator inset
                 so the last form field can't sit under the safe area.
                 When there's a footer, that footer carries the inset
-                instead and the body just gets a normal pb-4. Per-
-                consumer overrides (e.g. extra mb-X / pb-X on inner
-                content) handle their own breathing room. */}
+                instead. pb-10 gives no-footer sheets ~40px of
+                breathing room below the last item (visible at
+                scroll-bottom). */}
             <div
               className={cn(
                 "flex-1 overflow-y-auto px-5",
-                footer ? "pb-4" : "pb-4 pwa-bottom",
+                footer ? "pb-4" : "pb-10 pwa-bottom",
               )}
             >
               {children}
             </div>
 
-            {/* Footer (sticky, safe-area aware) */}
+            {/* Footer (sticky, safe-area aware). pt-3 keeps the top
+                tight against the divider; pb-6 + pwa-bottom give
+                generous breathing room below the action row on web
+                (where the iOS safe-area inset is 0). */}
             {footer && (
-              <div className="border-t border-border bg-card/95 px-5 py-3 pwa-bottom backdrop-blur">
+              <div className="border-t border-border bg-card/95 px-5 pt-3 pb-6 pwa-bottom backdrop-blur">
                 {footer}
               </div>
             )}

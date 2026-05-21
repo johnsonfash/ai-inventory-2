@@ -434,7 +434,7 @@ export default function PointOfSale() {
         description={`Mode: ${mode} · ${location}`}
         maxHeightVh={60}
       >
-        <ul className="mb-6 divide-y divide-border rounded-xl border border-border bg-card">
+        <ul className="divide-y divide-border rounded-xl border border-border bg-card">
           {[
             { Icon: Layers,         label: "Drafts",        hint: "Held carts you can resume.",  onClick: () => { setMobileOverflowOpen(false); navigate("/pos/drafts") } },
             { Icon: ClipboardList,  label: "Invoices",      hint: "Past sales + receipts.",       onClick: () => { setMobileOverflowOpen(false); navigate("/pos/invoices") } },
