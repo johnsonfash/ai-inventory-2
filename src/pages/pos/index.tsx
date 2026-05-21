@@ -264,63 +264,63 @@ export default function PointOfSale() {
       }
     >
       <div className="flex flex-col gap-3 md:gap-4">
-        {/* Desktop: quick action strip + full scan bar.
-            Mobile: compact unified search/scan/menu row — see below. */}
-        <div className="hidden md:flex md:flex-col md:gap-4">
-          <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 scrollbar-hide md:mx-0 md:px-0">
-            <PosQuickChip Icon={Layers} label="Drafts" onClick={() => navigate("/pos/drafts")} />
-            <PosQuickChip Icon={ClipboardList} label="Invoices" onClick={() => navigate("/pos/invoices")} />
-            <PosQuickChip Icon={RotateCcw} label="Returns" onClick={() => navigate("/pos/returns")} />
-            <PosQuickChip Icon={Settings2} label={`${mode} · ${location}`} onClick={() => setSettingsOpen(true)} />
-          </div>
+        {/* Layout: the catalog column (chips + scan card on desktop +
+            catalog grid) and the cart panel share the SAME row, so
+            both shrink with `1fr` as the viewport narrows.  The chips
+            and scan card now live INSIDE the 1fr column instead of
+            spanning the whole page width — this way the scan card,
+            search input, and catalog all line up at the same width
+            and resize in lockstep. */}
+        <div className="grid gap-4 xl:grid-cols-[1fr_360px]">
+          {/* Catalog column */}
+          <div className="flex min-w-0 flex-col gap-3 md:gap-4">
+            {/* Desktop-only: quick action chips + full scan card.
+                Mobile renders these via the compact bar inside
+                CatalogGrid. */}
+            <div className="hidden md:flex md:flex-col md:gap-4">
+              <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 scrollbar-hide md:mx-0 md:px-0">
+                <PosQuickChip Icon={Layers} label="Drafts" onClick={() => navigate("/pos/drafts")} />
+                <PosQuickChip Icon={ClipboardList} label="Invoices" onClick={() => navigate("/pos/invoices")} />
+                <PosQuickChip Icon={RotateCcw} label="Returns" onClick={() => navigate("/pos/returns")} />
+                <PosQuickChip Icon={Settings2} label={`${mode} · ${location}`} onClick={() => setSettingsOpen(true)} />
+              </div>
 
-          <div className="rounded-2xl border border-border bg-card p-3">
-            <div className="flex items-center gap-2">
-              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-soft text-brand dark:bg-primary/15 dark:text-primary">
-                <Barcode className="h-4 w-4" />
-              </span>
-              <div className="flex-1">
-                <BarcodeScannerInput captureGlobal={globalScan} onScan={addByBarcode} />
+              <div className="rounded-2xl border border-border bg-card p-3">
+                <div className="flex items-center gap-2">
+                  <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-soft text-brand dark:bg-primary/15 dark:text-primary">
+                    <Barcode className="h-4 w-4" />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <BarcodeScannerInput captureGlobal={globalScan} onScan={addByBarcode} />
+                  </div>
+                </div>
+                <Input
+                  placeholder="…or type SKU / name and press Enter"
+                  className="mt-2"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      const v = (e.target as HTMLInputElement).value.trim()
+                      if (v) {
+                        addByBarcode(v)
+                        ;(e.target as HTMLInputElement).value = ""
+                      }
+                    }
+                  }}
+                />
               </div>
             </div>
-            <Input
-              placeholder="…or type SKU / name and press Enter"
-              className="mt-2"
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  const v = (e.target as HTMLInputElement).value.trim()
-                  if (v) {
-                    addByBarcode(v)
-                    ;(e.target as HTMLInputElement).value = ""
-                  }
-                }
-              }}
+
+            <CatalogGrid
+              catalog={catalog}
+              onAdd={addItem}
+              businessMode={mode}
+              cart={cart}
+              onScanRequest={() => setMobileScanOpen(true)}
+              onOverflowRequest={() => setMobileOverflowOpen(true)}
             />
           </div>
-        </div>
 
-        {/* Mobile scan + overflow are merged INTO the CatalogGrid's
-            sticky search bar below — see onScanRequest /
-            onOverflowRequest props. That keeps the mobile top region
-            to a single sticky bar instead of two near-identical
-            search inputs. */}
-
-        {/* Catalog + cart panel. The 360px cart panel only renders at
-            xl+ (1280px) — below that the screen isn't wide enough to
-            host both comfortably without clipping, so we fall back to
-            the persistent mobile-style cart bar at the bottom. This
-            covers smaller laptop screens cleanly. */}
-        <div className="grid gap-4 xl:grid-cols-[1fr_360px]">
-          <CatalogGrid
-            catalog={catalog}
-            onAdd={addItem}
-            businessMode={mode}
-            cart={cart}
-            onScanRequest={() => setMobileScanOpen(true)}
-            onOverflowRequest={() => setMobileOverflowOpen(true)}
-          />
-
-          <aside className="hidden xl:block">
+          <aside className="hidden min-w-0 xl:block">
             <CartPanel
               cart={cart}
               customer={customer}
