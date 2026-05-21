@@ -48,14 +48,14 @@ export function CatalogGrid({ catalog, onAdd, cart, onScanRequest, onOverflowReq
     // pb-32 on mobile so the persistent cart bar (~64px) + bottom nav
     // (~64px) don't cover the last list item.
     <div className="flex flex-col gap-3 pb-32 md:pb-0">
-      {/* Sticky search header on mobile so it stays visible while
-          scrolling. The scroll container is <main>, which sits BELOW
-          the mobile top bar (the top bar is a sibling, not an
-          ancestor). So sticky top-0 pins this bar at main's visible
-          top — which is right under the page header. The earlier
-          `top-14` (56px) was wrong: it pinned 56px below main's
-          visible top, i.e. ~56px below the page header. */}
-      <div className="sticky top-0 z-10 -mx-4 border-b border-border bg-background px-4 pt-2 pb-2 md:static md:mx-0 md:border-0 md:px-0 md:py-0">
+      {/* Sticky search header — pins while the user scrolls the
+          catalog so search + category filters are always reachable.
+          - Mobile: top-0 (right under the mobile top bar; <main> is
+            already below the top bar so top-0 is correct).
+          - Desktop: top-20 to match the CartPanel's sticky offset
+            (cart-panel.tsx uses sticky top-20). Both sit on the same
+            horizontal line as you scroll. */}
+      <div className="sticky top-0 z-10 -mx-4 border-b border-border bg-background px-4 pt-2 pb-2 md:top-20 md:mx-0 md:px-0 md:pt-1 md:pb-3">
         <div className="flex items-stretch gap-1.5">
           {/* Mobile scan launcher — only renders when parent provides
               the callback (mobile POS does). Brand-filled to read as
