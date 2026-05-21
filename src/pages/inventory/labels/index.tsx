@@ -109,9 +109,10 @@ export default function LabelPrint() {
                 <span className="text-[10px] uppercase text-muted-foreground">Qty</span>
                 <Input
                   type="number"
+                  placeholder="0"
                   min={1}
-                  value={i.qty}
-                  onChange={(e) => setQty(i.sku, Number(e.target.value) || 1)}
+                  value={i.qty === 0 ? "" : i.qty}
+                  onChange={(e) => setQty(i.sku, e.target.value === "" ? 0 : Number(e.target.value) || 1)}
                   className="h-9 w-16 text-center"
                 />
               </div>

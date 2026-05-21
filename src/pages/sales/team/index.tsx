@@ -111,8 +111,9 @@ export default function TeamPerformancePage() {
               <span className="text-xs text-muted-foreground">Commission</span>
               <Input
                 type="number"
-                value={commissionRate}
-                onChange={(e) => setCommissionRate(Math.max(0, Number(e.target.value) || 0))}
+                placeholder="0"
+                value={commissionRate === 0 ? "" : commissionRate}
+                onChange={(e) => setCommissionRate(e.target.value === "" ? 0 : Math.max(0, Number(e.target.value) || 0))}
                 className="h-7 w-14 border-0 bg-transparent p-0 text-right text-sm focus-visible:ring-0"
               />
               <span className="text-xs text-muted-foreground">%</span>

@@ -168,8 +168,8 @@ export function CheckoutSheet({
                     <span className="text-sm text-muted-foreground">{symbol}</span>
                     <input
                       type="number"
-                      value={p.amount}
-                      onChange={(e) => onUpdatePayment(idx, { amount: Number(e.target.value) || 0 })}
+                      value={p.amount === 0 ? "" : p.amount}
+                      onChange={(e) => onUpdatePayment(idx, { amount: e.target.value === "" ? 0 : Number(e.target.value) || 0 })}
                       placeholder="0.00"
                       className="h-full w-full bg-transparent px-2 text-sm outline-none"
                     />

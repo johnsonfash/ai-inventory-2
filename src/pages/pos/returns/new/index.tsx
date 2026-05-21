@@ -154,11 +154,12 @@ export default function NewReturnPage() {
                       <Input
                         className="w-20 text-right"
                         type="number"
+                        placeholder="0"
                         min={0}
                         max={it.qty}
-                        value={qtys[it.sku] || 0}
+                        value={(qtys[it.sku] || 0) === 0 ? "" : qtys[it.sku]}
                         onChange={(e) => {
-                          const v = Math.min(it.qty, Math.max(0, Number(e.target.value) || 0))
+                          const v = e.target.value === "" ? 0 : Math.min(it.qty, Math.max(0, Number(e.target.value) || 0))
                           setQtys((q) => ({ ...q, [it.sku]: v }))
                         }}
                       />

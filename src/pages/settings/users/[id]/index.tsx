@@ -478,8 +478,8 @@ function CommissionSettings({ member, isAffiliate }: { member: CommissionMember;
             type="number"
             min={0}
             step={10000}
-            value={bonusPool}
-            onChange={(e) => setBonusPool(Math.max(0, parseInt(e.target.value || "0", 10)))}
+            value={bonusPool === 0 ? "" : bonusPool}
+            onChange={(e) => setBonusPool(e.target.value === "" ? 0 : Math.max(0, parseInt(e.target.value || "0", 10)))}
             placeholder="0"
             className="mt-2.5 w-full rounded-md border border-input bg-transparent px-3 py-1.5 text-sm outline-none focus:border-brand"
           />
@@ -515,11 +515,12 @@ function CommissionSettings({ member, isAffiliate }: { member: CommissionMember;
                 <div className="flex items-center gap-1">
                   <input
                     type="number"
+                    placeholder="0"
                     min={0}
                     max={50}
                     step={0.5}
-                    value={o.rate}
-                    onChange={(e) => setOverrides(overrides.map((x, idx) => idx === i ? { ...x, rate: parseFloat(e.target.value || "0") } : x))}
+                    value={o.rate === 0 ? "" : o.rate}
+                    onChange={(e) => setOverrides(overrides.map((x, idx) => idx === i ? { ...x, rate: e.target.value === "" ? 0 : parseFloat(e.target.value || "0") } : x))}
                     className="w-20 rounded-md border border-input bg-transparent px-2 py-1.5 text-right text-sm tabular-nums outline-none focus:border-brand"
                   />
                   <span className="text-sm font-semibold text-muted-foreground">%</span>

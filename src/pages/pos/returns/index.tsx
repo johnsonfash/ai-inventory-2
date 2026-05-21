@@ -130,14 +130,15 @@ export default function CreateReturnPage() {
                           <TableCell className="text-right">
                             <Input
                               type="number"
+                              placeholder="0"
                               className="w-20 text-right"
-                              value={q}
+                              value={q === 0 ? "" : q}
                               min={0}
                               max={max}
                               onChange={(e) =>
                                 setQtys((prev) => ({
                                   ...prev,
-                                  [it.sku]: Math.max(0, Math.min(Number(e.target.value) || 0, max)),
+                                  [it.sku]: e.target.value === "" ? 0 : Math.max(0, Math.min(Number(e.target.value) || 0, max)),
                                 }))
                               }
                             />

@@ -242,7 +242,7 @@ export default function InviteMember() {
             </FormField>
             <FormField label="Commission rate">
               <InputAddon trailing="%">
-                <input type="number" step="0.5" min={0} max={100} value={commissionPct} onChange={(e) => setCommissionPct(Number(e.target.value) || 0)} />
+                <input type="number" placeholder="0" step="0.5" min={0} max={100} value={commissionPct === 0 ? "" : commissionPct} onChange={(e) => setCommissionPct(e.target.value === "" ? 0 : Number(e.target.value) || 0)} />
               </InputAddon>
             </FormField>
           </FormGrid>

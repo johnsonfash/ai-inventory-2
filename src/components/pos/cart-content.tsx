@@ -92,9 +92,10 @@ export function CartContent({
                   </button>
                   <input
                     type="number"
-                    value={c.qty}
+                    placeholder="0"
+                    value={c.qty === 0 ? "" : c.qty}
                     min={0}
-                    onChange={(e) => onUpdateQty(c.sku, Number(e.target.value) || 0)}
+                    onChange={(e) => onUpdateQty(c.sku, e.target.value === "" ? 0 : Number(e.target.value) || 0)}
                     className="h-8 w-12 border-0 bg-transparent text-center text-sm tabular-nums outline-none"
                   />
                   <button
@@ -149,8 +150,9 @@ export function CartContent({
             <Input
               className="h-8 w-20 text-right text-xs"
               type="number"
-              value={discount}
-              onChange={(e) => onDiscountChange(Math.max(0, Number(e.target.value) || 0))}
+              placeholder="0"
+              value={discount === 0 ? "" : discount}
+              onChange={(e) => onDiscountChange(e.target.value === "" ? 0 : Math.max(0, Number(e.target.value) || 0))}
               min={0}
               step="0.01"
             />
@@ -233,8 +235,9 @@ function ExtraRow({
         {prefix && <span className="text-muted-foreground">{prefix}</span>}
         <Input
           type="number"
-          value={value}
-          onChange={(e) => onChange(Number(e.target.value) || 0)}
+          placeholder="0"
+          value={value === 0 ? "" : value}
+          onChange={(e) => onChange(e.target.value === "" ? 0 : Number(e.target.value) || 0)}
           min={0}
           step={step}
           className="h-8 w-20 text-right text-xs"

@@ -22,23 +22,24 @@ export function CommissionCalculator({ totalRevenue = 0 }: { totalRevenue?: numb
         <div className="grid grid-cols-2 gap-3">
           <label className="text-sm">
             <div className="text-muted-foreground">Commission %</div>
-            <Input type="number" value={rate} onChange={(e) => setRate(Math.max(0, Number(e.target.value) || 0))} />
+            <Input type="number" placeholder="0" value={rate === 0 ? "" : rate} onChange={(e) => setRate(e.target.value === "" ? 0 : Math.max(0, Number(e.target.value) || 0))} />
           </label>
           <label className="text-sm">
             <div className="text-muted-foreground">Bonus Threshold</div>
             <Input
               type="number"
-              value={bonusThreshold}
-              onChange={(e) => setBonusThreshold(Number(e.target.value) || 0)}
+              placeholder="0"
+              value={bonusThreshold === 0 ? "" : bonusThreshold}
+              onChange={(e) => setBonusThreshold(e.target.value === "" ? 0 : Number(e.target.value) || 0)}
             />
           </label>
           <label className="text-sm">
             <div className="text-muted-foreground">Bonus</div>
-            <Input type="number" value={bonus} onChange={(e) => setBonus(Number(e.target.value) || 0)} />
+            <Input type="number" placeholder="0" value={bonus === 0 ? "" : bonus} onChange={(e) => setBonus(e.target.value === "" ? 0 : Number(e.target.value) || 0)} />
           </label>
           <label className="text-sm">
             <div className="text-muted-foreground">Revenue</div>
-            <Input type="number" value={totalRevenue} readOnly />
+            <Input type="number" placeholder="0" value={totalRevenue === 0 ? "" : totalRevenue} readOnly />
           </label>
         </div>
         <div className="rounded-md border p-3">

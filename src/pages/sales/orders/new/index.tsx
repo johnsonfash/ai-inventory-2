@@ -166,9 +166,10 @@ export default function NewOrder() {
                 <FormField label="Qty" required>
                   <Input
                     type="number"
+                    placeholder="0"
                     min={1}
-                    value={l.qty}
-                    onChange={(e) => update(l.id, { qty: Number(e.target.value) || 0 })}
+                    value={l.qty === 0 ? "" : l.qty}
+                    onChange={(e) => update(l.id, { qty: e.target.value === "" ? 0 : Number(e.target.value) || 0 })}
                     required
                   />
                 </FormField>
@@ -176,9 +177,10 @@ export default function NewOrder() {
                   <InputAddon leading={symbol}>
                     <input
                       type="number"
+                      placeholder="0"
                       step="0.01"
-                      value={l.price}
-                      onChange={(e) => update(l.id, { price: Number(e.target.value) || 0 })}
+                      value={l.price === 0 ? "" : l.price}
+                      onChange={(e) => update(l.id, { price: e.target.value === "" ? 0 : Number(e.target.value) || 0 })}
                       required
                     />
                   </InputAddon>

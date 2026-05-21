@@ -113,9 +113,10 @@ export default function NewComposite() {
                 <FormField label="Quantity" required>
                   <Input
                     type="number"
+                    placeholder="0"
                     min={1}
-                    value={c.qty}
-                    onChange={(e) => update(c.id, { qty: Math.max(1, Number(e.target.value) || 1) })}
+                    value={c.qty === 0 ? "" : c.qty}
+                    onChange={(e) => update(c.id, { qty: e.target.value === "" ? 0 : Math.max(1, Number(e.target.value) || 1) })}
                     required
                   />
                 </FormField>
