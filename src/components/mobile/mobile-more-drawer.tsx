@@ -1,6 +1,7 @@
 import * as React from "react"
+import { AnimatePresence, motion } from "framer-motion"
 import { Link, useLocation } from "react-router-dom"
-import { ChevronRight, ChevronDown, Search } from "lucide-react"
+import { ChevronLeft, ChevronRight, Search } from "lucide-react"
 import { NAV } from "@/lib/nav"
 import { Input } from "@/components/ui/input"
 import { BottomSheet } from "@/components/mobile/bottom-sheet"
@@ -11,53 +12,58 @@ type Props = {
   onClose: () => void
 }
 
-// Mobile "More" drawer — renders every navigation target the desktop
-// sidebar has, organised as collapsible groups with their sub-items.
+// Mobile "More" drawer — Stripe / Square pattern.
 //
-// Layout choices:
-//   - Search at the top flattens to a single filtered list.
-//   - Each group with `sub` items renders as an accordion section:
-//     tap the header to expand/collapse. The user's CURRENT group
-//     auto-opens so they're already looking at where they are.
-//   - Leaf items (Dashboard, AI Assistant, Notifications, etc. —
-//     no sub array) render as direct links with the same row chrome
-//     so the eye doesn't have to switch modes.
+// Three modes:
+//   1. ROOT: 3-col tile grid of section icons. Leaf items (no `sub`)
+//      navigate directly; group items drill in.
+//   2. SECTION: list of one group's sub-items with a back chevron.
+//      Slide-left transition coming in, slide-right going out.
+//   3. SEARCH: typing in the input flattens everything to a global
+//      filtered list, independent of which view you were in.
+//
+// State resets on close so the next open always starts at ROOT.
+
+const grid = {
+  open:   { transition: { staggerChildren: 0.018, delayChildren: 0.04 } },
+  closed: {},
+}
+const tile = {
+  open:   { opacity: 1, y: 0, transition: { type: "spring" as const, damping: 22, stiffness: 280 } },
+  closed: { opacity: 0, y: 8 },
+}
 
 export function MobileMoreDrawer({ open, onClose }: Props) {
   const [query, setQuery] = React.useState("")
+  const [activeGroup, setActiveGroup] = React.useState<string | null>(null)
+  const [direction, setDirection] = React.useState<1 | -1>(1) // 1 = drilling in, -1 = backing out
   const { pathname } = useLocation()
 
-  // Reset query when sheet closes so it's fresh next open.
+  // Reset both query + drill state when sheet closes so next open
+  // is consistent (always root, no stale search).
   React.useEffect(() => {
-    if (!open) setQuery("")
+    if (!open) {
+      setQuery("")
+      setActiveGroup(null)
+      setDirection(1)
+    }
   }, [open])
 
-  // Auto-expand the group containing the current page on each open.
-  const currentGroupKey = React.useMemo(() => {
-    for (const item of NAV) {
-      if (!item.sub) continue
-      if (item.sub.some((s) => pathname.startsWith(s.url))) return item.title
-    }
-    return null
-  }, [pathname])
+  const activeItem = React.useMemo(
+    () => NAV.find((n) => n.title === activeGroup),
+    [activeGroup],
+  )
 
-  const [expanded, setExpanded] = React.useState<Set<string>>(new Set())
-  React.useEffect(() => {
-    if (!open) return
-    setExpanded(currentGroupKey ? new Set([currentGroupKey]) : new Set())
-  }, [open, currentGroupKey])
-
-  const toggle = (title: string) => {
-    setExpanded((prev) => {
-      const next = new Set(prev)
-      if (next.has(title)) next.delete(title)
-      else next.add(title)
-      return next
-    })
+  const drillInto = (title: string) => {
+    setDirection(1)
+    setActiveGroup(title)
+  }
+  const backToRoot = () => {
+    setDirection(-1)
+    setActiveGroup(null)
   }
 
-  // Flatten every nav target for search — the user probably knows
-  // "where to go" by name, not by parent.
+  // Flatten every nav target for global search.
   const allTargets = React.useMemo(() => {
     const out: { title: string; url: string; group: string; Icon: React.ElementType }[] = []
     for (const item of NAV) {
@@ -80,29 +86,49 @@ export function MobileMoreDrawer({ open, onClose }: Props) {
     )
   }, [query, allTargets])
 
+  // Slide variants — used by the AnimatePresence swap between ROOT
+  // and SECTION views.
+  const slide = {
+    enter:  (dir: 1 | -1) => ({ x: dir > 0 ? 40 : -40, opacity: 0 }),
+    center: { x: 0, opacity: 1 },
+    exit:   (dir: 1 | -1) => ({ x: dir > 0 ? -40 : 40, opacity: 0 }),
+  }
+
   return (
     <BottomSheet
       open={open}
       onClose={onClose}
-      title="All sections"
-      description="Tap a section to expand · tap an item to jump"
+      title={activeGroup ?? "All sections"}
+      description={activeGroup ? `Inside ${activeGroup}` : "Tap a section to drill in · search to jump"}
       maxHeightVh={88}
     >
-      {/* Sticky search */}
+      {/* Sticky header: back button (when drilled in) + search */}
       <div className="sticky top-0 z-10 -mx-5 -mt-1 mb-3 bg-card px-5 pt-1 pb-2">
-        <div className="relative">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search sections + sub-items…"
-            className="pl-9"
-          />
+        <div className="flex items-center gap-2">
+          {activeGroup && !filtered && (
+            <button
+              type="button"
+              onClick={backToRoot}
+              aria-label="Back to all sections"
+              className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-foreground/80 hover:bg-accent active:bg-accent/70"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+          )}
+          <div className="relative flex-1">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder={activeGroup ? `Search ${activeGroup}…` : "Search sections + sub-items…"}
+              className="pl-9"
+            />
+          </div>
         </div>
       </div>
 
       {filtered ? (
-        // ---- Search results: flat list ----
+        // ---- SEARCH: flat global results, ignores drill state ----
         <ul className="divide-y divide-border rounded-xl border border-border bg-muted/30">
           {filtered.length === 0 && (
             <li className="px-4 py-6 text-center text-sm text-muted-foreground">No matches</li>
@@ -134,86 +160,121 @@ export function MobileMoreDrawer({ open, onClose }: Props) {
           })}
         </ul>
       ) : (
-        // ---- Default: accordion groups + leaf links ----
-        <ul className="flex flex-col gap-1.5">
-          {NAV.map((item) => {
-            const Icon = item.icon
-            // Leaf item (no sub-array) — render as a direct link row.
-            if (!item.sub || item.sub.length === 0) {
-              const active = item.url ? pathname === item.url : false
-              return (
-                <li key={item.title}>
-                  <Link
-                    to={item.url ?? "/"}
-                    onClick={onClose}
-                    className={cn(
-                      "flex items-center gap-3 rounded-xl border border-border bg-card px-3 py-2.5 transition-colors hover:border-brand/40 hover:bg-accent/40",
-                      active && "border-brand/60 bg-brand-soft/40 dark:bg-primary/10",
-                    )}
-                  >
-                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand-soft text-brand dark:bg-primary/15 dark:text-primary">
-                      <Icon className="h-4 w-4" />
-                    </span>
-                    <span className="flex-1 truncate text-sm font-semibold">{item.title}</span>
-                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                  </Link>
-                </li>
-              )
-            }
+        // ---- ROOT or SECTION view, animated via AnimatePresence ----
+        <AnimatePresence mode="wait" custom={direction}>
+          {activeGroup && activeItem?.sub ? (
+            <motion.div
+              key={`section-${activeItem.title}`}
+              custom={direction}
+              variants={slide}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              transition={{ type: "spring", damping: 26, stiffness: 280 }}
+            >
+              {/* Hero card for this section */}
+              <div className="mb-3 flex items-center gap-3 rounded-2xl border border-brand/30 bg-brand-soft/40 p-3 dark:bg-primary/10">
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-brand to-fuchsia-500 text-white shadow-sm shadow-brand/30">
+                  <activeItem.icon className="h-5 w-5" />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-bold">{activeItem.title}</p>
+                  <p className="text-[11px] text-muted-foreground">
+                    {activeItem.sub.length} {activeItem.sub.length === 1 ? "item" : "items"} in this section
+                  </p>
+                </div>
+              </div>
+              <ul className="divide-y divide-border rounded-xl border border-border bg-card">
+                {activeItem.sub.map((s) => {
+                  const active = pathname === s.url || pathname.startsWith(s.url + "/")
+                  return (
+                    <li key={s.url}>
+                      <Link
+                        to={s.url}
+                        onClick={onClose}
+                        className={cn(
+                          "flex items-center justify-between gap-3 px-4 py-3 text-sm transition-colors hover:bg-accent/40",
+                          active && "bg-brand-soft/40 font-semibold text-brand dark:bg-primary/15 dark:text-primary",
+                        )}
+                      >
+                        <span className="truncate">{s.title}</span>
+                        <ChevronRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                      </Link>
+                    </li>
+                  )
+                })}
+              </ul>
+            </motion.div>
+          ) : (
+            <motion.div
+              key="root"
+              custom={direction}
+              variants={slide}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              transition={{ type: "spring", damping: 26, stiffness: 280 }}
+            >
+              <motion.ul
+                className="grid grid-cols-3 gap-2.5 sm:grid-cols-4"
+                variants={grid}
+                initial="closed"
+                animate="open"
+              >
+                {NAV.map((item) => {
+                  const Icon = item.icon
+                  const isGroup = item.sub && item.sub.length > 0
+                  const active =
+                    (item.url && pathname === item.url) ||
+                    (item.sub && item.sub.some((s) => pathname.startsWith(s.url)))
 
-            // Group item — accordion header + collapsible children.
-            const isExpanded = expanded.has(item.title)
-            const groupActive = item.sub.some((s) => pathname.startsWith(s.url))
-            const activeCount = item.sub.filter((s) => pathname.startsWith(s.url)).length
-            return (
-              <li key={item.title} className="overflow-hidden rounded-xl border border-border bg-card">
-                <button
-                  type="button"
-                  onClick={() => toggle(item.title)}
-                  aria-expanded={isExpanded}
-                  className={cn(
-                    "flex w-full items-center gap-3 px-3 py-2.5 text-left transition-colors hover:bg-accent/40",
-                    groupActive && !isExpanded && "border-l-2 border-l-brand dark:border-l-primary",
-                  )}
-                >
-                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand-soft text-brand dark:bg-primary/15 dark:text-primary">
-                    <Icon className="h-4 w-4" />
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-semibold">{item.title}</p>
-                    <p className="text-[11px] text-muted-foreground">
-                      {item.sub.length} {item.sub.length === 1 ? "item" : "items"}
-                      {activeCount > 0 ? " · currently here" : ""}
-                    </p>
-                  </div>
-                  <ChevronDown className={cn("h-4 w-4 text-muted-foreground transition-transform", isExpanded && "rotate-180")} />
-                </button>
-                {isExpanded && (
-                  <ul className="border-t border-border bg-muted/30">
-                    {item.sub.map((s) => {
-                      const active = pathname === s.url
-                      return (
-                        <li key={s.url}>
-                          <Link
-                            to={s.url}
-                            onClick={onClose}
-                            className={cn(
-                              "flex items-center justify-between gap-3 px-4 py-2.5 pl-14 text-sm transition-colors hover:bg-accent/40",
-                              active && "bg-brand-soft/40 font-semibold text-brand dark:bg-primary/15 dark:text-primary",
-                            )}
-                          >
-                            <span className="truncate">{s.title}</span>
-                            <ChevronRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-                          </Link>
-                        </li>
-                      )
-                    })}
-                  </ul>
-                )}
-              </li>
-            )
-          })}
-        </ul>
+                  // Leaf item (no sub-array) → navigate directly.
+                  if (!isGroup) {
+                    return (
+                      <motion.li key={item.title} variants={tile}>
+                        <Link
+                          to={item.url ?? "/"}
+                          onClick={onClose}
+                          className={cn(
+                            "flex h-24 flex-col items-center justify-center gap-1.5 rounded-2xl border border-border bg-card p-2 text-center text-[12px] font-medium transition-all hover:border-brand/40 hover:shadow-sm",
+                            active && "border-brand/60 ring-1 ring-brand/30",
+                          )}
+                        >
+                          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-brand/15 to-brand/0 text-brand dark:from-primary/25 dark:to-primary/0 dark:text-primary">
+                            <Icon className="h-5 w-5" />
+                          </span>
+                          <span className="leading-tight">{item.title}</span>
+                        </Link>
+                      </motion.li>
+                    )
+                  }
+
+                  // Group item → drill in.
+                  return (
+                    <motion.li key={item.title} variants={tile}>
+                      <button
+                        type="button"
+                        onClick={() => drillInto(item.title)}
+                        className={cn(
+                          "relative flex h-24 w-full flex-col items-center justify-center gap-1.5 rounded-2xl border border-border bg-card p-2 text-center text-[12px] font-medium transition-all hover:border-brand/40 hover:shadow-sm",
+                          active && "border-brand/60 ring-1 ring-brand/30",
+                        )}
+                      >
+                        <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-brand/15 to-brand/0 text-brand dark:from-primary/25 dark:to-primary/0 dark:text-primary">
+                          <Icon className="h-5 w-5" />
+                        </span>
+                        <span className="leading-tight">{item.title}</span>
+                        <span className="absolute right-1.5 top-1.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-muted px-1 text-[9px] font-bold tabular-nums text-muted-foreground">
+                          {item.sub!.length}
+                        </span>
+                      </button>
+                    </motion.li>
+                  )
+                })}
+              </motion.ul>
+            </motion.div>
+          )}
+        </AnimatePresence>
       )}
     </BottomSheet>
   )
