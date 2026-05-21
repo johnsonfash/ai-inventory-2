@@ -11,9 +11,11 @@ import { FormFooter } from "@/components/forms/form-footer"
 import { FormAside } from "@/components/forms/form-aside"
 import { InputAddon } from "@/components/forms/input-addon"
 import { SwitchField } from "@/components/forms/switch-field"
+import { useAutoMarkStep } from "@/hooks/use-auto-mark-step"
 import { useCurrency, formatPriceFor } from "@/contexts/currency"
 
 export default function NewWithdrawal() {
+  useAutoMarkStep("first-withdrawal")
   const [submitting, setSubmitting] = React.useState(false)
   const { formatPrice, symbol } = useCurrency()
   return (

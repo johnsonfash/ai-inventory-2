@@ -11,6 +11,7 @@ import { FormField } from "@/components/forms/form-field"
 import { FormFooter } from "@/components/forms/form-footer"
 import { FormAside } from "@/components/forms/form-aside"
 import { InputAddon } from "@/components/forms/input-addon"
+import { useAutoMarkStep } from "@/hooks/use-auto-mark-step"
 import { useCurrency } from "@/contexts/currency"
 
 type Line = { id: string; sku: string; qty: number; cost: number }
@@ -19,6 +20,7 @@ let lineSeq = 0
 const newLine = (): Line => ({ id: `L-${++lineSeq}`, sku: "", qty: 1, cost: 0 })
 
 export default function NewPO() {
+  useAutoMarkStep("first-po")
   const [lines, setLines] = React.useState<Line[]>([newLine()])
   const [submitting, setSubmitting] = React.useState(false)
   const { formatPrice, symbol } = useCurrency()

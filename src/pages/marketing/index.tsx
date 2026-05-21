@@ -18,6 +18,7 @@ import { useRegisterPageRefresh } from "@/hooks/use-pull-to-refresh"
 import { StatusBadge, type StatusTone } from "@/components/lists/status-badge"
 import { SummaryStrip } from "@/components/lists/summary-strip"
 import { ConnectionCard } from "@/components/integrations/connection-chip"
+import { useAutoMarkStep } from "@/hooks/use-auto-mark-step"
 import { cn } from "@/lib/utils"
 import { useCurrency } from "@/contexts/currency"
 
@@ -48,6 +49,7 @@ const TONES = {
 } as const
 
 export default function Marketing() {
+  useAutoMarkStep("first-campaign")
   const { formatPrice } = useCurrency()
   useRegisterPageRefresh(React.useCallback(async () => { await new Promise((r) => setTimeout(r, 400)) }, []))
 

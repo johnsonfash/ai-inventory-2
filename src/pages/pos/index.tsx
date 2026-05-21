@@ -43,10 +43,12 @@ import {
 } from "@/lib/pos/storage"
 import { cn } from "@/lib/utils"
 import { useCurrency } from "@/contexts/currency"
+import { useAutoMarkStep } from "@/hooks/use-auto-mark-step"
 
 type Mode = "retail" | "restaurant" | "services" | "auto"
 
 export default function PointOfSale() {
+  useAutoMarkStep("first-sale")
   const navigate = useNavigate()
   const [search] = useSearchParams()
   const draftIdFromUrl = search.get("draftId")

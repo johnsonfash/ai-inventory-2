@@ -17,6 +17,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { StatusBadge, type StatusTone } from "@/components/lists/status-badge"
 import { EmptyState } from "@/components/lists/empty-state"
 import { TemplateShowcase } from "@/components/storefront/template-showcase"
+import { useAutoMarkStep } from "@/hooks/use-auto-mark-step"
 import { useRegisterPageRefresh } from "@/hooks/use-pull-to-refresh"
 import {
   TEMPLATES_BY_ID,
@@ -38,6 +39,7 @@ const TIER_PRICE: Record<"free" | "pro" | "premium", string> = {
 }
 
 export default function StorefrontTemplateDetail() {
+  useAutoMarkStep("launch-storefront")
   const params = useParams<{ id: string }>()
   const navigate = useNavigate()
   const template = TEMPLATES_BY_ID[params.id ?? ""]

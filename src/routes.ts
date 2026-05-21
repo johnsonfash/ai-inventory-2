@@ -17,6 +17,7 @@ export const routes: RouteObject[] = [
 
   // --- App routes (everything under the AppFrame shell) ---
   { path: "/dashboard", Component: page(() => import("./pages/dashboard")) },
+  { path: "/onboarding", Component: page(() => import("./pages/onboarding")) },
   { path: "/accounting/balance-sheet", Component: page(() => import("./pages/accounting/balance-sheet")) },
   { path: "/accounting/profit-loss",   Component: page(() => import("./pages/accounting/profit-loss")) },
   { path: "/accounting/cash-flow",     Component: page(() => import("./pages/accounting/cash-flow")) },

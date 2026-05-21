@@ -18,6 +18,7 @@ import { StatusBadge, type StatusTone } from "@/components/lists/status-badge"
 import { SummaryStrip } from "@/components/lists/summary-strip"
 import { cn } from "@/lib/utils"
 import { useCurrency } from "@/contexts/currency"
+import { useAutoMarkStep } from "@/hooks/use-auto-mark-step"
 
 type Method = {
   href?: string
@@ -48,6 +49,7 @@ const methods: Method[] = [
 const statusTone: Record<Method["status"], StatusTone> = { connected: "success", available: "neutral", off: "danger" }
 
 export default function PaymentsSettings() {
+  useAutoMarkStep("payments")
   const { formatPrice } = useCurrency()
   useRegisterPageRefresh(React.useCallback(async () => { await new Promise((r) => setTimeout(r, 400)) }, []))
 

@@ -10,6 +10,7 @@ import { EmptyState } from "@/components/lists/empty-state"
 import { StatusBadge, type StatusTone } from "@/components/lists/status-badge"
 import { SummaryStrip } from "@/components/lists/summary-strip"
 import { InfoTooltip } from "@/components/info-tooltip"
+import { useAutoMarkStep } from "@/hooks/use-auto-mark-step"
 
 type Row = {
   id: string
@@ -36,6 +37,7 @@ const scopeTone: Record<Row["scope"], StatusTone> = {
 }
 
 export default function TaxRates() {
+  useAutoMarkStep("tax")
   const isMobile = useIsMobile()
   const [query, setQuery] = React.useState("")
 

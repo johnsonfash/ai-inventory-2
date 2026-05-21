@@ -147,6 +147,11 @@ export function GettingStarted({ className }: { className?: string }) {
             </p>
           </div>
           <div className="flex shrink-0 items-center gap-1">
+            <Link to="/onboarding" className="hidden sm:inline-flex">
+              <Button variant="ghost" size="sm">
+                View all <ArrowRight className="h-3.5 w-3.5" />
+              </Button>
+            </Link>
             <Button
               variant="ghost"
               size="icon"

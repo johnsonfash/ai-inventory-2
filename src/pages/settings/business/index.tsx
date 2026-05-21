@@ -9,8 +9,10 @@ import { FormGrid } from "@/components/forms/form-grid"
 import { FormField } from "@/components/forms/form-field"
 import { FormFooter } from "@/components/forms/form-footer"
 import { FormAside } from "@/components/forms/form-aside"
+import { useAutoMarkStep } from "@/hooks/use-auto-mark-step"
 
 export default function BusinessSettings() {
+  useAutoMarkStep("business")
   const [submitting, setSubmitting] = React.useState(false)
 
   return (

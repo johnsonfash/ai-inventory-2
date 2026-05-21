@@ -23,6 +23,7 @@ import { useRegisterPageRefresh } from "@/hooks/use-pull-to-refresh"
 import { useChatKeyboard } from "@/hooks/use-chat-keyboard"
 import { BottomSheet } from "@/components/mobile/bottom-sheet"
 import { SwitchField } from "@/components/forms/switch-field"
+import { useAutoMarkStep } from "@/hooks/use-auto-mark-step"
 import { cn } from "@/lib/utils"
 
 type Msg = {
@@ -45,6 +46,7 @@ let msgIdSeq = 0
 const newId = () => `m-${++msgIdSeq}`
 
 export default function AIChat() {
+  useAutoMarkStep("talk-to-ai")
   const isMobile = useIsMobile()
   // Chat-aware keyboard handling on native. `scrollRef` is the same
   // ref the auto-scroll effect uses; the hook owns it so the

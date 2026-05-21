@@ -10,6 +10,7 @@ import { useRegisterPageRefresh } from "@/hooks/use-pull-to-refresh"
 import { EmptyState } from "@/components/lists/empty-state"
 import { StatusBadge, type StatusTone } from "@/components/lists/status-badge"
 import { SummaryStrip } from "@/components/lists/summary-strip"
+import { useAutoMarkStep } from "@/hooks/use-auto-mark-step"
 
 type Row = {
   code: string
@@ -35,6 +36,7 @@ const statusTone: Record<Row["status"], StatusTone> = {
 }
 
 export default function Warehouses() {
+  useAutoMarkStep("warehouses")
   const isMobile = useIsMobile()
   const [query, setQuery] = React.useState("")
 

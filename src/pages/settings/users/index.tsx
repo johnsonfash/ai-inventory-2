@@ -28,6 +28,7 @@ import { INVITES, LOCATIONS, MEMBERS, ROLE_BY_KEY, SESSIONS } from "@/lib/team/d
 import type { Member, RoleKey } from "@/lib/team/types"
 import { cn } from "@/lib/utils"
 import { useCurrency } from "@/contexts/currency"
+import { useAutoMarkStep } from "@/hooks/use-auto-mark-step"
 
 type Tab = "active" | "invites" | "affiliates" | "sessions"
 
@@ -84,6 +85,7 @@ function avatarTint(name: string): string {
 }
 
 export default function TeamHub() {
+  useAutoMarkStep("users")
   useRegisterPageRefresh(React.useCallback(async () => { await new Promise((r) => setTimeout(r, 400)) }, []))
   const [tab, setTab] = React.useState<Tab>("active")
   const [query, setQuery] = React.useState("")

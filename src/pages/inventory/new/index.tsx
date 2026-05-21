@@ -19,8 +19,10 @@ import { FormFooter } from "@/components/forms/form-footer"
 import { FormAside } from "@/components/forms/form-aside"
 import { SwitchField } from "@/components/forms/switch-field"
 import { InputAddon } from "@/components/forms/input-addon"
+import { useAutoMarkStep } from "@/hooks/use-auto-mark-step"
 
 export default function NewItemPage() {
+  useAutoMarkStep("first-item")
   const [suppliers, setSuppliers] = React.useState(["Cobalt Distributors", "Delta Apparel", "Glow Co"])
   const [supplier, setSupplier] = React.useState<string>("Cobalt Distributors")
   const [trackInventory, setTrackInventory] = React.useState(true)
