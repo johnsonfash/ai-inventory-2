@@ -273,52 +273,52 @@ export default function PointOfSale() {
             and resize in lockstep. */}
         <div className="grid gap-4 xl:grid-cols-[1fr_360px]">
           {/* Catalog column.
-              The chips + scan card live as DIRECT children of this
-              flex-col (rather than nested in a separate desktop-only
-              wrapper) so the scan card's sticky positioning works.
-              Sticky needs a tall containing block — the small wrapper
-              would have been only ~156px tall, so the sticky element
-              had nowhere to stick. As children of this column, the
-              containing block is the column itself, which is tall
-              because the CatalogGrid below it has 38 items. */}
-          <div className="flex min-w-0 flex-col gap-3 md:gap-4">
-            {/* Quick action chips — desktop sticky. Offset matches
-                the natural Y of the catalog column (main has p-5 so
-                content starts ~20px from scrollport top) — using a
-                larger offset would push the row DOWN from its natural
-                position, leaving dead space below the page header. */}
-            <div className="hidden -mx-4 gap-2 overflow-x-auto px-4 pb-1 scrollbar-hide md:mx-0 md:flex md:px-0 md:sticky md:top-5 md:z-30 md:bg-background md:py-2">
-              <PosQuickChip Icon={Layers} label="Drafts" onClick={() => navigate("/pos/drafts")} />
-              <PosQuickChip Icon={ClipboardList} label="Invoices" onClick={() => navigate("/pos/invoices")} />
-              <PosQuickChip Icon={RotateCcw} label="Returns" onClick={() => navigate("/pos/returns")} />
-              <PosQuickChip Icon={Settings2} label={`${mode} · ${location}`} onClick={() => setSettingsOpen(true)} />
-            </div>
-
-            {/* Scan card — sticky at top-20 (80px), matching its
-                natural Y (chips ~44px + gap-4 16px below the column
-                top at y=20 → 80px). */}
-            <div className="hidden rounded-2xl border border-border bg-card p-3 shadow-sm md:sticky md:top-20 md:z-20 md:block">
-              <div className="flex items-center gap-2">
-                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-soft text-brand dark:bg-primary/15 dark:text-primary">
-                  <Barcode className="h-4 w-4" />
-                </span>
-                <div className="min-w-0 flex-1">
-                  <BarcodeScannerInput captureGlobal={globalScan} onScan={addByBarcode} />
-                </div>
+              Mobile: gap-3 between children (just CatalogGrid is
+                visible since chips + scan card are hidden).
+              Desktop: gap-0 — the sticky wrapper below (chips + scan
+                card) handles its own padding to butt against the
+                CatalogGrid's sticky search bar. A flex `gap` between
+                the wrapper and CatalogGrid would be transparent
+                space where scrolling products bleed through. */}
+          <div className="flex min-w-0 flex-col gap-3 md:gap-0">
+            {/* Desktop sticky wrapper for the chips row + scan card.
+                Wrapping them in a single sticky container with
+                bg-background ensures that the GAP between the two
+                (gap-4 = 16px) is also covered — otherwise scrolling
+                product images leak through that band. Hidden on
+                mobile (mobile uses the compact bar inside
+                CatalogGrid). */}
+            <div className="hidden md:sticky md:top-5 md:z-30 md:flex md:flex-col md:gap-4 md:bg-background md:pb-3">
+              <div className="flex gap-2 overflow-x-auto py-2 scrollbar-hide">
+                <PosQuickChip Icon={Layers} label="Drafts" onClick={() => navigate("/pos/drafts")} />
+                <PosQuickChip Icon={ClipboardList} label="Invoices" onClick={() => navigate("/pos/invoices")} />
+                <PosQuickChip Icon={RotateCcw} label="Returns" onClick={() => navigate("/pos/returns")} />
+                <PosQuickChip Icon={Settings2} label={`${mode} · ${location}`} onClick={() => setSettingsOpen(true)} />
               </div>
-              <Input
-                placeholder="…or type SKU / name and press Enter"
-                className="mt-2"
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    const v = (e.target as HTMLInputElement).value.trim()
-                    if (v) {
-                      addByBarcode(v)
-                      ;(e.target as HTMLInputElement).value = ""
+
+              <div className="rounded-2xl border border-border bg-card p-3 shadow-sm">
+                <div className="flex items-center gap-2">
+                  <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-soft text-brand dark:bg-primary/15 dark:text-primary">
+                    <Barcode className="h-4 w-4" />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <BarcodeScannerInput captureGlobal={globalScan} onScan={addByBarcode} />
+                  </div>
+                </div>
+                <Input
+                  placeholder="…or type SKU / name and press Enter"
+                  className="mt-2"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      const v = (e.target as HTMLInputElement).value.trim()
+                      if (v) {
+                        addByBarcode(v)
+                        ;(e.target as HTMLInputElement).value = ""
+                      }
                     }
-                  }
-                }}
-              />
+                  }}
+                />
+              </div>
             </div>
 
             <CatalogGrid
