@@ -161,36 +161,21 @@ export function BottomSheet({
             {/* Body — `pwa-bottom` adds the iOS home-indicator inset
                 so the last form field can't sit under the safe area.
                 When there's a footer, that footer carries the inset
-                instead and the body just gets normal bottom padding.
-                Bumped to pb-10 (40px) so the last item in any sheet
-                (cart sheet, scan sheet, settings, filters, etc.) has
-                generous breathing room before the sheet's bottom
-                edge — covers every consumer in one place. */}
+                instead and the body just gets a normal pb-4. Per-
+                consumer overrides (e.g. extra mb-X / pb-X on inner
+                content) handle their own breathing room. */}
             <div
               className={cn(
                 "flex-1 overflow-y-auto px-5",
-                footer ? "pb-2" : "pb-2 pwa-bottom",
+                footer ? "pb-4" : "pb-4 pwa-bottom",
               )}
             >
               {children}
-              {/* Hard spacer at the bottom of every BottomSheet body.
-                  Padding alone wasn't reliably visible (HMR / cache
-                  edge cases), so we render an actual element with
-                  height — it occupies space in the scroll flow no
-                  matter what. h-16 (64px) for no-footer sheets gives
-                  the last item generous room before the sheet edge;
-                  footer sheets only need h-4 (16px) between content
-                  and the footer bar. aria-hidden so screen readers
-                  skip it. */}
-              <div className={cn(footer ? "h-4" : "h-16")} aria-hidden />
             </div>
 
-            {/* Footer (sticky, safe-area aware). pt-3 keeps a tight
-                top margin against the border, pb-6 + pwa-bottom give
-                generous breathing room below the action buttons on
-                web (where the iOS safe-area inset is 0). */}
+            {/* Footer (sticky, safe-area aware) */}
             {footer && (
-              <div className="border-t border-border bg-card/95 px-5 pt-3 pb-6 pwa-bottom backdrop-blur">
+              <div className="border-t border-border bg-card/95 px-5 py-3 pwa-bottom backdrop-blur">
                 {footer}
               </div>
             )}
