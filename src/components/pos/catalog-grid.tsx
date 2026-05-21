@@ -45,7 +45,9 @@ export function CatalogGrid({ catalog, onAdd, cart, onScanRequest, onOverflowReq
   }, [cart])
 
   return (
-    <div className="flex flex-col gap-3">
+    // pb-32 on mobile so the persistent cart bar (~64px) + bottom nav
+    // (~64px) don't cover the last list item.
+    <div className="flex flex-col gap-3 pb-32 md:pb-0">
       {/* Sticky search header on mobile so it stays visible while scrolling */}
       <div className="sticky top-14 z-10 -mx-4 border-b border-border bg-background px-4 pt-2 pb-3 md:static md:mx-0 md:border-0 md:px-0 md:py-0">
         <div className="flex items-stretch gap-1.5">
@@ -109,7 +111,65 @@ export function CatalogGrid({ catalog, onAdd, cart, onScanRequest, onOverflowReq
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3 lg:grid-cols-4 xl:grid-cols-5">
+      {/* Mobile: LIST view — one row per item. Bigger touch targets,
+          more info per item, classic register UX (Square / Shopify
+          Lite POS pattern). Cashiers don't browse images, they
+          search + tap fast. Each row: thumbnail · name · SKU/category
+          · price · "+" badge that shows current cart qty when > 0. */}
+      <ul className="flex flex-col gap-2 md:hidden">
+        {filtered.map((p) => {
+          const inCart = cartBySku.get(p.sku) ?? 0
+          return (
+            <li key={p.id}>
+              <button
+                type="button"
+                onClick={() => onAdd(p)}
+                className={cn(
+                  "group relative flex w-full items-center gap-3 overflow-hidden rounded-2xl border border-border bg-card p-2.5 text-left transition-all",
+                  "active:scale-[0.99] active:bg-accent/40",
+                  inCart > 0 && "border-brand/40 ring-1 ring-brand/20 dark:ring-primary/20",
+                )}
+              >
+                <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-muted">
+                  <img
+                    src={p.image || "/placeholder.svg"}
+                    alt={p.name}
+                    loading="lazy"
+                    className="absolute inset-0 h-full w-full object-cover"
+                  />
+                </div>
+                <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+                  <span className="truncate text-sm font-semibold">{p.name}</span>
+                  <span className="truncate text-[11px] text-muted-foreground">
+                    <span className="font-mono">{p.sku}</span>
+                    {p.category && <> · {p.category}</>}
+                  </span>
+                  <span className="mt-0.5 text-sm font-bold tabular-nums">{formatPrice(p.price)}</span>
+                </div>
+                <span
+                  className={cn(
+                    "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl shadow-sm transition-transform active:scale-90",
+                    inCart > 0
+                      ? "bg-brand text-brand-foreground shadow-brand/30 dark:bg-primary dark:text-primary-foreground"
+                      : "bg-brand-soft text-brand dark:bg-primary/15 dark:text-primary",
+                  )}
+                  aria-label={inCart > 0 ? `Add another (${inCart} in cart)` : "Add to cart"}
+                >
+                  {inCart > 0 ? (
+                    <span className="text-sm font-bold tabular-nums">{inCart}</span>
+                  ) : (
+                    <Plus className="h-4 w-4" strokeWidth={2.4} />
+                  )}
+                </span>
+              </button>
+            </li>
+          )
+        })}
+      </ul>
+
+      {/* Desktop: 3-5 col GRID with image-led tiles. Image is the
+          primary affordance — cashier picks visually from a deck. */}
+      <div className="hidden gap-3 md:grid md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
         {filtered.map((p) => {
           const inCart = cartBySku.get(p.sku) ?? 0
           return (
@@ -118,7 +178,7 @@ export function CatalogGrid({ catalog, onAdd, cart, onScanRequest, onOverflowReq
               key={p.id}
               onClick={() => onAdd(p)}
               className={cn(
-                "group relative flex flex-col overflow-hidden rounded-2xl border border-border bg-card text-left transition-all",
+                "group relative flex min-w-0 flex-col overflow-hidden rounded-2xl border border-border bg-card text-left transition-all",
                 "hover:border-brand/40 hover:shadow-md active:scale-[0.98]",
               )}
             >
