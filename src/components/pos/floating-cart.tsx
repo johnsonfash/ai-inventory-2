@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from "framer-motion"
-import { ChevronUp, ShoppingCart } from "lucide-react"
+import { ChevronRight, ShoppingCart } from "lucide-react"
 import { useCurrency } from "@/contexts/currency"
 
 type Props = {
@@ -8,36 +8,49 @@ type Props = {
   onOpen: () => void
 }
 
-// Fixed bottom pill that floats over the catalog. Shows item count +
-// running total. Sits above the mobile bottom nav (visible only on
-// <md). Hidden when the cart is empty.
+// Fixed bottom action bar — mobile POS' primary CTA when items are in
+// the cart. Always sits above the bottom nav. Hidden until the cart
+// has at least one item. Same pattern as Etsy / Shopify checkout bars.
 export function FloatingCart({ itemCount, total, onOpen }: Props) {
   const { formatPrice } = useCurrency()
   return (
     <AnimatePresence>
       {itemCount > 0 && (
         <motion.div
-          initial={{ opacity: 0, y: 16 }}
+          initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: 16 }}
-          transition={{ type: "spring", damping: 26, stiffness: 280 }}
-          className="pointer-events-none fixed inset-x-0 bottom-0 z-30 px-4 pb-[calc(env(safe-area-inset-bottom)+5rem)] md:hidden"
+          exit={{ opacity: 0, y: 24 }}
+          transition={{ duration: 0.18, ease: [0.32, 0.72, 0, 1] }}
+          className="pointer-events-none fixed inset-x-0 bottom-0 z-30 px-3 pb-[calc(env(safe-area-inset-bottom)+4.5rem)] md:hidden"
         >
           <button
             type="button"
             onClick={onOpen}
-            className="pointer-events-auto mx-auto flex w-full max-w-md items-center gap-3 rounded-2xl bg-brand px-4 py-3 text-brand-foreground shadow-2xl shadow-brand/40 transition-transform active:scale-[0.98] dark:bg-primary dark:text-primary-foreground"
+            className="pointer-events-auto group relative mx-auto flex w-full max-w-md items-center gap-3 overflow-hidden rounded-2xl bg-gradient-to-r from-brand via-brand to-fuchsia-600 px-3 py-2.5 text-brand-foreground shadow-2xl shadow-brand/40 transition-transform active:scale-[0.98] dark:from-primary dark:via-primary dark:to-fuchsia-600 dark:text-primary-foreground"
           >
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/15">
+            {/* Item count badge */}
+            <span className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/15">
               <ShoppingCart className="h-4 w-4" />
-            </span>
-            <span className="flex-1 text-left">
-              <span className="block text-[11px] uppercase tracking-wider opacity-80">View cart</span>
-              <span className="block text-sm font-semibold">
-                {itemCount} {itemCount === 1 ? "item" : "items"} · {formatPrice(total)}
+              <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-white px-1 text-[11px] font-bold tabular-nums text-brand shadow-sm dark:text-primary">
+                {itemCount}
               </span>
             </span>
-            <ChevronUp className="h-4 w-4 opacity-90" />
+
+            {/* Label + total */}
+            <span className="min-w-0 flex-1 text-left">
+              <span className="block text-[10px] font-semibold uppercase tracking-wider opacity-80">
+                {itemCount === 1 ? "1 item · charge" : `${itemCount} items · charge`}
+              </span>
+              <span className="block text-base font-bold tabular-nums leading-tight">
+                {formatPrice(total)}
+              </span>
+            </span>
+
+            {/* CTA arrow */}
+            <span className="flex h-11 items-center gap-1 rounded-xl bg-white/15 px-3 text-xs font-bold uppercase tracking-wider">
+              Charge
+              <ChevronRight className="h-4 w-4" />
+            </span>
           </button>
         </motion.div>
       )}

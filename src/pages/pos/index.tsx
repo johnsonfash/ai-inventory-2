@@ -3,9 +3,11 @@ import { useNavigate, useSearchParams } from "react-router-dom"
 import {
   Barcode,
   CheckCircle2,
+  ChevronRight,
   ClipboardList,
   FileText,
   Layers,
+  MoreHorizontal,
   Printer,
   RotateCcw,
   Settings2,
@@ -19,6 +21,7 @@ import { InvoicePreview, ReceiptPreview, printInvoiceNode } from "@/components/p
 import { CatalogGrid } from "@/components/pos/catalog-grid"
 import { FloatingCart } from "@/components/pos/floating-cart"
 import { CartSheet } from "@/components/pos/cart-sheet"
+import { BottomSheet } from "@/components/mobile/bottom-sheet"
 import { CartPanel } from "@/components/pos/cart-panel"
 import { CheckoutSheet } from "@/components/pos/checkout-sheet"
 import { PosSettingsSheet } from "@/components/pos/pos-settings-sheet"
@@ -85,6 +88,8 @@ export default function PointOfSale() {
 
   // ----- Sheets / dialogs -----
   const [cartOpen, setCartOpen] = React.useState(false)
+  const [mobileScanOpen, setMobileScanOpen] = React.useState(false)
+  const [mobileOverflowOpen, setMobileOverflowOpen] = React.useState(false)
   const [checkoutOpen, setCheckoutOpen] = React.useState(false)
   const [settingsOpen, setSettingsOpen] = React.useState(false)
   const [previewOpen, setPreviewOpen] = React.useState(false)
@@ -259,27 +264,56 @@ export default function PointOfSale() {
       }
     >
       <div className="flex flex-col gap-4">
-        {/* Quick action strip — drafts, invoices, returns, settings */}
-        <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 scrollbar-hide md:mx-0 md:px-0">
-          <PosQuickChip Icon={Layers} label="Drafts" onClick={() => navigate("/pos/drafts")} />
-          <PosQuickChip Icon={ClipboardList} label="Invoices" onClick={() => navigate("/pos/invoices")} />
-          <PosQuickChip Icon={RotateCcw} label="Returns" onClick={() => navigate("/pos/returns")} />
-          <PosQuickChip Icon={Settings2} label={`${mode} · ${location}`} onClick={() => setSettingsOpen(true)} className="hidden md:inline-flex" />
+        {/* Desktop: quick action strip + full scan bar.
+            Mobile: compact unified search/scan/menu row — see below. */}
+        <div className="hidden md:flex md:flex-col md:gap-4">
+          <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 scrollbar-hide md:mx-0 md:px-0">
+            <PosQuickChip Icon={Layers} label="Drafts" onClick={() => navigate("/pos/drafts")} />
+            <PosQuickChip Icon={ClipboardList} label="Invoices" onClick={() => navigate("/pos/invoices")} />
+            <PosQuickChip Icon={RotateCcw} label="Returns" onClick={() => navigate("/pos/returns")} />
+            <PosQuickChip Icon={Settings2} label={`${mode} · ${location}`} onClick={() => setSettingsOpen(true)} />
+          </div>
+
+          <div className="rounded-2xl border border-border bg-card p-3">
+            <div className="flex items-center gap-2">
+              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-soft text-brand dark:bg-primary/15 dark:text-primary">
+                <Barcode className="h-4 w-4" />
+              </span>
+              <div className="flex-1">
+                <BarcodeScannerInput captureGlobal={globalScan} onScan={addByBarcode} />
+              </div>
+            </div>
+            <Input
+              placeholder="…or type SKU / name and press Enter"
+              className="mt-2"
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  const v = (e.target as HTMLInputElement).value.trim()
+                  if (v) {
+                    addByBarcode(v)
+                    ;(e.target as HTMLInputElement).value = ""
+                  }
+                }
+              }}
+            />
+          </div>
         </div>
 
-        {/* Scan bar */}
-        <div className="rounded-2xl border border-border bg-card p-3">
-          <div className="flex items-center gap-2">
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-soft text-brand dark:bg-primary/15 dark:text-primary">
-              <Barcode className="h-4 w-4" />
-            </span>
-            <div className="flex-1">
-              <BarcodeScannerInput captureGlobal={globalScan} onScan={addByBarcode} />
-            </div>
-          </div>
+        {/* Mobile: compact 44px top bar with scan + SKU input + overflow.
+            Saves ~170px vs the desktop layout so the user sees the
+            catalog within one scroll of the top bar. */}
+        <div className="flex items-stretch gap-1.5 md:hidden">
+          <button
+            type="button"
+            onClick={() => setMobileScanOpen(true)}
+            aria-label="Scan barcode"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand text-brand-foreground shadow-sm shadow-brand/30 active:scale-[0.97] dark:bg-primary dark:text-primary-foreground"
+          >
+            <Barcode className="h-4 w-4" />
+          </button>
           <Input
-            placeholder="…or type SKU / name and press Enter"
-            className="mt-2"
+            placeholder="Type SKU / name + Enter"
+            className="h-11 flex-1"
             onKeyDown={(e) => {
               if (e.key === "Enter") {
                 const v = (e.target as HTMLInputElement).value.trim()
@@ -290,6 +324,14 @@ export default function PointOfSale() {
               }
             }}
           />
+          <button
+            type="button"
+            onClick={() => setMobileOverflowOpen(true)}
+            aria-label="POS actions"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-border text-foreground/80 hover:bg-accent active:scale-[0.97]"
+          >
+            <MoreHorizontal className="h-4 w-4" />
+          </button>
         </div>
 
         {/* Catalog + (desktop) cart panel */}
@@ -338,6 +380,85 @@ export default function PointOfSale() {
       {isMobile && (
         <FloatingCart itemCount={itemCount} total={total} onOpen={() => setCartOpen(true)} />
       )}
+
+      {/* Mobile scan sheet — focuses the barcode input + accepts SKU
+          type-ahead. Same flow as desktop, just sheet-presented. */}
+      <BottomSheet
+        open={mobileScanOpen}
+        onClose={() => setMobileScanOpen(false)}
+        title="Scan or type"
+        description="Point your camera at a barcode or type a SKU."
+        maxHeightVh={60}
+      >
+        <div className="flex flex-col gap-3">
+          <div className="flex items-center gap-2 rounded-2xl border border-border bg-card p-3">
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-soft text-brand dark:bg-primary/15 dark:text-primary">
+              <Barcode className="h-4 w-4" />
+            </span>
+            <div className="flex-1">
+              <BarcodeScannerInput
+                captureGlobal={globalScan}
+                onScan={(code) => {
+                  addByBarcode(code)
+                  setMobileScanOpen(false)
+                }}
+              />
+            </div>
+          </div>
+          <Input
+            autoFocus
+            placeholder="Type SKU / name + Enter"
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                const v = (e.target as HTMLInputElement).value.trim()
+                if (v) {
+                  addByBarcode(v)
+                  setMobileScanOpen(false)
+                }
+              }
+            }}
+          />
+          <p className="text-[11px] text-muted-foreground">
+            Tip: hold a hardware scanner over the code — Pallio reads the global keystroke stream when no field is focused.
+          </p>
+        </div>
+      </BottomSheet>
+
+      {/* Mobile overflow sheet — drafts / invoices / returns / mode. */}
+      <BottomSheet
+        open={mobileOverflowOpen}
+        onClose={() => setMobileOverflowOpen(false)}
+        title="POS actions"
+        description={`Mode: ${mode} · ${location}`}
+        maxHeightVh={60}
+      >
+        <ul className="divide-y divide-border rounded-xl border border-border bg-card">
+          {[
+            { Icon: Layers,         label: "Drafts",        hint: "Held carts you can resume.",  onClick: () => { setMobileOverflowOpen(false); navigate("/pos/drafts") } },
+            { Icon: ClipboardList,  label: "Invoices",      hint: "Past sales + receipts.",       onClick: () => { setMobileOverflowOpen(false); navigate("/pos/invoices") } },
+            { Icon: RotateCcw,      label: "Returns",       hint: "Process refunds + exchanges.", onClick: () => { setMobileOverflowOpen(false); navigate("/pos/returns") } },
+            { Icon: Settings2,      label: `Settings · ${mode}`, hint: location,                  onClick: () => { setMobileOverflowOpen(false); setSettingsOpen(true) } },
+            { Icon: FileText,       label: "Invoice preview", hint: cart.length === 0 ? "Add items first." : "Preview before charging.", onClick: () => { if (cart.length > 0) { setMobileOverflowOpen(false); setPreviewOpen(true) } } },
+          ].map((a) => (
+            <li key={a.label}>
+              <button
+                type="button"
+                onClick={a.onClick}
+                className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-accent/40"
+              >
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand-soft text-brand dark:bg-primary/15 dark:text-primary">
+                  <a.Icon className="h-4 w-4" />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold">{a.label}</p>
+                  <p className="truncate text-[11px] text-muted-foreground">{a.hint}</p>
+                </div>
+                <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />
+              </button>
+            </li>
+          ))}
+        </ul>
+      </BottomSheet>
 
       {/* Mobile sheets */}
       <CartSheet
