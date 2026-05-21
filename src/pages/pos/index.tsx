@@ -282,13 +282,15 @@ export default function PointOfSale() {
                 space where scrolling products bleed through. */}
           <div className="flex min-w-0 flex-col gap-3 md:gap-0">
             {/* Desktop sticky wrapper for the chips row + scan card.
-                Wrapping them in a single sticky container with
-                bg-background ensures that the GAP between the two
-                (gap-4 = 16px) is also covered — otherwise scrolling
-                product images leak through that band. Hidden on
-                mobile (mobile uses the compact bar inside
-                CatalogGrid). */}
-            <div className="hidden md:sticky md:top-5 md:z-30 md:flex md:flex-col md:gap-4 md:bg-background md:pb-3">
+                bg-background covers the wrapper's box including the
+                gap-4 between children (otherwise scrolling products
+                leak through that strip). The -mt-5 + pt-5 combo
+                extends the wrapper's bg UP into main's p-5 top
+                padding — scrollable content lives inside main's
+                border-box, so without this extension products
+                visibly scroll through the 20px band between the
+                page header and the wrapper. */}
+            <div className="hidden md:sticky md:top-0 md:z-30 md:flex md:flex-col md:gap-4 md:-mt-5 md:bg-background md:pt-5 md:pb-3">
               <div className="flex gap-2 overflow-x-auto py-2 scrollbar-hide">
                 <PosQuickChip Icon={Layers} label="Drafts" onClick={() => navigate("/pos/drafts")} />
                 <PosQuickChip Icon={ClipboardList} label="Invoices" onClick={() => navigate("/pos/invoices")} />
