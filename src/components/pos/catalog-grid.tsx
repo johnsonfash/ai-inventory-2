@@ -42,7 +42,7 @@ export function CatalogGrid({ catalog, onAdd, cart }: Props) {
   return (
     <div className="flex flex-col gap-3">
       {/* Sticky search header on mobile so it stays visible while scrolling */}
-      <div className="sticky top-14 z-10 -mx-4 bg-background/85 px-4 pt-1 pb-3 backdrop-blur md:static md:mx-0 md:px-0 md:py-0">
+      <div className="sticky top-14 z-10 -mx-4 border-b border-border bg-background px-4 pt-2 pb-3 md:static md:mx-0 md:border-0 md:px-0 md:py-0">
         <div className="relative">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
@@ -76,7 +76,7 @@ export function CatalogGrid({ catalog, onAdd, cart }: Props) {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3 lg:grid-cols-4 xl:grid-cols-5">
         {filtered.map((p) => {
           const inCart = cartBySku.get(p.sku) ?? 0
           return (
