@@ -286,10 +286,14 @@ export default function PointOfSale() {
                 this, scrolling product images visibly pass THROUGH
                 the 20px band between the page header and the chips
                 row (main's scrollport extends through its padding).
-                Uses -mt-5 to position itself ABOVE the catalog
-                column's content area, sticky top-0 to pin at
-                scrollport top. */}
-            <div className="hidden md:sticky md:top-0 md:z-30 md:-mt-5 md:block md:h-5 md:bg-background" aria-hidden />
+                Inline marginTop guarantees the negative offset
+                regardless of Tailwind's purge pass — the element is
+                hidden on mobile so the style has no effect there. */}
+            <div
+              className="hidden md:sticky md:top-0 md:z-30 md:block md:h-5 md:bg-background"
+              style={{ marginTop: "-1.25rem" }}
+              aria-hidden
+            />
 
             {/* Sticky chips + scan card. bg-background covers the
                 wrapper's box (chips row + gap + scan card) so the
