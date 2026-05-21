@@ -6,6 +6,10 @@ type DropdownProps = {
   button: React.ReactNode
   children: React.ReactNode
   className?: string
+  /** Override the default trigger classes (e.g. compact icon button
+   *  inside a header). When provided, replaces the default styling
+   *  entirely — caller owns sizing + rounding + hover. */
+  triggerClassName?: string
   align?: "start" | "end"
 }
 
@@ -18,7 +22,7 @@ const DropdownCtx = React.createContext<{ close: () => void }>({ close: () => {}
 // rules that would otherwise clip or misposition an `absolute`
 // menu — which was the cause of the "menu items show up at the
 // top of the page on mobile" bug.
-export function Dropdown({ button, children, className, align = "end" }: DropdownProps) {
+export function Dropdown({ button, children, className, triggerClassName, align = "end" }: DropdownProps) {
   const [open, setOpen] = React.useState(false)
   const [rect, setRect] = React.useState<DOMRect | null>(null)
   const triggerRef = React.useRef<HTMLButtonElement | null>(null)
@@ -78,7 +82,7 @@ export function Dropdown({ button, children, className, align = "end" }: Dropdow
         aria-expanded={open}
         onClick={() => (open ? close() : openMenu())}
         style={{ touchAction: "manipulation" }}
-        className="inline-flex h-9 items-center gap-2 rounded-md border border-border bg-transparent px-3 text-sm text-foreground outline-none transition-colors hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring"
+        className={triggerClassName ?? "inline-flex h-9 items-center gap-2 rounded-md border border-border bg-transparent px-3 text-sm text-foreground outline-none transition-colors hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring"}
       >
         {button}
       </button>

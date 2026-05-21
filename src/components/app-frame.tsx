@@ -62,7 +62,7 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
   // menu. Pages that publish their own mobileTrailing (e.g. settings
   // sheets) override this.
   const defaultMobileTrailing = (
-    <div className="flex items-center gap-0.5">
+    <div className="flex items-center gap-1.5">
       <button
         type="button"
         onClick={() => openPalette(true)}
