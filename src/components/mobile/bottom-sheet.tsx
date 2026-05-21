@@ -169,15 +169,18 @@ export function BottomSheet({
             <div
               className={cn(
                 "flex-1 overflow-y-auto px-5",
-                footer ? "pb-8" : "pb-10 pwa-bottom",
+                footer ? "pb-8" : "pb-16 pwa-bottom",
               )}
             >
               {children}
             </div>
 
-            {/* Footer (sticky, safe-area aware) */}
+            {/* Footer (sticky, safe-area aware). pt-3 keeps a tight
+                top margin against the border, pb-6 + pwa-bottom give
+                generous breathing room below the action buttons on
+                web (where the iOS safe-area inset is 0). */}
             {footer && (
-              <div className="border-t border-border bg-card/95 px-5 py-3 pwa-bottom backdrop-blur">
+              <div className="border-t border-border bg-card/95 px-5 pt-3 pb-6 pwa-bottom backdrop-blur">
                 {footer}
               </div>
             )}
