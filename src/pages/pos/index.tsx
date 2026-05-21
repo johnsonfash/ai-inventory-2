@@ -305,10 +305,12 @@ export default function PointOfSale() {
             to a single sticky bar instead of two near-identical
             search inputs. */}
 
-        {/* Catalog + cart panel. Cart panel shows at lg (1024px) and
-            up. Catalog itself uses an auto-fit grid so the column count
-            scales smoothly inside whatever space the cart leaves it. */}
-        <div className="grid gap-4 lg:grid-cols-[1fr_minmax(320px,360px)]">
+        {/* Catalog + cart panel. The 360px cart panel only renders at
+            xl+ (1280px) — below that the screen isn't wide enough to
+            host both comfortably without clipping, so we fall back to
+            the persistent mobile-style cart bar at the bottom. This
+            covers smaller laptop screens cleanly. */}
+        <div className="grid gap-4 xl:grid-cols-[1fr_360px]">
           <CatalogGrid
             catalog={catalog}
             onAdd={addItem}
@@ -318,7 +320,7 @@ export default function PointOfSale() {
             onOverflowRequest={() => setMobileOverflowOpen(true)}
           />
 
-          <aside className="hidden min-w-0 lg:block">
+          <aside className="hidden xl:block">
             <CartPanel
               cart={cart}
               customer={customer}
