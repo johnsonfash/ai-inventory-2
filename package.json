@@ -8,6 +8,7 @@
   },
   "scripts": {
     "dev": "node ip.js && vite --port 3210 --host",
+    "dev:tauri": "VITE_NO_HTTPS=1 node ip.js && VITE_NO_HTTPS=1 vite --port 3210 --host",
     "build": "tsc --noEmit && vite build",
     "build:analyze": "ANALYZE=1 npm run build",
     "typecheck": "tsc --noEmit",

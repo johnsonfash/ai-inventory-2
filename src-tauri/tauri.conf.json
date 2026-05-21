@@ -5,7 +5,7 @@
   "identifier": "app.pallio",
   "build": {
     "frontendDist": "../dist",
-    "devUrl": "https://localhost:3210",
+    "devUrl": "http://localhost:3210",
     "beforeBuildCommand": "npm run build"
   },
   "app": {

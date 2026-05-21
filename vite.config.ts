@@ -5,8 +5,15 @@ import { visualizer } from "rollup-plugin-visualizer"
 import path from "path"
 import fs from "fs"
 
+// HTTPS in dev requires the two mkcert-generated PEMs. We also gate on
+// VITE_NO_HTTPS so the Tauri shell (which bridges JS ↔ Rust over the
+// `ipc://` scheme) can run against a plain-HTTP Vite — WKWebView blocks
+// `ipc://` as mixed content when the parent page is HTTPS, which breaks
+// every Tauri plugin call. See package.json's `dev:tauri` script.
 const hasCertificates =
-  fs.existsSync("./localhost-key.pem") && fs.existsSync("./localhost.pem")
+  process.env.VITE_NO_HTTPS !== "1" &&
+  fs.existsSync("./localhost-key.pem") &&
+  fs.existsSync("./localhost.pem")
 
 export default defineConfig({
   plugins: [
@@ -87,11 +94,12 @@ export default defineConfig({
     // URL in tauri.conf.json → build.devUrl). strictPort throws if the
     // port is busy instead of silently picking another one.
     strictPort: true,
+    // HMR — explicit `localhost` so the Tauri webview's WebSocket
+    // client can connect. Browsers can't dial `0.0.0.0` (it's a bind
+    // address, not a destination), so leaving host undefined is wrong.
     hmr: {
-      // Allow the webview (which loads from tauri://localhost on mobile)
-      // to connect back to the dev server over the LAN. host=0.0.0.0
-      // already binds the right interface; this exposes it to HMR too.
-      host: "0.0.0.0",
+      host: "localhost",
+      protocol: process.env.VITE_NO_HTTPS === "1" ? "ws" : "wss",
     },
     watch: {
       // Don't trigger a Vite restart when Cargo rebuilds.
