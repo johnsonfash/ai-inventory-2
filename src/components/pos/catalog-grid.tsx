@@ -117,65 +117,16 @@ export function CatalogGrid({ catalog, onAdd, cart, onScanRequest, onOverflowReq
         </div>
       </div>
 
-      {/* Mobile: LIST view — one row per item. Bigger touch targets,
-          more info per item, classic register UX (Square / Shopify
-          Lite POS pattern). Cashiers don't browse images, they
-          search + tap fast. Each row: thumbnail · name · SKU/category
-          · price · "+" badge that shows current cart qty when > 0. */}
-      <ul className="flex flex-col gap-2 md:hidden">
-        {filtered.map((p) => {
-          const inCart = cartBySku.get(p.sku) ?? 0
-          return (
-            <li key={p.id}>
-              <button
-                type="button"
-                onClick={() => onAdd(p)}
-                className={cn(
-                  "group relative flex w-full items-center gap-3 overflow-hidden rounded-2xl border border-border bg-card p-2.5 text-left transition-all",
-                  "active:scale-[0.99] active:bg-accent/40",
-                  inCart > 0 && "border-brand/40 ring-1 ring-brand/20 dark:ring-primary/20",
-                )}
-              >
-                <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-muted">
-                  <img
-                    src={p.image || "/placeholder.svg"}
-                    alt={p.name}
-                    loading="lazy"
-                    className="absolute inset-0 h-full w-full object-cover"
-                  />
-                </div>
-                <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-                  <span className="truncate text-sm font-semibold">{p.name}</span>
-                  <span className="truncate text-[11px] text-muted-foreground">
-                    <span className="font-mono">{p.sku}</span>
-                    {p.category && <> · {p.category}</>}
-                  </span>
-                  <span className="mt-0.5 text-sm font-bold tabular-nums">{formatPrice(p.price)}</span>
-                </div>
-                <span
-                  className={cn(
-                    "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl shadow-sm transition-transform active:scale-90",
-                    inCart > 0
-                      ? "bg-brand text-brand-foreground shadow-brand/30 dark:bg-primary dark:text-primary-foreground"
-                      : "bg-brand-soft text-brand dark:bg-primary/15 dark:text-primary",
-                  )}
-                  aria-label={inCart > 0 ? `Add another (${inCart} in cart)` : "Add to cart"}
-                >
-                  {inCart > 0 ? (
-                    <span className="text-sm font-bold tabular-nums">{inCart}</span>
-                  ) : (
-                    <Plus className="h-4 w-4" strokeWidth={2.4} />
-                  )}
-                </span>
-              </button>
-            </li>
-          )
-        })}
-      </ul>
-
-      {/* Desktop: 3-5 col GRID with image-led tiles. Image is the
-          primary affordance — cashier picks visually from a deck. */}
-      <div className="hidden gap-3 md:grid md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+      {/* Fluid catalog grid — uses CSS Grid's auto-fit with minmax so
+          column count adapts continuously to viewport width instead
+          of jumping at fixed breakpoints. At 320px (smallest phone):
+          ~2 cols of 144px. At 489px: ~3 cols of 145px. At 768px:
+          ~4 cols of 180px. At 1024px (with cart): ~3 cols. At 1280px+
+          (with cart): 5 cols. No hard transitions. */}
+      <div
+        className="grid gap-2 sm:gap-3"
+        style={{ gridTemplateColumns: "repeat(auto-fill, minmax(min(160px, 100%), 1fr))" }}
+      >
         {filtered.map((p) => {
           const inCart = cartBySku.get(p.sku) ?? 0
           return (
@@ -186,6 +137,7 @@ export function CatalogGrid({ catalog, onAdd, cart, onScanRequest, onOverflowReq
               className={cn(
                 "group relative flex min-w-0 flex-col overflow-hidden rounded-2xl border border-border bg-card text-left transition-all",
                 "hover:border-brand/40 hover:shadow-md active:scale-[0.98]",
+                inCart > 0 && "border-brand/40 ring-1 ring-brand/20 dark:ring-primary/20",
               )}
             >
               <div className="relative aspect-square overflow-hidden bg-muted">
@@ -200,17 +152,17 @@ export function CatalogGrid({ catalog, onAdd, cart, onScanRequest, onOverflowReq
                     {inCart}
                   </span>
                 )}
-                <span className="absolute bottom-2 right-2 inline-flex h-8 w-8 items-center justify-center rounded-full bg-background/90 text-brand shadow-sm backdrop-blur-sm transition-transform group-hover:scale-110 dark:bg-card/80 dark:text-primary">
+                <span className="absolute bottom-2 right-2 inline-flex h-9 w-9 items-center justify-center rounded-full bg-background/90 text-brand shadow-sm backdrop-blur-sm transition-transform group-hover:scale-110 dark:bg-card/80 dark:text-primary">
                   <Plus className="h-4 w-4" strokeWidth={2.4} />
                 </span>
               </div>
-              <div className="flex min-w-0 flex-1 flex-col gap-0.5 p-3">
+              <div className="flex min-w-0 flex-1 flex-col gap-0.5 p-2.5">
                 <span className="truncate text-sm font-semibold">{p.name}</span>
                 <span className="truncate text-[11px] text-muted-foreground">
                   <span className="font-mono">{p.sku}</span>
                   {p.category && <> · {p.category}</>}
                 </span>
-                <span className="mt-1 text-sm font-bold tabular-nums">{formatPrice(p.price)}</span>
+                <span className="mt-0.5 text-sm font-bold tabular-nums">{formatPrice(p.price)}</span>
               </div>
             </button>
           )
