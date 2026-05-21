@@ -23,6 +23,11 @@ type BottomSheetProps = {
    *  changes (e.g. swapping between a 4-item list and a 12-item
    *  list inside a drill-down). */
   minHeightVh?: number
+  /** Lock the sheet to an exact viewport-fraction height — overrides
+   *  min/max. Use when you want a stable bottom edge across content
+   *  swaps (More drawer drilling between sections, settings sheets
+   *  with a fixed footer, etc). */
+  heightVh?: number
   className?: string
 }
 
@@ -38,6 +43,7 @@ export function BottomSheet({
   footer,
   maxHeightVh = 92,
   minHeightVh,
+  heightVh,
   className,
 }: BottomSheetProps) {
   // Lock the body when open so the page underneath doesn't scroll with
@@ -102,10 +108,14 @@ export function BottomSheet({
               "flex flex-col overflow-hidden",
               className,
             )}
-            style={{
-              maxHeight: `${maxHeightVh}dvh`,
-              ...(minHeightVh ? { minHeight: `${minHeightVh}dvh` } : {}),
-            }}
+            style={
+              heightVh
+                ? { height: `${heightVh}dvh` }
+                : {
+                    maxHeight: `${maxHeightVh}dvh`,
+                    ...(minHeightVh ? { minHeight: `${minHeightVh}dvh` } : {}),
+                  }
+            }
             initial={{ y: "100%" }}
             animate={{ y: 0 }}
             exit={{ y: "100%" }}
