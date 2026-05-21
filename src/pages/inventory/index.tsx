@@ -26,6 +26,7 @@ import {
 } from "@/components/lists/filter-sheet"
 import { SwipeableRow } from "@/components/mobile/swipeable-row"
 import { OnboardingNudge } from "@/components/onboarding/onboarding-nudge"
+import { MobileFab } from "@/components/mobile/mobile-fab"
 import { cn } from "@/lib/utils"
 import { useCurrency } from "@/contexts/currency"
 
@@ -281,6 +282,8 @@ export default function InventoryItems() {
           />
         </FilterSection>
       </FilterSheet>
+
+      <MobileFab href="/inventory/new" label="Add item" />
     </PageShell>
   )
 }

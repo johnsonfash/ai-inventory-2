@@ -1,6 +1,7 @@
 
 import { Link } from "react-router-dom"
 import { PageShell } from "@/components/page-shell"
+import { MobileFab } from "@/components/mobile/mobile-fab"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
@@ -53,6 +54,8 @@ export default function Vendors() {
           </div>
         </CardContent>
       </Card>
+
+      <MobileFab href="/purchasing/vendors/new" label="Add vendor" />
     </PageShell>
   )
 }

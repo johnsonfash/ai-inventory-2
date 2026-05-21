@@ -10,6 +10,8 @@ import {
   Search,
 } from "lucide-react"
 import { PageShell } from "@/components/page-shell"
+import { MobileFab } from "@/components/mobile/mobile-fab"
+import { OnboardingNudge } from "@/components/onboarding/onboarding-nudge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { StatusBadge, type StatusTone } from "@/components/lists/status-badge"
@@ -96,6 +98,7 @@ export default function SalesOrders() {
       }
     >
       <div className="flex flex-col gap-4">
+        <OnboardingNudge stepKey="first-sale" cta="Make first sale" />
         <SummaryStrip
           tiles={[
             { label: "Orders",     value: String(ORDERS.length),         tone: "brand",   hint: "all time" },
@@ -251,6 +254,8 @@ export default function SalesOrders() {
           </ul>
         )}
       </div>
+
+      <MobileFab href="/sales/orders/new" label="New order" />
     </PageShell>
   )
 }

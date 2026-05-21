@@ -9,6 +9,8 @@ import {
   Truck,
 } from "lucide-react"
 import { PageShell } from "@/components/page-shell"
+import { MobileFab } from "@/components/mobile/mobile-fab"
+import { OnboardingNudge } from "@/components/onboarding/onboarding-nudge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -152,6 +154,7 @@ export default function PurchaseOrders() {
       }
     >
       <div className="flex flex-col gap-4">
+        <OnboardingNudge stepKey="first-po" cta="Create first PO" />
         <div className="-mx-4 flex gap-2.5 overflow-x-auto px-4 pb-1 scrollbar-hide snap-x snap-mandatory md:mx-0 md:grid md:grid-cols-4 md:gap-3 md:overflow-visible md:px-0">
           {[
             { label: "Open POs", value: String(openCount), tone: "info" as StatusTone, hint: "awaiting" },
@@ -319,6 +322,8 @@ export default function PurchaseOrders() {
           />
         </FilterSection>
       </FilterSheet>
+
+      <MobileFab href="/purchasing/pos/new" label="New PO" />
     </PageShell>
   )
 }

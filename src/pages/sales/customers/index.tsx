@@ -10,6 +10,7 @@ import {
   Users,
 } from "lucide-react"
 import { PageShell } from "@/components/page-shell"
+import { MobileFab } from "@/components/mobile/mobile-fab"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -261,6 +262,8 @@ export default function Customers() {
           </div>
         )}
       </div>
+
+      <MobileFab href="/sales/customers/new" label="Add customer" />
     </PageShell>
   )
 }
