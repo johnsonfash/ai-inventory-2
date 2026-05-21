@@ -272,47 +272,50 @@ export default function PointOfSale() {
             search input, and catalog all line up at the same width
             and resize in lockstep. */}
         <div className="grid gap-4 xl:grid-cols-[1fr_360px]">
-          {/* Catalog column */}
+          {/* Catalog column.
+              The chips + scan card live as DIRECT children of this
+              flex-col (rather than nested in a separate desktop-only
+              wrapper) so the scan card's sticky positioning works.
+              Sticky needs a tall containing block — the small wrapper
+              would have been only ~156px tall, so the sticky element
+              had nowhere to stick. As children of this column, the
+              containing block is the column itself, which is tall
+              because the CatalogGrid below it has 38 items. */}
           <div className="flex min-w-0 flex-col gap-3 md:gap-4">
-            {/* Desktop-only: quick action chips + full scan card.
-                Mobile renders these via the compact bar inside
-                CatalogGrid. */}
-            <div className="hidden md:flex md:flex-col md:gap-4">
-              <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 scrollbar-hide md:mx-0 md:px-0">
-                <PosQuickChip Icon={Layers} label="Drafts" onClick={() => navigate("/pos/drafts")} />
-                <PosQuickChip Icon={ClipboardList} label="Invoices" onClick={() => navigate("/pos/invoices")} />
-                <PosQuickChip Icon={RotateCcw} label="Returns" onClick={() => navigate("/pos/returns")} />
-                <PosQuickChip Icon={Settings2} label={`${mode} · ${location}`} onClick={() => setSettingsOpen(true)} />
-              </div>
+            {/* Quick action chips — desktop only. */}
+            <div className="hidden -mx-4 gap-2 overflow-x-auto px-4 pb-1 scrollbar-hide md:mx-0 md:flex md:px-0">
+              <PosQuickChip Icon={Layers} label="Drafts" onClick={() => navigate("/pos/drafts")} />
+              <PosQuickChip Icon={ClipboardList} label="Invoices" onClick={() => navigate("/pos/invoices")} />
+              <PosQuickChip Icon={RotateCcw} label="Returns" onClick={() => navigate("/pos/returns")} />
+              <PosQuickChip Icon={Settings2} label={`${mode} · ${location}`} onClick={() => setSettingsOpen(true)} />
+            </div>
 
-              {/* Sticky on desktop at top-20 — same offset as the
-                  CartPanel, so the scan card stays reachable while
-                  the cashier scrolls the catalog. z-20 keeps it
-                  above the catalog's own sticky search bar which
-                  pins right below it (see CatalogGrid). */}
-              <div className="sticky top-20 z-20 rounded-2xl border border-border bg-card p-3 shadow-sm">
-                <div className="flex items-center gap-2">
-                  <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-soft text-brand dark:bg-primary/15 dark:text-primary">
-                    <Barcode className="h-4 w-4" />
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <BarcodeScannerInput captureGlobal={globalScan} onScan={addByBarcode} />
-                  </div>
+            {/* Scan card — desktop only, sticky at top-20 (same
+                offset as the CartPanel). z-20 keeps it above the
+                catalog's own sticky search bar that pins right below
+                it. */}
+            <div className="hidden rounded-2xl border border-border bg-card p-3 shadow-sm md:sticky md:top-20 md:z-20 md:block">
+              <div className="flex items-center gap-2">
+                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-soft text-brand dark:bg-primary/15 dark:text-primary">
+                  <Barcode className="h-4 w-4" />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <BarcodeScannerInput captureGlobal={globalScan} onScan={addByBarcode} />
                 </div>
-                <Input
-                  placeholder="…or type SKU / name and press Enter"
-                  className="mt-2"
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      const v = (e.target as HTMLInputElement).value.trim()
-                      if (v) {
-                        addByBarcode(v)
-                        ;(e.target as HTMLInputElement).value = ""
-                      }
-                    }
-                  }}
-                />
               </div>
+              <Input
+                placeholder="…or type SKU / name and press Enter"
+                className="mt-2"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    const v = (e.target as HTMLInputElement).value.trim()
+                    if (v) {
+                      addByBarcode(v)
+                      ;(e.target as HTMLInputElement).value = ""
+                    }
+                  }
+                }}
+              />
             </div>
 
             <CatalogGrid
