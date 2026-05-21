@@ -1,30 +1,18 @@
-import * as React from "react"
-import { useNavigate, useSearchParams } from "react-router-dom"
-import {
-  Barcode,
-  CheckCircle2,
-  ChevronRight,
-  ClipboardList,
-  FileText,
-  Layers,
-  MoreHorizontal,
-  Printer,
-  RotateCcw,
-  Settings2,
-} from "lucide-react"
+import { BottomSheet } from "@/components/mobile/bottom-sheet"
 import { PageShell } from "@/components/page-shell"
+import { BarcodeScannerInput } from "@/components/pos/barcode-scanner-input"
+import { CartPanel } from "@/components/pos/cart-panel"
+import { CartSheet } from "@/components/pos/cart-sheet"
+import { CatalogGrid } from "@/components/pos/catalog-grid"
+import { CheckoutSheet } from "@/components/pos/checkout-sheet"
+import { FloatingCart } from "@/components/pos/floating-cart"
+import { InvoicePreview, ReceiptPreview, printInvoiceNode } from "@/components/pos/invoice-print"
+import { PosSettingsSheet } from "@/components/pos/pos-settings-sheet"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
-import { BarcodeScannerInput } from "@/components/pos/barcode-scanner-input"
-import { InvoicePreview, ReceiptPreview, printInvoiceNode } from "@/components/pos/invoice-print"
-import { CatalogGrid } from "@/components/pos/catalog-grid"
-import { FloatingCart } from "@/components/pos/floating-cart"
-import { CartSheet } from "@/components/pos/cart-sheet"
-import { BottomSheet } from "@/components/mobile/bottom-sheet"
-import { CartPanel } from "@/components/pos/cart-panel"
-import { CheckoutSheet } from "@/components/pos/checkout-sheet"
-import { PosSettingsSheet } from "@/components/pos/pos-settings-sheet"
+import { useCurrency } from "@/contexts/currency"
+import { useAutoMarkStep } from "@/hooks/use-auto-mark-step"
 import { useIsMobile } from "@/hooks/use-mobile"
 import {
   findVirtualAccount,
@@ -45,8 +33,19 @@ import {
   type PaymentLine,
 } from "@/lib/pos/storage"
 import { cn } from "@/lib/utils"
-import { useCurrency } from "@/contexts/currency"
-import { useAutoMarkStep } from "@/hooks/use-auto-mark-step"
+import {
+  Barcode,
+  CheckCircle2,
+  ChevronRight,
+  ClipboardList,
+  FileText,
+  Layers,
+  Printer,
+  RotateCcw,
+  Settings2
+} from "lucide-react"
+import * as React from "react"
+import { useNavigate, useSearchParams } from "react-router-dom"
 
 type Mode = "retail" | "restaurant" | "services" | "auto"
 
@@ -271,7 +270,7 @@ export default function PointOfSale() {
             spanning the whole page width — this way the scan card,
             search input, and catalog all line up at the same width
             and resize in lockstep. */}
-        <div className="grid gap-4 xl:grid-cols-[1fr_360px]">
+        <div className="grid gap-4 xl:grid-cols-[1fr_clamp(320px,28%,420px)]">
           {/* Catalog column.
               Mobile: gap-3 between children (just CatalogGrid is
                 visible since chips + scan card are hidden).
@@ -289,16 +288,16 @@ export default function PointOfSale() {
                 Inline marginTop guarantees the negative offset
                 regardless of Tailwind's purge pass — the element is
                 hidden on mobile so the style has no effect there. */}
-            <div
+            {/* <div
               className="hidden md:sticky md:top-0 md:z-30 md:block md:h-5 md:bg-background"
               style={{ marginTop: "-1.25rem" }}
               aria-hidden
-            />
+            /> */}
 
             {/* Sticky chips + scan card. bg-background covers the
                 wrapper's box (chips row + gap + scan card) so the
                 inter-element gaps don't leak product images either. */}
-            <div className="hidden md:sticky md:top-5 md:z-30 md:flex md:flex-col md:gap-4 md:bg-background md:pb-3">
+            <div className="hidden md:sticky md:top-0 md:z-30 md:flex md:flex-col md:gap-4 md:bg-background md:pb-3">
               <div className="flex gap-2 overflow-x-auto py-2 scrollbar-hide">
                 <PosQuickChip Icon={Layers} label="Drafts" onClick={() => navigate("/pos/drafts")} />
                 <PosQuickChip Icon={ClipboardList} label="Invoices" onClick={() => navigate("/pos/invoices")} />

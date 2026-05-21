@@ -57,7 +57,7 @@ export function CatalogGrid({ catalog, onAdd, cart, onScanRequest, onOverflowReq
             with gaps = ends at y=200). Matching the natural Y means
             no push-down when sticky engages — element stays at its
             natural spot until scroll triggers stickiness. */}
-      <div className="sticky top-0 z-10 -mx-4 border-b border-border bg-background px-4 pt-2 pb-2 md:top-[200px] md:mx-0 md:px-0 md:pt-1 md:pb-3">
+      <div className="sticky top-0 z-10 -mx-4 border-b border-border bg-background px-4 pt-2 pb-2 md:top-47 md:mx-0 md:px-0 md:pt-1 md:pb-3">
         <div className="flex items-stretch gap-1.5">
           {/* Mobile scan launcher — only renders when parent provides
               the callback (mobile POS does). Brand-filled to read as
