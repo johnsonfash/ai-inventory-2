@@ -161,11 +161,15 @@ export function BottomSheet({
             {/* Body — `pwa-bottom` adds the iOS home-indicator inset
                 so the last form field can't sit under the safe area.
                 When there's a footer, that footer carries the inset
-                instead and the body just gets a normal pb-4. */}
+                instead and the body just gets normal bottom padding.
+                Bumped to pb-10 (40px) so the last item in any sheet
+                (cart sheet, scan sheet, settings, filters, etc.) has
+                generous breathing room before the sheet's bottom
+                edge — covers every consumer in one place. */}
             <div
               className={cn(
                 "flex-1 overflow-y-auto px-5",
-                footer ? "pb-4" : "pb-4 pwa-bottom",
+                footer ? "pb-8" : "pb-10 pwa-bottom",
               )}
             >
               {children}
