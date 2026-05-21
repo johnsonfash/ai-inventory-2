@@ -186,6 +186,20 @@
       font-size: inherit;
     }
   }
+
+  /* Strip the native spinner buttons from every <input type="number">
+     across the app. The Input component pairs this with
+     inputMode="decimal" so users get a numeric keyboard on mobile and
+     a clean look on desktop. */
+  input[type="number"]::-webkit-outer-spin-button,
+  input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  input[type="number"] {
+    -moz-appearance: textfield;
+    appearance: textfield;
+  }
 }
 
 @layer utilities {
