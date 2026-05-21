@@ -282,19 +282,21 @@ export default function PointOfSale() {
               containing block is the column itself, which is tall
               because the CatalogGrid below it has 38 items. */}
           <div className="flex min-w-0 flex-col gap-3 md:gap-4">
-            {/* Quick action chips — desktop only. */}
-            <div className="hidden -mx-4 gap-2 overflow-x-auto px-4 pb-1 scrollbar-hide md:mx-0 md:flex md:px-0">
+            {/* Quick action chips — desktop sticky at top-20.
+                bg-background so scrolling content underneath doesn't
+                show through. py-2 for breathing room when stuck. */}
+            <div className="hidden -mx-4 gap-2 overflow-x-auto px-4 pb-1 scrollbar-hide md:mx-0 md:flex md:px-0 md:sticky md:top-20 md:z-30 md:bg-background md:py-2">
               <PosQuickChip Icon={Layers} label="Drafts" onClick={() => navigate("/pos/drafts")} />
               <PosQuickChip Icon={ClipboardList} label="Invoices" onClick={() => navigate("/pos/invoices")} />
               <PosQuickChip Icon={RotateCcw} label="Returns" onClick={() => navigate("/pos/returns")} />
               <PosQuickChip Icon={Settings2} label={`${mode} · ${location}`} onClick={() => setSettingsOpen(true)} />
             </div>
 
-            {/* Scan card — desktop only, sticky at top-20 (same
-                offset as the CartPanel). z-20 keeps it above the
-                catalog's own sticky search bar that pins right below
-                it. */}
-            <div className="hidden rounded-2xl border border-border bg-card p-3 shadow-sm md:sticky md:top-20 md:z-20 md:block">
+            {/* Scan card — desktop sticky at top-36 (stacks below
+                the sticky chips which take ~64px starting at 80px).
+                z-20 keeps it above the catalog's sticky search bar
+                that pins right below this. */}
+            <div className="hidden rounded-2xl border border-border bg-card p-3 shadow-sm md:sticky md:top-36 md:z-20 md:block">
               <div className="flex items-center gap-2">
                 <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-soft text-brand dark:bg-primary/15 dark:text-primary">
                   <Barcode className="h-4 w-4" />
