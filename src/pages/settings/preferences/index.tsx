@@ -18,6 +18,14 @@ export default function Preferences() {
     <FormShell
       title="Preferences"
       description="Per-account display, locale, and behaviour settings."
+      titleTooltip={
+        <>
+          Personal tweaks that only affect <em>your</em> view of
+          Pallio — colour theme, date format, default landing page,
+          keyboard shortcuts. Other team members keep their own
+          preferences; nothing here changes the business setup.
+        </>
+      }
       backHref="/settings"
       onSubmit={() => {
         setSubmitting(true)

@@ -35,6 +35,15 @@ export default function NewPO() {
     <FormShell
       title="New purchase order"
       description="Order stock from a vendor."
+      titleTooltip={
+        <>
+          Place an order with one of your suppliers. The PO locks in
+          the SKUs, quantities, prices, and delivery date you agreed
+          — and forms the audit trail when the goods (and bill)
+          arrive later. Don't skip it: a bill without a matching PO
+          is hard to dispute.
+        </>
+      }
       backHref="/purchasing/pos"
       onSubmit={() => { setSubmitting(true); setTimeout(() => setSubmitting(false), 500) }}
       aside={
@@ -62,19 +71,25 @@ export default function NewPO() {
     >
       <FormSection title="Vendor" Icon={Truck}>
         <FormGrid cols={3}>
-          <FormField label="Vendor" required>
+          <FormField
+            label="Vendor"
+            required
+            tooltip="The supplier you're buying from. Pallio uses their saved payment terms + lead times to pre-fill the rest of this form."
+          >
             <Select defaultValue="cobalt">
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="cobalt">Cobalt Distributors</SelectItem>
                 <SelectItem value="delta">Delta Apparel</SelectItem>
-                <SelectItem value="acme">Acme Supplies</SelectItem>
                 <SelectItem value="glow">Glow Co</SelectItem>
                 <SelectItem value="porcel">Porcel Ceramics</SelectItem>
               </SelectContent>
             </Select>
           </FormField>
-          <FormField label="Destination warehouse">
+          <FormField
+            label="Destination warehouse"
+            tooltip="Which store or warehouse the goods should arrive at. Pallio uses this to route the goods-receipt step and update the right location's stock count."
+          >
             <Select defaultValue="wh-a">
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
@@ -84,7 +99,18 @@ export default function NewPO() {
               </SelectContent>
             </Select>
           </FormField>
-          <FormField label="PO number" hint="Auto-generated if blank.">
+          <FormField
+            label="PO number"
+            hint="Auto-generated if blank."
+            tooltip={
+              <>
+                <strong>Purchase Order number</strong> — a unique reference both
+                you and the vendor quote when talking about this order. Leave
+                blank and Pallio will assign the next number in sequence
+                (e.g. <span className="font-mono">PO-1045</span>).
+              </>
+            }
+          >
             <Input placeholder="PO-1045" />
           </FormField>
         </FormGrid>
@@ -92,13 +118,32 @@ export default function NewPO() {
 
       <FormSection title="Schedule" Icon={CalendarDays}>
         <FormGrid cols={3}>
-          <FormField label="Issue date" required>
+          <FormField
+            label="Issue date"
+            required
+            tooltip="The day you're placing the order. Used as the start date when counting payment terms (e.g. Net 30 = due 30 days from this date)."
+          >
             <Input type="date" defaultValue={new Date().toISOString().slice(0, 10)} required />
           </FormField>
-          <FormField label="Expected delivery">
+          <FormField
+            label="Expected delivery"
+            tooltip="When you expect the goods to arrive. Pallio uses this to warn you on the dashboard if a PO is overdue."
+          >
             <Input type="date" />
           </FormField>
-          <FormField label="Payment terms">
+          <FormField
+            label="Payment terms"
+            tooltip={
+              <>
+                How long the vendor gives you to pay.
+                <ul className="mt-1.5 list-disc pl-4">
+                  <li><strong>Immediate</strong> — pay on delivery (cash &amp; carry).</li>
+                  <li><strong>Net 7 / 14 / 30 / 60</strong> — pay within that many days of the issue date.</li>
+                </ul>
+                Most B2B suppliers in Nigeria are Net 30. Pallio pre-fills this from the vendor's saved default.
+              </>
+            }
+          >
             <Select defaultValue="net30">
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>

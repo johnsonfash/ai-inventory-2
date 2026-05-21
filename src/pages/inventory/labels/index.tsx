@@ -43,7 +43,18 @@ export default function LabelPrint() {
     setItems((p) => p.map((i) => (i.sku === sku ? { ...i, checked: !i.checked } : i)))
 
   return (
-    <PageShell title="Print labels" withToolbar={false}>
+    <PageShell
+      title="Print labels"
+      withToolbar={false}
+      titleTooltip={
+        <>
+          Print barcode stickers for items that didn't come with one —
+          house-brand goods, repackaged bulk, custom bundles. The
+          barcodes scan in the POS, on shipments, and during stock
+          counts.
+        </>
+      }
+    >
       <div className="flex flex-col gap-4">
         <SummaryStrip
           tiles={[

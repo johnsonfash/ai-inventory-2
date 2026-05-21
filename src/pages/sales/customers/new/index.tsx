@@ -19,6 +19,14 @@ export default function NewCustomer() {
     <FormShell
       title="New customer"
       description="Contact info, addresses, and trading terms."
+      titleTooltip={
+        <>
+          Create a customer record so Pallio remembers their contact,
+          payment terms, and price-list tier the next time they buy.
+          For one-off walk-ins, you can skip this and the POS will
+          tag the sale as "Walk-in" automatically.
+        </>
+      }
       backHref="/sales/customers"
       onSubmit={() => {
         setSubmitting(true)
@@ -37,10 +45,27 @@ export default function NewCustomer() {
     >
       <FormSection title="Contact" description="How to reach this customer" Icon={User}>
         <FormGrid cols={2}>
-          <FormField label="Name" required hint="Business name or contact full name.">
+          <FormField
+            label="Name"
+            required
+            hint="Business name or contact full name."
+            tooltip="If this is a business, use the company name. If it's a walk-in shopper, use their full name. Pallio uses this everywhere — invoices, receipts, search results."
+          >
             <Input placeholder="NovaApps" required />
           </FormField>
-          <FormField label="Customer type">
+          <FormField
+            label="Customer type"
+            tooltip={
+              <>
+                <ul className="space-y-1.5">
+                  <li><strong>Retail</strong> — walk-in shoppers paying the listed price.</li>
+                  <li><strong>Wholesale</strong> — business buyers who get bulk prices + payment terms.</li>
+                  <li><strong>Online</strong> — customers who order through your website.</li>
+                </ul>
+                Pallio uses this to pick the right price list and tax treatment automatically.
+              </>
+            }
+          >
             <Select defaultValue="retail">
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
@@ -50,16 +75,24 @@ export default function NewCustomer() {
               </SelectContent>
             </Select>
           </FormField>
-          <FormField label="Email" required>
+          <FormField label="Email" required tooltip="Where invoices, receipts, and order confirmations are sent.">
             <Input type="email" placeholder="ops@novaapps.io" required />
           </FormField>
-          <FormField label="Phone">
-            <Input type="tel" placeholder="+1 555 0123" />
+          <FormField label="Phone" tooltip="Used for WhatsApp / SMS receipts and delivery updates.">
+            <Input type="tel" placeholder="+234 803 555 0123" />
           </FormField>
-          <FormField label="Tax ID / VAT" hint="For B2B invoicing.">
-            <Input placeholder="GB123456789" />
+          <FormField
+            label="Tax ID / VAT"
+            hint="For B2B invoicing."
+            tooltip="The customer's TIN or VAT number. Required on B2B invoices so they can reclaim tax on their side. Leave blank for walk-in retail."
+          >
+            <Input placeholder="12345678-0001" />
           </FormField>
-          <FormField label="Notes" span={2}>
+          <FormField
+            label="Notes"
+            span={2}
+            tooltip="Anything you want to remember about this customer — preferences, allergies, credit history. Visible only to your team, never to the customer."
+          >
             <Textarea placeholder="Internal notes — not shown to the customer." />
           </FormField>
         </FormGrid>
@@ -88,7 +121,18 @@ export default function NewCustomer() {
 
       <FormSection title="Trading terms" description="Pricing and payment defaults" Icon={Lightbulb}>
         <FormGrid cols={2}>
-          <FormField label="Default price list">
+          <FormField
+            label="Default price list"
+            tooltip={
+              <>
+                Which set of prices to use when this customer buys.
+                <strong> Retail</strong> = listed price, <strong>Wholesale</strong>{" "}
+                = bulk-discount price, <strong>VIP</strong> = a special tier you
+                define for top customers. Set up price lists in Inventory →
+                Price lists.
+              </>
+            }
+          >
             <Select defaultValue="retail">
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
@@ -98,7 +142,19 @@ export default function NewCustomer() {
               </SelectContent>
             </Select>
           </FormField>
-          <FormField label="Payment terms">
+          <FormField
+            label="Payment terms"
+            tooltip={
+              <>
+                How long the customer has to pay you.
+                <ul className="mt-1.5 list-disc pl-4">
+                  <li><strong>Immediate</strong> — pay at the till (cash, card, transfer).</li>
+                  <li><strong>Net 7 / 14 / 30</strong> — pay within that many days of the invoice date.</li>
+                </ul>
+                Used to calculate the invoice due date automatically.
+              </>
+            }
+          >
             <Select defaultValue="net14">
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
@@ -112,7 +168,7 @@ export default function NewCustomer() {
           <FormField span={2}>
             <SwitchField
               label="Send invoices automatically on order fulfilment"
-              description="Pallio will email the invoice as soon as the order is marked fulfilled."
+              description="When an order ships, Pallio emails the invoice + payment link to the customer without you lifting a finger."
               defaultChecked
             />
           </FormField>

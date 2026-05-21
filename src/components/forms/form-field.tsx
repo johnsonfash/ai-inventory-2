@@ -1,5 +1,6 @@
 import * as React from "react"
 import { AlertCircle } from "lucide-react"
+import { InfoTooltip } from "@/components/info-tooltip"
 import { cn } from "@/lib/utils"
 
 type Props = {
@@ -15,6 +16,12 @@ type Props = {
   htmlFor?: string
   /** Span N columns inside a FormGrid (md+). */
   span?: 1 | 2 | 3
+  /** Optional inline help — renders an `InfoTooltip` next to the
+   *  label. Use whenever a non-technical user wouldn't know what to
+   *  type. Pass a string for plain text, ReactNode for richer copy. */
+  tooltip?: React.ReactNode
+  /** Override the tooltip popover title. Defaults to the label string. */
+  tooltipLabel?: string
   className?: string
   children: React.ReactNode
 }
@@ -27,6 +34,8 @@ export function FormField({
   required,
   htmlFor,
   span,
+  tooltip,
+  tooltipLabel,
   className,
   children,
 }: Props) {
@@ -42,10 +51,20 @@ export function FormField({
       {label && (
         <label
           htmlFor={htmlFor}
-          className="text-sm font-medium text-foreground/90"
+          className="inline-flex items-center gap-1 text-sm font-medium text-foreground/90"
         >
-          {label}
-          {required && <span className="ml-0.5 text-destructive">*</span>}
+          <span>
+            {label}
+            {required && <span className="ml-0.5 text-destructive">*</span>}
+          </span>
+          {tooltip && (
+            <InfoTooltip
+              label={tooltipLabel ?? (typeof label === "string" ? label : undefined)}
+              size="xs"
+            >
+              {tooltip}
+            </InfoTooltip>
+          )}
         </label>
       )}
       {children}

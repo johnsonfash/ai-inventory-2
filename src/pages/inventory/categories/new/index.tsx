@@ -16,6 +16,14 @@ export default function NewCategory() {
     <FormShell
       title="New category"
       description="Categories group items in the catalog, POS, reports, and ads."
+      titleTooltip={
+        <>
+          A bucket that groups related items so customers can browse
+          them together and reports can subtotal by it. Every item
+          belongs to exactly one category — pick the closest match
+          when you're stuck.
+        </>
+      }
       backHref="/inventory/categories"
       onSubmit={() => { setSubmitting(true); setTimeout(() => setSubmitting(false), 400) }}
       aside={

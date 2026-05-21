@@ -61,7 +61,7 @@ export default function EasypostConfig() {
             </Select>
           </FormField>
           <FormField label="Return address" hint="Pre-filled on every label.">
-            <Textarea defaultValue="Acme Inc\n200 Congress Ave\nAustin, TX 78701" />
+            <Textarea defaultValue={"Funke Apparel Co.\n12 Admiralty Way\nLekki Phase 1, Lagos 106104"} />
           </FormField>
         </FormGrid>
       </FormSection>

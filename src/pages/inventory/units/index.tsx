@@ -37,7 +37,18 @@ export default function Units() {
   const compoundCount = rows.filter((r) => r.baseFor).length
 
   return (
-    <PageShell title="Units of measure" withToolbar>
+    <PageShell
+      title="Units of measure"
+      withToolbar
+      titleTooltip={
+        <>
+          The way you sell an item — pieces, boxes, kilograms, litres,
+          dozens. Tracking the unit prevents confusion when staff
+          rings up "5" of something the supplier sold you in cartons
+          of 24.
+        </>
+      }
+    >
       <div className="flex flex-col gap-4">
         <SummaryStrip
           tiles={[

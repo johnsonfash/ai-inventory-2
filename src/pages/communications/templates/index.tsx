@@ -43,7 +43,18 @@ export default function TemplatesLibrary() {
   for (const t of TEMPLATES) byCategory[t.category]++
 
   return (
-    <PageShell title="Email templates" withToolbar={false}>
+    <PageShell
+      title="Email templates"
+      withToolbar={false}
+      titleTooltip={
+        <>
+          Reusable email designs Pallio fires automatically — order
+          confirmations, payment receipts, abandoned-cart reminders,
+          marketing blasts. Edit a template once and every future
+          send uses the new copy. Variables fill in per-recipient.
+        </>
+      }
+    >
       <div className="flex flex-col gap-4">
         <Link to="/communications" className="inline-flex w-fit items-center gap-1 text-xs font-medium text-muted-foreground hover:text-foreground">
           <ArrowLeft className="h-3.5 w-3.5" /> Back to inbox

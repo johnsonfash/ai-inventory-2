@@ -7,6 +7,8 @@ import { useRegisterPageRefresh } from "@/hooks/use-pull-to-refresh"
 import { SummaryStrip, type SummaryTile } from "@/components/lists/summary-strip"
 import { StatusBadge, type StatusTone } from "@/components/lists/status-badge"
 import { EmptyState } from "@/components/lists/empty-state"
+import { ConnectionCard } from "@/components/integrations/connection-chip"
+import { getStatus } from "@/lib/integrations/data"
 import { useCurrency } from "@/contexts/currency"
 import { cn } from "@/lib/utils"
 
@@ -31,11 +33,19 @@ const statusTone: Record<Campaign["status"], StatusTone> = {
 type Props = {
   title: string
   description: string
+  /** Optional plain-English explainer rendered as an `InfoTooltip`
+   *  next to the channel title — same pattern as PageShell. */
+  titleTooltip?: React.ReactNode
   Icon: LucideIcon
   tone: "sky" | "fuchsia" | "rose" | "violet" | "emerald"
   campaigns: Campaign[]
   newCampaignHref: string
   newListingHref?: string
+  /** Integration provider id this channel runs on (e.g. "facebook-ads").
+   *  When supplied, a connection card is shown above the campaign list
+   *  + the "New campaign" CTA is replaced with a "Connect first" CTA
+   *  when the provider isn't connected. */
+  providerId?: string
 }
 
 const TONES = {
@@ -48,7 +58,8 @@ const TONES = {
 
 // Shared shell used by Facebook / Instagram / YouTube / Marketplace
 // channel pages. Renders a brand hero + KPI strip + campaign list.
-export function ChannelShell({ title, description, Icon, tone, campaigns, newCampaignHref, newListingHref }: Props) {
+export function ChannelShell({ title, description, titleTooltip, Icon, tone, campaigns, newCampaignHref, newListingHref, providerId }: Props) {
+  const providerConnected = providerId ? getStatus(providerId) === "connected" : true
   useRegisterPageRefresh(React.useCallback(async () => { await new Promise((r) => setTimeout(r, 400)) }, []))
   const { formatPrice, formatCompact } = useCurrency()
 
@@ -70,7 +81,7 @@ export function ChannelShell({ title, description, Icon, tone, campaigns, newCam
   ]
 
   return (
-    <PageShell title={title} withToolbar={false}>
+    <PageShell title={title} withToolbar={false} titleTooltip={titleTooltip}>
       <div className="flex flex-col gap-4">
         {/* Hero */}
         <div className={cn("relative overflow-hidden rounded-2xl border border-border bg-gradient-to-br via-card to-card p-5", TONES[tone].from)}>
@@ -87,19 +98,44 @@ export function ChannelShell({ title, description, Icon, tone, campaigns, newCam
             <div className="flex items-center gap-2">
               {newListingHref && (
                 <Link to={newListingHref}>
-                  <Button variant="outline">
+                  <Button variant="outline" disabled={!providerConnected}>
                     <Plus className="h-4 w-4" /> New listing
                   </Button>
                 </Link>
               )}
-              <Link to={newCampaignHref}>
-                <Button>
-                  <Plus className="h-4 w-4" /> New campaign
-                </Button>
-              </Link>
+              {providerConnected ? (
+                <Link to={newCampaignHref}>
+                  <Button>
+                    <Plus className="h-4 w-4" /> New campaign
+                  </Button>
+                </Link>
+              ) : providerId ? (
+                <Link to={`/settings/integrations/${providerId}`}>
+                  <Button>
+                    Connect first →
+                  </Button>
+                </Link>
+              ) : (
+                <Link to={newCampaignHref}>
+                  <Button>
+                    <Plus className="h-4 w-4" /> New campaign
+                  </Button>
+                </Link>
+              )}
             </div>
           </div>
         </div>
+
+        {/* Underlying integration — connect / config card. Renders
+            only when the channel declares a providerId. */}
+        {providerId && (
+          <ConnectionCard
+            providerId={providerId}
+            reason={providerConnected
+              ? `${title} is wired up — your catalog auto-syncs to this channel.`
+              : `Connect ${title} to run campaigns. Pallio syncs your catalog automatically.`}
+          />
+        )}
 
         <SummaryStrip tiles={tiles} />
 

@@ -6,6 +6,7 @@ import { Link, useLocation } from "react-router-dom"
 import {
   BarChart3,
   Bell,
+  Bookmark,
   Bot,
   Mail,
   CalendarDays,
@@ -14,6 +15,7 @@ import {
   ClipboardList,
   CreditCard,
   FileText,
+  Globe,
   Megaphone,
   Package2,
   PanelLeftClose,
@@ -26,11 +28,23 @@ import {
   type LucideIcon,
 } from "lucide-react"
 import { Input } from "@/components/ui/input"
+import { BrandMark } from "@/components/brand-mark"
 import { cn } from "@/lib/utils"
 
 type SubItem = { title: string; url: string }
 type Item = { title: string; url?: string; icon: LucideIcon; sub?: SubItem[] }
 
+// Sidebar groups, ordered the way a shop owner actually thinks about
+// their day:
+//   1. At-a-glance       → Dashboard
+//   2. Daily ops         → POS, Appointments
+//   3. Sell side         → Sales, Inventory
+//   4. Buy side          → Purchases, Expenses
+//   5. Books             → Accounting, Reporting
+//   6. Grow              → Marketing, Communications, AI Assistant
+//   7. System            → Notifications, Integrations, Settings
+// Sub-items inside each group keep the "list first, new last"
+// convention so the most-used screen is always closest to the click.
 const nav: Item[] = [
   { title: "Dashboard", url: "/dashboard", icon: BarChart3 },
 
@@ -40,8 +54,8 @@ const nav: Item[] = [
     sub: [
       { title: "Current Sale", url: "/pos" },
       { title: "Drafts", url: "/pos/drafts" },
-      { title: "Invoices", url: "/pos/invoices" },
       { title: "Transactions", url: "/pos/transactions" },
+      { title: "Invoices", url: "/pos/invoices" },
       { title: "Returns", url: "/pos/returns" },
       { title: "Start Return", url: "/pos/returns/new" },
     ],
@@ -50,50 +64,66 @@ const nav: Item[] = [
   { title: "Appointments", url: "/appointments", icon: CalendarDays },
 
   {
-    title: "Inventory",
-    icon: Package2,
-    sub: [
-      { title: "Items", url: "/inventory" },
-      { title: "New Item", url: "/inventory/new" },
-      { title: "Categories", url: "/inventory/categories" },
-      { title: "Add Category", url: "/inventory/categories/new" },
-      { title: "Units", url: "/inventory/units" },
-      { title: "Add Unit", url: "/inventory/units/new" },
-      { title: "Brands", url: "/inventory/brands" },
-      { title: "Add Brand", url: "/inventory/brands/new" },
-      { title: "Warranties", url: "/inventory/warranties" },
-      { title: "Add Warranty", url: "/inventory/warranties/new" },
-      { title: "Price Lists", url: "/inventory/price-lists" },
-      { title: "New Price List", url: "/inventory/price-lists/new" },
-      { title: "Composite Items", url: "/inventory/composite" },
-      { title: "New Composite", url: "/inventory/composite/new" },
-      { title: "Adjustments", url: "/inventory/adjustments" },
-      { title: "Transfers", url: "/inventory/transfers" },
-      { title: "Label Print", url: "/inventory/labels" },
-      { title: "Receive Stock", url: "/inventory/receive" },
-    ],
-  },
-
-  {
     title: "Sales",
     icon: ShoppingCart,
     sub: [
       { title: "Customers", url: "/sales/customers" },
-      { title: "New Customer", url: "/sales/customers/new" },
       { title: "Orders", url: "/sales/orders" },
-      { title: "New Order", url: "/sales/orders/new" },
       { title: "Invoices", url: "/sales/invoices" },
-      { title: "New Invoice", url: "/sales/invoices/new" },
       { title: "Receipts", url: "/sales/receipts" },
       { title: "Shipments", url: "/sales/shipments" },
-      { title: "New Shipment", url: "/sales/shipments/new" },
       { title: "Returns", url: "/sales/returns" },
-      { title: "New Return", url: "/sales/returns/new" },
       { title: "Discounts", url: "/sales/discounts" },
-      { title: "New Discount", url: "/sales/discounts/new" },
-      { title: "Team Performance", url: "/sales/team" },
-      { title: "Team Chat", url: "/sales/team/chat" },
+      { title: "Sales Leaderboard", url: "/sales/team" },
       { title: "Live Inventory (Sales)", url: "/sales/inventory" },
+      { title: "New Customer", url: "/sales/customers/new" },
+      { title: "New Order", url: "/sales/orders/new" },
+      { title: "New Invoice", url: "/sales/invoices/new" },
+      { title: "New Shipment", url: "/sales/shipments/new" },
+      { title: "New Return", url: "/sales/returns/new" },
+      { title: "New Discount", url: "/sales/discounts/new" },
+    ],
+  },
+
+  {
+    title: "Inventory",
+    icon: Package2,
+    sub: [
+      { title: "Items", url: "/inventory" },
+      { title: "Receive Stock", url: "/inventory/receive" },
+      { title: "Adjustments", url: "/inventory/adjustments" },
+      { title: "Transfers", url: "/inventory/transfers" },
+      { title: "Categories", url: "/inventory/categories" },
+      { title: "Units", url: "/inventory/units" },
+      { title: "Brands", url: "/inventory/brands" },
+      { title: "Warranties", url: "/inventory/warranties" },
+      { title: "Price Lists", url: "/inventory/price-lists" },
+      { title: "Composite Items", url: "/inventory/composite" },
+      { title: "Label Print", url: "/inventory/labels" },
+      { title: "New Item", url: "/inventory/new" },
+      { title: "Add Category", url: "/inventory/categories/new" },
+      { title: "Add Unit", url: "/inventory/units/new" },
+      { title: "Add Brand", url: "/inventory/brands/new" },
+      { title: "Add Warranty", url: "/inventory/warranties/new" },
+      { title: "New Price List", url: "/inventory/price-lists/new" },
+      { title: "New Composite", url: "/inventory/composite/new" },
+    ],
+  },
+
+  {
+    title: "Purchases",
+    icon: ClipboardList,
+    sub: [
+      { title: "Vendors", url: "/purchasing/vendors" },
+      { title: "Purchase Orders", url: "/purchasing/pos" },
+      { title: "Receipts", url: "/purchasing/receipts" },
+      { title: "Bills", url: "/purchasing/bills" },
+      { title: "Vendor Credits", url: "/purchasing/vendor-credits" },
+      { title: "Add Vendor", url: "/purchasing/vendors/new" },
+      { title: "New Purchase Order", url: "/purchasing/pos/new" },
+      { title: "New Receipt", url: "/purchasing/receipts/new" },
+      { title: "New Bill", url: "/purchasing/bills/new" },
+      { title: "New Vendor Credit", url: "/purchasing/vendor-credits/new" },
     ],
   },
 
@@ -107,19 +137,18 @@ const nav: Item[] = [
   },
 
   {
-    title: "Purchases",
-    icon: ClipboardList,
+    title: "Accounting",
+    icon: Wallet,
     sub: [
-      { title: "Vendors", url: "/purchasing/vendors" },
-      { title: "Add Vendor", url: "/purchasing/vendors/new" },
-      { title: "Purchase Orders", url: "/purchasing/pos" },
-      { title: "New Purchase Order", url: "/purchasing/pos/new" },
-      { title: "Receipts", url: "/purchasing/receipts" },
-      { title: "New Receipt", url: "/purchasing/receipts/new" },
-      { title: "Bills", url: "/purchasing/bills" },
-      { title: "New Bill", url: "/purchasing/bills/new" },
-      { title: "Vendor Credits", url: "/purchasing/vendor-credits" },
-      { title: "New Vendor Credit", url: "/purchasing/vendor-credits/new" },
+      { title: "Profit & Loss",  url: "/accounting/profit-loss" },
+      { title: "Balance Sheet",  url: "/accounting/balance-sheet" },
+      { title: "Cash Flow",      url: "/accounting/cash-flow" },
+      { title: "Payroll",        url: "/accounting/payroll" },
+      { title: "Commission Payouts", url: "/accounting/commissions" },
+      { title: "Tax Filings",    url: "/accounting/taxes" },
+      { title: "Chart of Accounts", url: "/accounting/chart-of-accounts" },
+      { title: "Journal Entries",   url: "/accounting/journal-entries" },
+      { title: "Bank Reconciliation", url: "/accounting/reconciliation" },
     ],
   },
 
@@ -129,7 +158,7 @@ const nav: Item[] = [
     sub: [
       { title: "Profit & Loss", url: "/reporting/profit-loss" },
       { title: "Purchase & Sale", url: "/reporting/purchase-sale" },
-      { title: "Tax", url: "/reporting/tax" },
+      { title: "Tax Analytics", url: "/reporting/tax" },
       { title: "Supplier & Customer", url: "/reporting/supplier-customer" },
       { title: "Customer Group", url: "/reporting/customer-group" },
       { title: "Stock", url: "/reporting/stock" },
@@ -149,48 +178,22 @@ const nav: Item[] = [
   },
 
   {
-    title: "Accounting",
-    icon: Wallet,
-    sub: [{ title: "Balance Sheet", url: "/accounting/balance-sheet" }],
-  },
-
-  {
-    title: "Communications",
-    icon: Mail,
+    title: "Storefront",
+    icon: Globe,
     sub: [
-      { title: "Inbox", url: "/communications" },
-      { title: "Compose", url: "/communications/new" },
-      { title: "Templates", url: "/communications/templates" },
-      { title: "Team chat", url: "/sales/team/chat" },
+      { title: "Manage", url: "/storefront" },
+      { title: "Orders", url: "/storefront/orders" },
+      { title: "Customers", url: "/storefront/customers" },
+      { title: "Products", url: "/storefront/products" },
+      { title: "Discounts", url: "/storefront/discounts" },
+      { title: "Pages & Content", url: "/storefront/pages" },
+      { title: "Analytics", url: "/storefront/analytics" },
+      { title: "Domain & DNS", url: "/storefront/domain" },
+      { title: "Billing", url: "/storefront/billing" },
+      { title: "Settings", url: "/storefront/settings" },
+      { title: "Browse Templates", url: "/storefront/templates" },
     ],
   },
-
-  { title: "Notifications", url: "/notifications", icon: Bell },
-
-  {
-    title: "Settings",
-    icon: Settings,
-    sub: [
-      { title: "Warehouses", url: "/settings/warehouses" },
-      { title: "Users & Roles", url: "/settings/users" },
-      { title: "Roles", url: "/settings/roles" },
-      { title: "Security", url: "/settings/security" },
-      { title: "Payment Settings", url: "/settings/payments" },
-      { title: "Preferences", url: "/settings/preferences" },
-      { title: "Business Settings", url: "/settings/business" },
-      { title: "Currency", url: "/settings/currency" },
-      { title: "Business Location", url: "/settings/locations" },
-      { title: "Invoice Settings", url: "/settings/invoice" },
-      { title: "Barcode Settings", url: "/settings/barcodes" },
-      { title: "Receipt Printers", url: "/settings/printers" },
-      { title: "Tax Rates", url: "/settings/taxes" },
-      { title: "Notification Settings", url: "/settings/notifications" },
-    ],
-  },
-
-  { title: "Integrations", url: "/settings/integrations", icon: Puzzle },
-
-  { title: "AI Assistant", url: "/ai", icon: Bot },
 
   {
     title: "Marketing",
@@ -201,8 +204,50 @@ const nav: Item[] = [
       { title: "Facebook Ads", url: "/marketing/facebook-ads" },
       { title: "Instagram Ads", url: "/marketing/instagram-ads" },
       { title: "YouTube & AdSense", url: "/marketing/youtube-adsense" },
-      { title: "New Listing", url: "/marketing/listings/new" },
       { title: "Commissions", url: "/marketing/commissions" },
+      { title: "New Listing", url: "/marketing/listings/new" },
+    ],
+  },
+
+  {
+    title: "Communications",
+    icon: Mail,
+    sub: [
+      { title: "Inbox", url: "/communications" },
+      { title: "Compose", url: "/communications/new" },
+      { title: "Templates", url: "/communications/templates" },
+      { title: "Team Chat", url: "/sales/team/chat" },
+    ],
+  },
+
+  { title: "AI Assistant", url: "/ai", icon: Bot },
+
+  { title: "My Commissions", url: "/affiliate/dashboard", icon: Bookmark },
+
+  { title: "Notifications", url: "/notifications", icon: Bell },
+
+  { title: "Integrations", url: "/settings/integrations", icon: Puzzle },
+
+  {
+    title: "Settings",
+    icon: Settings,
+    sub: [
+      { title: "Business Settings", url: "/settings/business" },
+      { title: "Business Location", url: "/settings/locations" },
+      { title: "Warehouses", url: "/settings/warehouses" },
+      { title: "Team", url: "/settings/users" },
+      { title: "Roles & Permissions", url: "/settings/roles" },
+      { title: "Currency", url: "/settings/currency" },
+      { title: "Tax Settings", url: "/settings/taxes" },
+      { title: "Payment Settings", url: "/settings/payments" },
+      { title: "Receiving Accounts", url: "/settings/payments/business-accounts" },
+      { title: "Payout Accounts",    url: "/settings/payments/accounts" },
+      { title: "Invoice Settings", url: "/settings/invoice" },
+      { title: "Receipt Printers", url: "/settings/printers" },
+      { title: "Barcode Settings", url: "/settings/barcodes" },
+      { title: "Notification Settings", url: "/settings/notifications" },
+      { title: "Security", url: "/settings/security" },
+      { title: "Preferences", url: "/settings/preferences" },
     ],
   },
 ]
@@ -252,6 +297,38 @@ export function AppSidebar() {
   )
 
   const toggle = (title: string) => setOpenStates((p) => ({ ...p, [title]: !p[title] }))
+
+  // -------- Sidebar search --------
+  // Filters the nav list as the user types. Matches either a group
+  // title or any sub-item title (case-insensitive substring). When a
+  // sub-item matches, we surface the whole group with that one
+  // sub-item — so the user sees the context.
+  const [query, setQuery] = React.useState("")
+  const trimmedQuery = query.trim().toLowerCase()
+  const filteredNav = React.useMemo<Item[]>(() => {
+    if (!trimmedQuery) return nav
+    const out: Item[] = []
+    for (const item of nav) {
+      const titleMatches = item.title.toLowerCase().includes(trimmedQuery)
+      if (!item.sub) {
+        if (titleMatches) out.push(item)
+        continue
+      }
+      const matchedSubs = item.sub.filter((s) => s.title.toLowerCase().includes(trimmedQuery))
+      if (titleMatches) {
+        // Group itself matches — keep all its sub-items so the user
+        // can navigate the full group from the search result.
+        out.push(item)
+      } else if (matchedSubs.length > 0) {
+        out.push({ ...item, sub: matchedSubs })
+      }
+    }
+    return out
+  }, [trimmedQuery])
+
+  // Auto-open every group when there's an active search, so matches
+  // are immediately visible without a click.
+  const isSearching = trimmedQuery.length > 0
 
   // -------- Collapsed-mode flyout --------
   // When the sidebar is collapsed, hovering / clicking a group icon
@@ -334,9 +411,7 @@ export function AppSidebar() {
       >
         {!collapsed && (
           <Link to="/dashboard" className="flex flex-1 items-center gap-2 px-1.5">
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-brand to-fuchsia-500 text-sm font-bold text-white shadow-sm shadow-brand/30">
-              P
-            </span>
+            <BrandMark className="h-8 w-8 shrink-0 shadow-sm shadow-violet-500/20" />
             <span className="text-sm font-semibold tracking-tight">Pallio</span>
           </Link>
         )}
@@ -355,16 +430,29 @@ export function AppSidebar() {
       {/* Search — only visible when expanded. */}
       {!collapsed && (
         <div className="px-2 py-2">
-          <Input placeholder="Search…" className="h-9" />
+          <Input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search nav…"
+            className="h-9"
+            aria-label="Search navigation"
+          />
         </div>
       )}
 
       <nav aria-label="Primary" className="flex-1 overflow-y-auto px-2 py-2">
+        {!collapsed && isSearching && filteredNav.length === 0 ? (
+          <p className="px-2 py-4 text-xs text-muted-foreground">
+            No matches for "<span className="font-medium text-foreground">{query}</span>".
+          </p>
+        ) : null}
         <ul className="space-y-0.5">
-          {nav.map((item) => {
+          {filteredNav.map((item) => {
             const active = item.url ? pathname === item.url : item.sub?.some((s) => pathname.startsWith(s.url))
             if (item.sub) {
-              const isOpen = openStates[item.title]
+              // When the user is searching, force every group open so
+              // matched sub-items are visible without an extra click.
+              const isOpen = isSearching ? true : openStates[item.title]
               return (
                 <li key={item.title}>
                   <button

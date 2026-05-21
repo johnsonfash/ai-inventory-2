@@ -56,7 +56,19 @@ export default function Warehouses() {
   const overCapacity = rows.filter((r) => r.utilizationPct >= 90).length
 
   return (
-    <PageShell title="Warehouses" withToolbar={false}>
+    <PageShell
+      title="Warehouses"
+      withToolbar={false}
+      titleTooltip={
+        <>
+          Every physical place you keep stock — flagship store, back-
+          room, pop-up at a market, supplier warehouse. Pallio tracks
+          stock per location so you can see exactly where each unit
+          lives, transfer between them, and route POs to the right
+          dock.
+        </>
+      }
+    >
       <div className="flex flex-col gap-4">
         <SummaryStrip
           tiles={[

@@ -47,7 +47,17 @@ export default function Bills() {
   const paid = rows.filter((r) => r.status === "paid").reduce((s, r) => s + r.amount, 0)
 
   return (
-    <PageShell title="Bills" withToolbar>
+    <PageShell
+      title="Bills"
+      withToolbar
+      titleTooltip={
+        <>
+          Invoices <em>your suppliers</em> have sent <em>you</em> —
+          money you owe. Pallio tracks each one's status (unpaid,
+          partial, paid) and warns you before they go overdue.
+        </>
+      }
+    >
       <div className="flex flex-col gap-4">
         <SummaryStrip
           tiles={[

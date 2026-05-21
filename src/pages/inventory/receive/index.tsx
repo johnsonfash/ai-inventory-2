@@ -35,7 +35,18 @@ export default function ReceiveStock() {
   const totalItems = rows.reduce((s, r) => s + r.items, 0)
 
   return (
-    <PageShell title="Receive stock" withToolbar>
+    <PageShell
+      title="Receive stock"
+      withToolbar
+      titleTooltip={
+        <>
+          Pending arrivals — purchase orders that have shipped from
+          your suppliers but haven't been signed for yet. Tap one when
+          the boxes hit the dock and Pallio adds the units to your
+          on-hand count.
+        </>
+      }
+    >
       <div className="flex flex-col gap-4">
         <SummaryStrip
           tiles={[

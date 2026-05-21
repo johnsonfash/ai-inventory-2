@@ -22,6 +22,14 @@ export default function NewPriceList() {
     <FormShell
       title="New price list"
       description="Define a pricing rule that applies to a customer audience or channel."
+      titleTooltip={
+        <>
+          A named set of overrides on top of the default retail price.
+          Wholesale customers see one list, VIPs another, the online
+          storefront a third. Pallio picks the right list per customer
+          + channel automatically.
+        </>
+      }
       backHref="/inventory/price-lists"
       onSubmit={() => { setSubmitting(true); setTimeout(() => setSubmitting(false), 500) }}
       aside={

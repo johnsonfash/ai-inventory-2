@@ -37,7 +37,18 @@ export default function CurrencySettings() {
   }
 
   return (
-    <PageShell title="Currency" withToolbar={false}>
+    <PageShell
+      title="Currency"
+      withToolbar={false}
+      titleTooltip={
+        <>
+          The money symbol + formatting Pallio uses everywhere —
+          receipts, invoices, KPIs, reports. Defaults to NGN for
+          Nigerian businesses; pick your home currency once and the
+          whole app updates instantly.
+        </>
+      }
+    >
       <div className="flex max-w-2xl flex-col gap-4">
         <Card className="border-border/60">
           <CardHeader className="pb-3">

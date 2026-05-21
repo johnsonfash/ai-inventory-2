@@ -60,7 +60,17 @@ ${ref.current.outerHTML}
   }
 
   return (
-    <PageShell title={`Return ${rec.number}`}>
+    <PageShell
+      title={`Return ${rec.number}`}
+      titleTooltip={
+        <>
+          A specific return transaction rung up at the till — what
+          came back, why, who handled it, how it was refunded. Use
+          the print button for the customer's copy and the inventory
+          drawer to confirm the item was restocked or written off.
+        </>
+      }
+    >
       <div ref={ref}>
         <Card>
           <CardHeader className="pb-2">
@@ -119,7 +129,7 @@ ${ref.current.outerHTML}
       </div>
       <div className="mt-4 flex justify-end">
         <Button onClick={print}>
-          <Printer className="mr-2 h-4 w-4" /> Print
+          <Printer className="h-4 w-4" /> Print
         </Button>
       </div>
     </PageShell>

@@ -18,6 +18,7 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { StatusBadge } from "@/components/lists/status-badge"
 import { InfoTooltip } from "@/components/info-tooltip"
+import { ConnectionCard } from "@/components/integrations/connection-chip"
 import { RichTextEditor } from "@/components/rich-text-editor"
 import { TEMPLATES, interpolate } from "@/lib/comms/data"
 import { MEMBERS } from "@/lib/team/data"
@@ -104,11 +105,31 @@ export default function ComposeEmail() {
   }
 
   return (
-    <PageShell title="New email" withToolbar={false}>
+    <PageShell
+      title="New email"
+      withToolbar={false}
+      titleTooltip={
+        <>
+          Compose a one-off email or load a template (invoice
+          reminder, order confirmation, marketing blast). Pallio
+          sends via your connected mail provider (Mailgun by
+          default), tracks opens + clicks, and logs the message
+          against the recipient's profile.
+        </>
+      }
+    >
       <div className="flex flex-col gap-4">
         <Link to="/communications" className="inline-flex w-fit items-center gap-1 text-xs font-medium text-muted-foreground hover:text-foreground">
           <ArrowLeft className="h-3.5 w-3.5" /> Back to inbox
         </Link>
+
+        {/* Channel integrations — visible so the user knows which
+            rails their message can actually send through. */}
+        <div className="grid gap-2 sm:grid-cols-3">
+          <ConnectionCard providerId="mailgun"        reason="Powers the Email channel." />
+          <ConnectionCard providerId="whatsapp-cloud" reason="Powers the WhatsApp channel." />
+          <ConnectionCard providerId="twilio"         reason="Powers the SMS channel." />
+        </div>
 
         <div className="grid gap-4 lg:grid-cols-[1fr_320px]">
           {/* Composer column */}

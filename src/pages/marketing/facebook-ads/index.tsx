@@ -13,11 +13,21 @@ export default function FacebookAds() {
     <ChannelShell
       title="Facebook Ads"
       description="Catalog-driven product ads across Facebook placements."
+      titleTooltip={
+        <>
+          Paid ads on Facebook + Messenger. Pallio syncs your catalog
+          so Meta can show the right product photo, price, and
+          stock-availability to each shopper. Watch the
+          <strong> ROAS</strong> number — under 2× means you're losing
+          margin on every sale.
+        </>
+      }
       Icon={Facebook}
       tone="sky"
       campaigns={campaigns}
       newCampaignHref="/marketing/facebook-ads/new-campaign"
       newListingHref="/marketing/facebook-ads/new-listing"
+      providerId="facebook-ads"
     />
   )
 }

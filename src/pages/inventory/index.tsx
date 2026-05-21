@@ -179,6 +179,15 @@ export default function InventoryItems() {
       title="Inventory"
       withToolbar
       mobileTrailing={<FilterButton onClick={() => setFilterOpen(true)} count={appliedCount} />}
+      titleTooltip={
+        <>
+          Every product you sell — physical or digital. Each row is a
+          <strong> SKU</strong> (one unique sellable thing) with its
+          live stock count, cost, retail price, and which location
+          holds it. The numbers update in real time as you sell,
+          receive, transfer, and adjust.
+        </>
+      }
     >
       <div className="flex flex-col gap-4">
         <SummaryStrip total={total} lowCount={lowCount} oosCount={oosCount} totalValue={totalValue} />

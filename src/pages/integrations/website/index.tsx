@@ -31,7 +31,18 @@ export default function WebsiteIntegration() {
   }
 
   return (
-    <PageShell title="Website widget" withToolbar={false}>
+    <PageShell
+      title="Website widget"
+      withToolbar={false}
+      titleTooltip={
+        <>
+          A drop-in script tag you paste into your existing website to
+          add Pallio's checkout, live chat, and stock-status badges.
+          Works on any host (WordPress, Wix, Squarespace, raw HTML)
+          — no rebuild required.
+        </>
+      }
+    >
       <div className="flex flex-col gap-5">
         {/* Hero */}
         <div className="relative overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-brand-soft via-card to-card p-5 dark:from-primary/15">

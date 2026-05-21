@@ -54,7 +54,18 @@ export default function PaymentsSettings() {
   const connected = methods.filter((m) => m.status === "connected").length
 
   return (
-    <PageShell title="Payment methods" withToolbar={false}>
+    <PageShell
+      title="Payment methods"
+      withToolbar={false}
+      titleTooltip={
+        <>
+          Which payment rails Pallio accepts at the till + checkout —
+          card (via Paystack / Flutterwave / Stripe), bank transfer,
+          cash, and wallets like Opay / PalmPay. Each one can be
+          turned on or off per location.
+        </>
+      }
+    >
       <div className="flex flex-col gap-4">
         <SummaryStrip
           tiles={[

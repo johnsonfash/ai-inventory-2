@@ -21,8 +21,8 @@ import { SwitchField } from "@/components/forms/switch-field"
 import { InputAddon } from "@/components/forms/input-addon"
 
 export default function NewItemPage() {
-  const [suppliers, setSuppliers] = React.useState(["Cobalt", "Delta", "Acme"])
-  const [supplier, setSupplier] = React.useState<string>("Cobalt")
+  const [suppliers, setSuppliers] = React.useState(["Cobalt Distributors", "Delta Apparel", "Glow Co"])
+  const [supplier, setSupplier] = React.useState<string>("Cobalt Distributors")
   const [trackInventory, setTrackInventory] = React.useState(true)
   const [taxable, setTaxable] = React.useState(true)
   const [submitting, setSubmitting] = React.useState(false)
@@ -37,6 +37,14 @@ export default function NewItemPage() {
     <FormShell
       title="Add product"
       description="Capture everything needed for inventory, purchasing, and the storefront."
+      titleTooltip={
+        <>
+          Create one item that flows everywhere — the till catalog,
+          purchase orders to your supplier, the online storefront, and
+          every stock report. Don't sweat getting every field perfect;
+          most can be tweaked later, but the SKU is for life.
+        </>
+      }
       backHref="/inventory"
       onSubmit={handleSubmit}
       aside={
@@ -56,10 +64,24 @@ export default function NewItemPage() {
           <FormField label="Item name" required htmlFor="item-name" hint="Shown in catalog, POS, and invoices.">
             <Input id="item-name" placeholder="USB‑C Hub 6‑in‑1" required />
           </FormField>
-          <FormField label="SKU" required htmlFor="sku" hint="Unique product code. Letters, numbers, dashes.">
+          <FormField
+            label="SKU"
+            required
+            htmlFor="sku"
+            hint="Unique product code. Letters, numbers, dashes."
+            tooltip={
+              <>
+                <strong>Stock Keeping Unit.</strong> A short code only you use — it's how
+                Pallio tells two products apart even if the names look similar. A
+                common pattern is a two-letter category prefix plus a number
+                (e.g. <span className="font-mono">EL-2109</span> for an
+                electronics item). Never reuse a SKU for a different product.
+              </>
+            }
+          >
             <Input id="sku" placeholder="EL-2109" required />
           </FormField>
-          <FormField label="Category" required>
+          <FormField label="Category" required tooltip="Groups items together in reports and on the storefront — e.g. Electronics, Apparel, Beauty.">
             <Select defaultValue="electronics">
               <SelectTrigger>
                 <SelectValue placeholder="Select category" />
@@ -72,10 +94,20 @@ export default function NewItemPage() {
               </SelectContent>
             </Select>
           </FormField>
-          <FormField label="Brand">
+          <FormField label="Brand" tooltip="The maker of the product (e.g. Samsung, Nike). Leave blank if you make it yourself.">
             <Input placeholder="Cobalt" />
           </FormField>
-          <FormField label="Unit of measure">
+          <FormField
+            label="Unit of measure"
+            tooltip={
+              <>
+                How you sell this item. Use <strong>Pieces</strong> for things
+                you sell one at a time (a phone, a shirt), <strong>Box</strong>{" "}
+                for a bundled pack, <strong>Kg</strong> for things weighed at the
+                till, and <strong>Litre</strong> for liquids.
+              </>
+            }
+          >
             <Select defaultValue="pcs">
               <SelectTrigger>
                 <SelectValue />
@@ -88,10 +120,18 @@ export default function NewItemPage() {
               </SelectContent>
             </Select>
           </FormField>
-          <FormField label="Warranty" hint="Optional — e.g. 12 months.">
+          <FormField
+            label="Warranty"
+            hint="Optional — e.g. 12 months."
+            tooltip="How long after the sale you'll repair or replace the item if it fails. Shows on the customer's receipt + invoice."
+          >
             <Input placeholder="12 months" />
           </FormField>
-          <FormField label="Description" span={2}>
+          <FormField
+            label="Description"
+            span={2}
+            tooltip="Free-text notes. The first few lines also appear on your online storefront, so write it like a customer would read it."
+          >
             <Textarea placeholder="Internal notes and storefront copy." />
           </FormField>
         </FormGrid>
@@ -99,17 +139,29 @@ export default function NewItemPage() {
 
       <FormSection title="Pricing" description="Cost basis and selling prices" Icon={Tag}>
         <FormGrid cols={3}>
-          <FormField label="Unit cost" required hint="What you pay your supplier.">
+          <FormField
+            label="Unit cost"
+            required
+            hint="What you pay your supplier."
+            tooltip="The amount per piece that the supplier charges you (excluding tax). Pallio uses this to work out your profit and to value your stock on reports."
+          >
             <InputAddon leading="$">
               <input type="number" step="0.01" placeholder="0.00" required />
             </InputAddon>
           </FormField>
-          <FormField label="Retail price" required>
+          <FormField
+            label="Retail price"
+            required
+            tooltip="What a walk-in customer pays. This is the price the POS uses by default."
+          >
             <InputAddon leading="$">
               <input type="number" step="0.01" placeholder="0.00" required />
             </InputAddon>
           </FormField>
-          <FormField label="Wholesale price">
+          <FormField
+            label="Wholesale price"
+            tooltip="Discounted price for bulk / business customers. Pallio uses this automatically when a customer is on the Wholesale tier."
+          >
             <InputAddon leading="$">
               <input type="number" step="0.01" placeholder="0.00" />
             </InputAddon>
@@ -117,7 +169,7 @@ export default function NewItemPage() {
           <FormField label="Tax rate" span={3}>
             <SwitchField
               label="Taxable item"
-              description="Apply the default tax rate set in Settings → Taxes."
+              description="Apply the default tax rate set in Settings → Taxes. Turn this off for items that are zero-rated or exempt (e.g. basic food, books)."
               checked={taxable}
               onCheckedChange={setTaxable}
             />
@@ -127,13 +179,31 @@ export default function NewItemPage() {
 
       <FormSection title="Stock" description="On-hand and reorder behaviour" Icon={Boxes}>
         <FormGrid cols={2}>
-          <FormField label="Opening stock" hint="Quantity already on hand today.">
+          <FormField
+            label="Opening stock"
+            hint="Quantity already on hand today."
+            tooltip="How many you currently have on your shelves. Pallio uses this as your starting count and increases or decreases it as you sell + receive stock."
+          >
             <Input type="number" defaultValue={0} />
           </FormField>
-          <FormField label="Reorder point" hint="Below this, the dashboard alerts you.">
+          <FormField
+            label="Reorder point"
+            hint="Below this, the dashboard alerts you."
+            tooltip={
+              <>
+                Pallio warns you to reorder when your stock falls to this
+                number. A good rule of thumb: <strong>set it to about twice
+                what you sell in a week</strong>, so you have time to order more
+                before you run out.
+              </>
+            }
+          >
             <Input type="number" defaultValue={20} />
           </FormField>
-          <FormField label="Default location">
+          <FormField
+            label="Default location"
+            tooltip="Which store or warehouse this item lives in by default. You can move stock between locations later."
+          >
             <Select defaultValue="wh-a">
               <SelectTrigger>
                 <SelectValue />
@@ -145,13 +215,24 @@ export default function NewItemPage() {
               </SelectContent>
             </Select>
           </FormField>
-          <FormField label="Barcode (optional)">
+          <FormField
+            label="Barcode (optional)"
+            tooltip={
+              <>
+                The number under the printed barcode on the product (a
+                <strong> UPC</strong> in the US or <strong>EAN</strong>{" "}
+                elsewhere). Scan it at the till to add the item to a sale
+                instantly. Leave blank if you'll print your own barcode labels
+                later.
+              </>
+            }
+          >
             <Input placeholder="0123456789012" />
           </FormField>
           <FormField span={2}>
             <SwitchField
               label="Track inventory"
-              description="Disable for services or non-stocked items (no movements logged)."
+              description="Leave on for physical goods. Turn off for services (e.g. haircut, repair) or digital items where there's nothing on a shelf to count."
               checked={trackInventory}
               onCheckedChange={setTrackInventory}
             />
@@ -183,10 +264,17 @@ export default function NewItemPage() {
               />
             </div>
           </FormField>
-          <FormField label="Supplier SKU" hint="Their code for this item.">
+          <FormField
+            label="Supplier SKU"
+            hint="Their code for this item."
+            tooltip="The code your supplier uses on their invoices and price list. Saving it here means Pallio will recognise the item automatically when you upload a supplier price file."
+          >
             <Input placeholder="COB-USB-6IN1" />
           </FormField>
-          <FormField label="Lead time">
+          <FormField
+            label="Lead time"
+            tooltip="How many days between placing an order with this supplier and the stock arriving. Pallio uses this to suggest when you should reorder."
+          >
             <InputAddon trailing="days">
               <input type="number" placeholder="14" />
             </InputAddon>

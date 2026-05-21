@@ -29,10 +29,10 @@ export default function ShopifyConfig() {
       <FormSection title="Store" description="Where to sync" Icon={ShoppingBag}>
         <FormGrid cols={2}>
           <FormField label="Store domain" required>
-            <Input placeholder="your-store.myshopify.com" defaultValue="acme.myshopify.com" />
+            <Input placeholder="your-store.myshopify.com" defaultValue="funke-apparel.myshopify.com" />
           </FormField>
           <FormField label="Storefront name">
-            <Input defaultValue="Acme Co" />
+            <Input defaultValue="Funke Apparel" />
           </FormField>
         </FormGrid>
       </FormSection>

@@ -103,7 +103,19 @@ export default function RolesSettings() {
   const customCount = memberCount("custom")
 
   return (
-    <PageShell title="Roles & permissions" withToolbar={false}>
+    <PageShell
+      title="Roles & permissions"
+      withToolbar={false}
+      titleTooltip={
+        <>
+          Who can do what. Roles bundle <strong>permissions</strong>{" "}
+          (specific actions like "view P&L", "delete invoice",
+          "approve PO") into named profiles you assign to teammates.
+          Use the built-ins (Owner / Manager / Cashier / Sales Rep /
+          Marketer / Affiliate / Viewer) or design your own.
+        </>
+      }
+    >
       <div className="flex flex-col gap-4">
         <SummaryStrip
           tiles={[

@@ -46,7 +46,19 @@ export default function Withdrawals() {
   const failed = rows.filter((r) => r.status === "failed").length
 
   return (
-    <PageShell title="Withdrawals" withToolbar={false}>
+    <PageShell
+      title="Withdrawals"
+      withToolbar={false}
+      titleTooltip={
+        <>
+          Money you've pulled out of your Pallio settlement balance to
+          your bank account. Each row shows the amount, destination
+          account, requested date, and status (pending → in-flight →
+          paid → reversed). Automatic monthly payouts also list
+          here.
+        </>
+      }
+    >
       <div className="flex flex-col gap-4">
         <SummaryStrip
           tiles={[

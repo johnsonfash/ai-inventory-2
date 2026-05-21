@@ -16,6 +16,7 @@ import {
   Users,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { Avatar } from "@/components/avatar"
 import { BottomSheet } from "@/components/mobile/bottom-sheet"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { useTWTheme } from "@/components/tw-theme-provider"
@@ -44,12 +45,8 @@ type CurrentUser = {
 // dummy-data land.
 const CURRENT_USER: CurrentUser = {
   name: "Mia Chen",
-  email: "mia@acme.co",
+  email: "mia@funkeapparel.com",
   role: "Manager",
-}
-
-function initials(name: string): string {
-  return name.split(/\s+/).slice(0, 2).map((s) => s[0]!.toUpperCase()).join("")
 }
 
 export function UserMenu() {
@@ -94,7 +91,7 @@ export function UserMenu() {
   }
 
   const ITEMS = [
-    { label: "Profile",        Icon: User,     onClick: () => { setOpen(false); navigate("/settings/users/m-1") } },
+    { label: "Profile",        Icon: User,     onClick: () => { setOpen(false); navigate("/settings/profile") } },
     { label: "Settings",       Icon: Settings, onClick: () => { setOpen(false); navigate("/settings") } },
     { label: "Team",           Icon: Users,    onClick: () => { setOpen(false); navigate("/settings/users") } },
     { label: "Security",       Icon: Lock,     onClick: () => { setOpen(false); navigate("/settings/security") } },
@@ -109,9 +106,12 @@ export function UserMenu() {
       {/* Header — name + email + role */}
       <div className="border-b border-border px-4 py-3">
         <div className="flex items-center gap-3">
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-brand to-fuchsia-500 text-sm font-bold text-white shadow-sm shadow-brand/30">
-            {initials(CURRENT_USER.name)}
-          </span>
+          <Avatar
+            seed={CURRENT_USER.email}
+            name={CURRENT_USER.name}
+            size={40}
+            className="ring-2 ring-brand/20 dark:ring-primary/20"
+          />
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-semibold">{CURRENT_USER.name}</p>
             <p className="truncate text-[11px] text-muted-foreground">{CURRENT_USER.email}</p>
@@ -184,9 +184,14 @@ export function UserMenu() {
         aria-label="User menu"
         aria-haspopup="menu"
         aria-expanded={open}
-        className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-brand to-fuchsia-500 text-xs font-semibold text-white shadow-sm shadow-brand/30 transition-shadow hover:shadow-brand/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+        className="rounded-full transition-shadow hover:shadow-brand/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-background"
       >
-        {initials(CURRENT_USER.name)}
+        <Avatar
+          seed={CURRENT_USER.email}
+          name={CURRENT_USER.name}
+          size={36}
+          className="ring-2 ring-transparent transition-colors hover:ring-brand/30"
+        />
       </button>
 
       {isMobile ? (

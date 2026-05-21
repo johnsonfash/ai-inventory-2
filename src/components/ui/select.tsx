@@ -74,18 +74,30 @@ export function SelectTrigger({ className, children, ...props }: React.ButtonHTM
       )}
       {...props}
     >
-      <div className="flex-1">{children}</div>
-      <svg className="ml-2 h-4 w-4 opacity-60" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <div className="min-w-0 flex-1 truncate">{children}</div>
+      <svg className="ml-2 h-4 w-4 shrink-0 opacity-60" viewBox="0 0 24 24" fill="none" aria-hidden>
         <path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
     </button>
   )
 }
 
-export function SelectValue({ placeholder }: { placeholder?: string }) {
+export function SelectValue({
+  placeholder,
+  children,
+}: {
+  placeholder?: string
+  /** Override the rendered label — useful when SelectItems use rich
+   *  layouts (icon + sub-text) and `String(children)` wouldn't yield
+   *  a clean trigger label. */
+  children?: React.ReactNode
+}) {
   const ctx = React.useContext(SelectCtx)!
+  if (children !== undefined && children !== null && children !== "") {
+    return <span className="truncate">{children}</span>
+  }
   return (
-    <span className={cn(!ctx.value && "text-muted-foreground")}>
+    <span className={cn("truncate", !ctx.value && "text-muted-foreground")}>
       {ctx.label ?? ctx.value ?? placeholder ?? "Select"}
     </span>
   )
@@ -97,7 +109,7 @@ export function SelectContent({ className, children }: React.HTMLAttributes<HTML
     <div
       role="listbox"
       className={cn(
-        "absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-md border bg-background p-1 text-sm shadow-md focus:outline-none",
+        "absolute z-50 mt-1 max-h-60 min-w-full w-max max-w-[min(90vw,420px)] overflow-auto rounded-md border bg-background p-1 text-sm shadow-md focus:outline-none",
         "transition origin-top scale-95 opacity-0",
         ctx.open && "scale-100 opacity-100",
         className,
@@ -122,7 +134,10 @@ export function SelectItem({
   const selected = ctx.value === value
 
   React.useEffect(() => {
-    if (selected) ctx.setLabel(String(children))
+    // Only auto-set the trigger label when children is a plain string.
+    // Rich children (icon + sub-text layouts) should pass an explicit
+    // label via `<SelectValue>{label}</SelectValue>` instead.
+    if (selected && typeof children === "string") ctx.setLabel(children)
   }, [selected]) // set label after selection
 
   return (
@@ -131,7 +146,7 @@ export function SelectItem({
       aria-selected={selected}
       onClick={() => ctx.setValue(value)}
       className={cn(
-        "flex w-full cursor-pointer items-center rounded-sm px-2 py-1.5 hover:bg-accent",
+        "flex w-full cursor-pointer items-center whitespace-nowrap rounded-sm px-2 py-1.5 hover:bg-accent",
         selected && "bg-accent",
         className,
       )}

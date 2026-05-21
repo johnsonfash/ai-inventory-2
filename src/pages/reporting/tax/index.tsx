@@ -65,6 +65,16 @@ export default function TaxReport() {
     <ReportShell
       title="Tax"
       description="VAT / GST collected vs paid by period"
+      titleTooltip={
+        <>
+          What you owe the tax authority. <strong>Collected</strong>{" "}
+          is the VAT customers paid you on top of their orders;
+          <strong> Paid</strong> is the VAT you paid your suppliers
+          (input tax you can reclaim). <strong>Balance</strong> =
+          Collected − Paid — that's what you remit to FIRS each filing
+          period.
+        </>
+      }
       period={period}
       onPeriodChange={setPeriod}
       exportFilename={`pallio-tax-${period}`}

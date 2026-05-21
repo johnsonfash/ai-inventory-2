@@ -37,6 +37,14 @@ export default function ExpenseReport() {
     <ReportShell
       title="Expenses"
       description="Operating cost ledger for the period"
+      titleTooltip={
+        <>
+          Drill-down view of every expense entry — rent, logistics,
+          utilities, marketing spend — bucketed by category. Use the
+          category breakdown to find the line you could cut to push
+          your profit margin up.
+        </>
+      }
       period={period}
       onPeriodChange={setPeriod}
       exportFilename={`pallio-expenses-${period}`}

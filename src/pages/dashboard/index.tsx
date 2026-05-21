@@ -13,6 +13,7 @@ import { RecentSalesCard } from "@/components/dashboard/recent-sales-card"
 import { SectionHeader } from "@/components/dashboard/section-header"
 import { InsightCard } from "@/components/insights/insight-card"
 import { ForecastCard } from "@/components/insights/forecast-card"
+import { StorefrontSnapshot } from "@/components/dashboard/storefront-snapshot"
 import { RestockCard } from "@/components/insights/restock-card"
 import { ActivityFeedCard } from "@/components/insights/activity-feed"
 import { InfoTooltip } from "@/components/info-tooltip"
@@ -54,7 +55,18 @@ export default function Dashboard() {
   const { formatPrice } = useCurrency()
 
   return (
-    <PageShell title="Dashboard" withToolbar>
+    <PageShell
+      title="Dashboard"
+      withToolbar
+      titleTooltip={
+        <>
+          The cockpit. Every metric, alert, restock suggestion, and
+          AI insight Pallio surfaces for the day. Numbers update
+          live as sales clear and stock moves. Customise the order +
+          which tiles show via Preferences.
+        </>
+      }
+    >
       <div className="flex flex-col gap-6">
         {/* Getting Started — milestone checklist. Hides itself once
             every step is done OR the user clicks "Hide this".
@@ -127,13 +139,58 @@ export default function Dashboard() {
         <div data-tour="kpis">
           <KpiCarousel
             items={[
-              { title: "Revenue (7d)",   value: formatPrice(18_420_000), delta: "+12.4%", trend: "up",   caption: "vs last week",         Icon: DollarSign,   tone: "violet",  data: sparkRevenue },
-              { title: "Units in stock", value: "15,940",  delta: "+1.1%",  trend: "up",   caption: "across 4 locations",   Icon: Layers,       tone: "emerald", data: sparkUnits },
-              { title: "Open orders",    value: "87",      delta: "+5.6%",  trend: "up",   caption: "pending fulfillment",  Icon: ShoppingCart, tone: "sky",     data: sparkOrders },
-              { title: "Out of stock",   value: "12",      delta: "−4 SKUs", trend: "down", caption: "improving",           Icon: Package,      tone: "rose",    data: sparkOOS },
+              {
+                title: "Revenue (7d)",
+                value: formatPrice(18_420_000),
+                delta: "+12.4%",
+                trend: "up",
+                caption: "vs last week",
+                Icon: DollarSign,
+                tone: "violet",
+                data: sparkRevenue,
+                tooltip: "Total money taken in over the last 7 days from every channel — POS, online, wholesale. Excludes refunds. Comparison is against the previous 7-day window.",
+              },
+              {
+                title: "Units in stock",
+                value: "15,940",
+                delta: "+1.1%",
+                trend: "up",
+                caption: "across 4 locations",
+                Icon: Layers,
+                tone: "emerald",
+                data: sparkUnits,
+                tooltip: "Total quantity on hand across every store + warehouse. Counts each physical item once — a tee in Lekki and a tee in Ikeja both count toward this total.",
+              },
+              {
+                title: "Open orders",
+                value: "87",
+                delta: "+5.6%",
+                trend: "up",
+                caption: "pending fulfilment",
+                Icon: ShoppingCart,
+                tone: "sky",
+                data: sparkOrders,
+                tooltip: "Sales orders that have been paid for but not yet shipped + delivered. Watch this — high or growing means fulfilment is bottlenecked.",
+              },
+              {
+                title: "Out of stock",
+                value: "12",
+                delta: "−4 SKUs",
+                trend: "down",
+                caption: "improving",
+                Icon: Package,
+                tone: "rose",
+                data: sparkOOS,
+                tooltip: "SKUs that are sitting at zero on-hand right now. Each one is a lost sale waiting to happen — clear them by raising a purchase order from the Restock card below.",
+              },
             ]}
           />
         </div>
+
+        {/* Storefront pulse — 24h revenue / visitors / orders /
+            conversion from the hosted shop. Falls back to a "launch"
+            CTA when no template is active. */}
+        <StorefrontSnapshot />
 
         {/* Forecast + Restock — paired on desktop, stacked on mobile. */}
         <section className="grid gap-4 lg:grid-cols-2" data-tour="forecast">

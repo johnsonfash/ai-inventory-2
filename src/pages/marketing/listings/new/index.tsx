@@ -29,6 +29,14 @@ export default function NewListing() {
     <FormShell
       title="New cross-channel listing"
       description="Publish one product to multiple marketing channels at once."
+      titleTooltip={
+        <>
+          Push the same product spec — photos, price, stock — to
+          every channel you've connected (Facebook Ads, Instagram,
+          Marketplace, YouTube, your storefront). One edit here keeps
+          every listing in sync; no more "the price on IG is wrong."
+        </>
+      }
       backHref="/marketing"
       onSubmit={() => {
         setSubmitting(true)

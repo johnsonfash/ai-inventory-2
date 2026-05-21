@@ -1,4 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
+import * as React from "react"
 import { Suspense, useEffect } from "react"
 import { Loader2 } from "lucide-react"
 import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom"
@@ -85,6 +86,24 @@ function isMarketingPath(pathname: string): boolean {
   return MARKETING_PATHS.has(pathname)
 }
 
+// React Router doesn't reset scroll position when the URL changes —
+// it inherits from the browser's scroll-restoration. That's wrong for
+// SPAs: tapping "Pricing" from a deep-scrolled "/" lands you halfway
+// down the new page. This effect resets both the window scroll (for
+// marketing pages, which scroll the body) and the AppFrame `#main`
+// container (for app pages, where `<main>` is the scrolling element).
+function ScrollToTop() {
+  const { pathname } = useLocation()
+  React.useEffect(() => {
+    // Use `auto` (instant) on route change — `smooth` is jarring when
+    // the new page paints in below the still-scrolling viewport.
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" })
+    const main = document.getElementById("main")
+    if (main) main.scrollTo({ top: 0, left: 0, behavior: "auto" })
+  }, [pathname])
+  return null
+}
+
 // Suspense + AnimatePresence wraps ONLY the routes — the frame
 // above stays mounted across navigations. The fallback is a small
 // content-area spinner instead of a full-screen one.
@@ -134,6 +153,7 @@ export default function App() {
         <BrowserRouter>
           <NativeBootstrap />
           <RouterBootstrap />
+          <ScrollToTop />
           <BiometricGate>
             <NetworkBanner />
             <CurrencyProvider>

@@ -94,6 +94,15 @@ export default function Invoices() {
       title="Invoices"
       withToolbar
       mobileTrailing={<FilterButton onClick={() => setFilterOpen(true)} count={chips.length} />}
+      titleTooltip={
+        <>
+          Invoices <em>you've sent</em> to <em>your customers</em> —
+          money they owe you. Each one tracks its status (unpaid,
+          partial, paid, overdue) and the running total of what's still
+          out there. Different from <strong>Bills</strong>, which are
+          invoices suppliers have sent to <em>you</em>.
+        </>
+      }
     >
       <div className="flex flex-col gap-4">
         <SummaryStrip

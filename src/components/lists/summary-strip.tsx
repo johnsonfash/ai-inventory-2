@@ -30,13 +30,13 @@ export function SummaryStrip({ tiles, className }: Props) {
       {tiles.map((t) => (
         <div
           key={t.label}
-          className="min-w-[140px] snap-start rounded-2xl border border-border bg-card p-3 md:min-w-0"
+          className="min-w-[140px] snap-start rounded-xl border border-border bg-card px-3 py-2.5 md:min-w-0"
         >
           <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
             {t.label}
           </p>
-          <p className="mt-1 text-xl font-bold tabular-nums">{t.value}</p>
-          <div className="mt-1.5">
+          <p className="mt-0.5 text-lg font-bold tabular-nums leading-tight">{t.value}</p>
+          <div className="mt-1">
             <StatusBadge tone={t.tone} withDot>
               {t.hint}
             </StatusBadge>

@@ -51,7 +51,18 @@ export default function SalesReturns() {
   const approved = rows.filter((r) => r.status === "approved").length
 
   return (
-    <PageShell title="Returns" withToolbar>
+    <PageShell
+      title="Returns"
+      withToolbar
+      titleTooltip={
+        <>
+          Customers bringing items back. Each return is also called an
+          <strong> RMA</strong> (Return Merchandise Authorisation) —
+          Pallio uses it to track refunds, restock decisions, and
+          whether to send the customer a prepaid shipping label.
+        </>
+      }
+    >
       <div className="flex flex-col gap-4">
         <SummaryStrip
           tiles={[

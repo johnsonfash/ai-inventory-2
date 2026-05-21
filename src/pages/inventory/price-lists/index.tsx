@@ -50,7 +50,18 @@ export default function PriceLists() {
   const draft = rows.filter((r) => r.status === "draft").length
 
   return (
-    <PageShell title="Price lists" withToolbar>
+    <PageShell
+      title="Price lists"
+      withToolbar
+      titleTooltip={
+        <>
+          Named sets of prices you switch between per customer tier —
+          Retail, Wholesale, VIP. Assigning a price list to a customer
+          means Pallio automatically uses the right price at checkout
+          without staff doing mental maths.
+        </>
+      }
+    >
       <div className="flex flex-col gap-4">
         <SummaryStrip
           tiles={[

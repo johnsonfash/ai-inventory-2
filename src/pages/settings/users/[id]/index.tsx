@@ -6,6 +6,7 @@ import {
   ArrowLeft,
   Award,
   CalendarDays,
+  Check,
   CheckCircle2,
   Copy,
   CreditCard,
@@ -139,7 +140,18 @@ export default function MemberDetail() {
   }
 
   return (
-    <PageShell title={member.name} withToolbar={false}>
+    <PageShell
+      title={member.name}
+      withToolbar={false}
+      titleTooltip={
+        <>
+          Admin view of one team member — role, locations they can
+          access, permission overrides, active sessions, audit
+          history. For <em>your own</em> profile (name, photo,
+          email), use Settings → Profile instead.
+        </>
+      }
+    >
       <div className="flex flex-col gap-4">
         <Link to="/settings/users" className="inline-flex w-fit items-center gap-1 text-xs font-medium text-muted-foreground hover:text-foreground">
           <ArrowLeft className="h-3.5 w-3.5" /> All team
@@ -283,6 +295,11 @@ export default function MemberDetail() {
           </section>
         </div>
 
+        {/* Commission rate — only for roles that earn commission */}
+        {(isAffiliate || member.role === "marketer" || member.role === "manager") && (
+          <CommissionSettings member={member} isAffiliate={isAffiliate} />
+        )}
+
         {/* Sessions */}
         <section className="rounded-2xl border border-border bg-card p-4">
           <div className="flex items-baseline gap-1.5">
@@ -381,5 +398,199 @@ function PermissionTile({
         <p className="text-xs font-semibold capitalize">{isNone ? "No access" : value}</p>
       </div>
     </li>
+  )
+}
+
+// Per-person commission rate settings — affiliates earn % of attributed
+// sales, sales-managers + marketers earn % of branch / campaign revenue.
+// Pallio supports a base rate + per-category overrides + a one-off
+// performance bonus pool.
+type CommissionMember = {
+  name: string
+  email: string
+  role: string
+  affiliateCode?: string
+}
+
+function CommissionSettings({ member, isAffiliate }: { member: CommissionMember; isAffiliate: boolean }) {
+  // Local state seeded from "what the backend would return". Sales
+  // roles default to 5%, affiliates to 10%.
+  const [baseRate, setBaseRate] = React.useState(isAffiliate ? 10 : 5)
+  const [overrides, setOverrides] = React.useState<Array<{ category: string; rate: number }>>(
+    isAffiliate
+      ? [
+          { category: "Apparel",      rate: 12 },
+          { category: "Beauty",       rate: 15 },
+          { category: "Wholesale",    rate:  4 },
+        ]
+      : [
+          { category: "Apparel",      rate: 7 },
+          { category: "Electronics",  rate: 4 },
+        ],
+  )
+  const [bonusPool, setBonusPool]   = React.useState(0)
+  const [excludeRefunds, setExcludeRefunds] = React.useState(true)
+  const [waitDays, setWaitDays] = React.useState(7)
+
+  return (
+    <section className="rounded-2xl border border-border bg-card p-4">
+      <div className="flex items-baseline justify-between gap-2">
+        <div>
+          <h3 className="text-sm font-semibold md:text-base">Commission settings</h3>
+          <p className="text-[11px] text-muted-foreground">
+            What {member.name.split(" ")[0]} earns per attributable sale. Changes apply to <strong>future</strong> orders only — past commissions stay at their original rate.
+          </p>
+        </div>
+        <Button size="sm" onClick={() => toast.success(`${member.name.split(" ")[0]}'s commission settings saved.`)}>
+          <Check className="h-3.5 w-3.5" /> Save
+        </Button>
+      </div>
+
+      {/* Base rate + bonus pool */}
+      <div className="mt-4 grid gap-3 sm:grid-cols-2">
+        <div className="rounded-xl border border-border bg-background p-3">
+          <div className="flex items-baseline justify-between">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Base rate</span>
+            <span className="text-xl font-bold tabular-nums">{baseRate}%</span>
+          </div>
+          <p className="mt-0.5 text-[11px] text-muted-foreground">Applied to every attributable sale unless a category override below kicks in.</p>
+          <input
+            type="range"
+            min={0}
+            max={isAffiliate ? 30 : 15}
+            step={0.5}
+            value={baseRate}
+            onChange={(e) => setBaseRate(parseFloat(e.target.value))}
+            className="mt-2.5 w-full accent-brand dark:accent-primary"
+          />
+          <div className="flex justify-between text-[9px] uppercase tracking-wider text-muted-foreground">
+            <span>0%</span><span>{isAffiliate ? "30%" : "15%"}</span>
+          </div>
+        </div>
+
+        <div className="rounded-xl border border-border bg-background p-3">
+          <div className="flex items-baseline justify-between">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Performance bonus pool</span>
+            <span className="text-base font-bold tabular-nums">{bonusPool > 0 ? `₦${bonusPool.toLocaleString()}` : "Off"}</span>
+          </div>
+          <p className="mt-0.5 text-[11px] text-muted-foreground">One-off lump sum paid alongside the next commission payout. Approve in <Link to="/accounting/commissions" className="font-semibold text-brand hover:underline dark:text-primary">Commission Payouts</Link>.</p>
+          <input
+            type="number"
+            min={0}
+            step={10000}
+            value={bonusPool}
+            onChange={(e) => setBonusPool(Math.max(0, parseInt(e.target.value || "0", 10)))}
+            placeholder="0"
+            className="mt-2.5 w-full rounded-md border border-input bg-transparent px-3 py-1.5 text-sm outline-none focus:border-brand"
+          />
+        </div>
+      </div>
+
+      {/* Category overrides */}
+      <div className="mt-4">
+        <div className="flex items-baseline justify-between">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Category overrides</p>
+          <button
+            type="button"
+            onClick={() => setOverrides([...overrides, { category: "", rate: baseRate }])}
+            className="text-[11px] font-semibold text-brand hover:underline dark:text-primary"
+          >
+            + Add override
+          </button>
+        </div>
+        <p className="mt-0.5 text-[11px] text-muted-foreground">Earn more on high-margin categories, less on bulk / wholesale. Empty list = base rate applies everywhere.</p>
+        {overrides.length > 0 ? (
+          <ul className="mt-2 space-y-1.5">
+            {overrides.map((o, i) => (
+              <li key={i} className="flex items-center gap-2 rounded-lg border border-border bg-background px-3 py-2">
+                <select
+                  value={o.category}
+                  onChange={(e) => setOverrides(overrides.map((x, idx) => idx === i ? { ...x, category: e.target.value } : x))}
+                  className="min-w-0 flex-1 rounded-md border border-input bg-transparent px-2 py-1.5 text-sm outline-none focus:border-brand"
+                >
+                  {["Apparel", "Beauty", "Electronics", "Home & lifestyle", "Wholesale", "Food & dining", "Services", "Auto"].map((c) => (
+                    <option key={c} value={c}>{c}</option>
+                  ))}
+                </select>
+                <div className="flex items-center gap-1">
+                  <input
+                    type="number"
+                    min={0}
+                    max={50}
+                    step={0.5}
+                    value={o.rate}
+                    onChange={(e) => setOverrides(overrides.map((x, idx) => idx === i ? { ...x, rate: parseFloat(e.target.value || "0") } : x))}
+                    className="w-20 rounded-md border border-input bg-transparent px-2 py-1.5 text-right text-sm tabular-nums outline-none focus:border-brand"
+                  />
+                  <span className="text-sm font-semibold text-muted-foreground">%</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setOverrides(overrides.filter((_, idx) => idx !== i))}
+                  aria-label="Remove override"
+                  className="rounded p-1 text-muted-foreground hover:bg-accent hover:text-foreground"
+                >
+                  ×
+                </button>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="mt-2 rounded-lg border border-dashed border-border bg-muted/30 p-3 text-center text-[11px] text-muted-foreground">No category overrides — flat {baseRate}% across everything.</p>
+        )}
+      </div>
+
+      {/* Rules */}
+      <div className="mt-4 grid gap-3 sm:grid-cols-2">
+        <div className="flex items-center justify-between gap-3 rounded-xl border border-border bg-background p-3">
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-semibold">Exclude refunded orders</p>
+            <p className="text-[11px] text-muted-foreground">Don't earn commission on orders later refunded.</p>
+          </div>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={excludeRefunds}
+            onClick={() => setExcludeRefunds(!excludeRefunds)}
+            className={cn(
+              "relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors",
+              excludeRefunds ? "bg-brand dark:bg-primary" : "bg-muted",
+            )}
+          >
+            <span className={cn(
+              "inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform",
+              excludeRefunds ? "translate-x-5" : "translate-x-1",
+            )} />
+          </button>
+        </div>
+
+        <div className="rounded-xl border border-border bg-background p-3">
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-semibold">Holding period</span>
+            <span className="text-sm font-bold tabular-nums">{waitDays} days</span>
+          </div>
+          <p className="mt-0.5 text-[11px] text-muted-foreground">Days after the order before commission moves from pending → approved.</p>
+          <input
+            type="range"
+            min={0}
+            max={30}
+            value={waitDays}
+            onChange={(e) => setWaitDays(parseInt(e.target.value, 10))}
+            className="mt-2 w-full accent-brand dark:accent-primary"
+          />
+        </div>
+      </div>
+
+      {/* Affiliate-only: referral link snippet */}
+      {isAffiliate && member.affiliateCode && (
+        <div className="mt-4 rounded-xl border border-dashed border-border bg-muted/30 p-3">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Referral link · earns {baseRate}%</p>
+          <p className="mt-1 break-all font-mono text-xs">
+            https://pallio.app/r/{member.affiliateCode}
+          </p>
+          <p className="mt-1 text-[11px] text-muted-foreground">Share anywhere — every sale attributed to this code accrues commission here.</p>
+        </div>
+      )}
+    </section>
   )
 }

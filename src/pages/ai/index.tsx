@@ -66,8 +66,8 @@ export default function AIChat() {
   const [saved, setSaved] = React.useState<string[]>([])
   const [settingsOpen, setSettingsOpen] = React.useState(false)
   const [ctx, setCtx] = React.useState({
-    org: "Acme Inc",
-    loc: "WH-A · Austin",
+    org: "Funke Apparel",
+    loc: "Lekki Phase 1",
     includeLowStock: true,
     includeOpenPOs: true,
     includeRecentSales: false,
@@ -140,9 +140,9 @@ export default function AIChat() {
         <Select value={ctx.org} onValueChange={(v) => v && setCtx((c) => ({ ...c, org: v }))}>
           <SelectTrigger><SelectValue /></SelectTrigger>
           <SelectContent>
-            <SelectItem value="Acme Inc">Acme Inc</SelectItem>
-            <SelectItem value="BrightLane">BrightLane</SelectItem>
-            <SelectItem value="NovaApps">NovaApps</SelectItem>
+            <SelectItem value="Funke Apparel">Funke Apparel</SelectItem>
+            <SelectItem value="Eko Provisions">Eko Provisions</SelectItem>
+            <SelectItem value="LagosMart">LagosMart</SelectItem>
           </SelectContent>
         </Select>
       </FieldRow>
@@ -150,9 +150,9 @@ export default function AIChat() {
         <Select value={ctx.loc} onValueChange={(v) => v && setCtx((c) => ({ ...c, loc: v }))}>
           <SelectTrigger><SelectValue /></SelectTrigger>
           <SelectContent>
-            <SelectItem value="WH-A · Austin">WH-A · Austin</SelectItem>
-            <SelectItem value="WH-B · Atlanta">WH-B · Atlanta</SelectItem>
-            <SelectItem value="WH-C · Portland">WH-C · Portland</SelectItem>
+            <SelectItem value="Lekki Phase 1">Lekki Phase 1</SelectItem>
+            <SelectItem value="Ikeja City Mall">Ikeja City Mall</SelectItem>
+            <SelectItem value="Wuse 2 — Abuja">Wuse 2 — Abuja</SelectItem>
           </SelectContent>
         </Select>
       </FieldRow>
@@ -181,6 +181,15 @@ export default function AIChat() {
     <PageShell
       title="AI Assistant"
       withToolbar={false}
+      titleTooltip={
+        <>
+          Pallio AI — ask anything about your business in plain
+          English: "Which SKUs are running low?", "How much did Mia
+          sell last week?", "Draft a follow-up to NovaApps about
+          INV-3305." Answers come from your live data within the
+          scope you pick on the right.
+        </>
+      }
       mobileTrailing={
         <button
           type="button"
@@ -200,33 +209,42 @@ export default function AIChat() {
             the app level; useChatKeyboard locally switches it to
             None for this route — see hook comments). */}
         <div
-          className="relative flex h-[calc(100dvh-180px)] flex-col rounded-2xl border border-border bg-card lg:h-[calc(100dvh-200px)]"
+          // Mobile: pwa-bottom safe-area + nav (≈64 px) + page-shell
+          // top bar (≈56 px) means the available chat area is
+          // 100dvh - ~128 px. Going edge-to-edge reclaims the empty
+          // band the user saw under the composer. Desktop has no
+          // bottom nav so the math is tighter.
+          className="relative flex h-[calc(100dvh-128px)] flex-col overflow-hidden rounded-2xl border border-border bg-card lg:h-[calc(100dvh-180px)]"
           style={{
             paddingBottom: kb.composerFocused ? kb.kbHeight : 0,
             transition: "padding-bottom 200ms cubic-bezier(0.25, 1, 0.5, 1)",
           }}
         >
-          {/* Header */}
-          <div className="flex items-center gap-3 border-b border-border px-4 py-3">
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-brand to-fuchsia-500 text-white shadow-sm shadow-brand/30">
-              <Bot className="h-4 w-4" />
+          {/* Header — single line on mobile. The brand icon + name +
+              scope all fit on one row; "New" and the bookmark are
+              icon-only so the row never wraps. */}
+          <div className="flex items-center gap-2 border-b border-border px-3 py-2">
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-brand to-fuchsia-500 text-white shadow-sm shadow-brand/30">
+              <Bot className="h-3.5 w-3.5" />
             </span>
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-semibold">Pallio AI</p>
-              <p className="text-[11px] text-muted-foreground">
-                Scope: {ctx.org} · {ctx.loc}
+              <p className="flex flex-wrap items-baseline gap-x-1.5 leading-tight">
+                <span className="text-sm font-semibold">Pallio AI</span>
+                <span className="truncate text-[10px] text-muted-foreground">
+                  · {ctx.org} · {ctx.loc}
+                </span>
               </p>
             </div>
-            <Button type="button" variant="ghost" size="sm" onClick={resetThread}>
-              <RotateCcw className="h-3.5 w-3.5" /> New
+            <Button type="button" variant="ghost" size="icon" onClick={resetThread} className="h-8 w-8" title="New thread">
+              <RotateCcw className="h-3.5 w-3.5" />
             </Button>
-            <Button type="button" variant="ghost" size="sm" onClick={saveLastQuery}>
+            <Button type="button" variant="ghost" size="icon" onClick={saveLastQuery} className="h-8 w-8" title="Save last prompt">
               <Bookmark className="h-3.5 w-3.5" />
             </Button>
           </div>
 
           {/* Messages */}
-          <div ref={scrollRef} className="flex-1 overflow-y-auto px-3 py-4">
+          <div ref={scrollRef} className="flex-1 overflow-y-auto px-3 py-4 [&>div:last-child]:mb-1">
             <AnimatePresence initial={false}>
               {msgs.map((m) => (
                 <motion.div
@@ -243,10 +261,10 @@ export default function AIChat() {
                   )}
                   <div
                     className={cn(
-                      "max-w-[78%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed shadow-sm",
+                      "max-w-[82%] rounded-2xl px-4 py-3 text-[15px] leading-[1.55] shadow-sm",
                       m.role === "user"
-                        ? "bg-brand text-brand-foreground dark:bg-primary dark:text-primary-foreground rounded-br-sm"
-                        : "bg-background text-foreground border border-border rounded-bl-sm",
+                        ? "bg-brand text-brand-foreground dark:bg-primary dark:text-primary-foreground rounded-br-md"
+                        : "bg-background text-foreground border border-border rounded-bl-md",
                     )}
                   >
                     {m.content ? (
@@ -274,21 +292,24 @@ export default function AIChat() {
             </AnimatePresence>
           </div>
 
-          {/* Suggestion chips when conversation is short */}
+          {/* Suggestion chips — one horizontally-scrollable row so it
+              never eats vertical real estate. Containing div clips
+              the overflow so the scroller can't bleed into the page
+              width. */}
           {msgs.length <= 2 && (
-            <div className="border-t border-border bg-muted/20 px-3 py-2">
-              <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                Try
-              </p>
-              <div className="flex flex-wrap gap-1.5">
-                {SUGGESTIONS.slice(0, 6).map((s) => {
+            <div className="overflow-hidden border-t border-border bg-muted/20">
+              <div className="flex items-center gap-1.5 overflow-x-auto px-3 py-1.5 scrollbar-hide">
+                <span className="shrink-0 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                  Try
+                </span>
+                {SUGGESTIONS.map((s) => {
                   const Icon = s.Icon
                   return (
                     <button
                       key={s.label}
                       type="button"
                       onClick={() => send(s.prompt)}
-                      className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-2.5 py-1 text-xs font-medium hover:border-brand/40 hover:bg-accent"
+                      className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-border bg-card px-2.5 py-1 text-[11px] font-medium hover:border-brand/40 hover:bg-accent"
                     >
                       <Icon className="h-3 w-3 text-brand dark:text-primary" />
                       {s.label}

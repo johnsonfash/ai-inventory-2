@@ -2,6 +2,7 @@ import * as React from "react"
 import { motion } from "framer-motion"
 import { ArrowDownRight, ArrowUpRight, type LucideIcon } from "lucide-react"
 import { Area, AreaChart, ResponsiveContainer } from "recharts"
+import { InfoTooltip } from "@/components/info-tooltip"
 import { cn } from "@/lib/utils"
 
 type Point = { x: string; y: number }
@@ -57,6 +58,10 @@ export type KpiStatCardProps = {
   index?: number
   /** Make the card a fixed mobile-carousel width (~170px) on small. */
   carouselSized?: boolean
+  /** Optional inline help — renders an `InfoTooltip` next to the
+   *  title. Explains how the metric is computed for users who
+   *  haven't seen it before. */
+  tooltip?: React.ReactNode
   className?: string
 }
 
@@ -71,6 +76,7 @@ export function KpiStatCard({
   caption,
   index = 0,
   carouselSized,
+  tooltip,
   className,
 }: KpiStatCardProps) {
   const id = React.useId()
@@ -99,7 +105,14 @@ export function KpiStatCard({
       {/* Soft accent glow behind icon */}
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0 flex-1">
-          <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">{title}</p>
+          <div className="flex items-center gap-1">
+            <p className="truncate text-[11px] font-medium uppercase tracking-wider text-muted-foreground">{title}</p>
+            {tooltip && (
+              <InfoTooltip label={title} size="xs">
+                {tooltip}
+              </InfoTooltip>
+            )}
+          </div>
           <p className="mt-1 text-2xl font-bold tabular-nums leading-none">{value}</p>
           {(delta || caption) && (
             <div className="mt-2 flex items-center gap-1.5">

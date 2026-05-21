@@ -52,7 +52,18 @@ export default function SalesShipments() {
   const returned = rows.filter((r) => r.status === "returned").length
 
   return (
-    <PageShell title="Shipments" withToolbar>
+    <PageShell
+      title="Shipments"
+      withToolbar
+      titleTooltip={
+        <>
+          Outbound parcels — labels you've bought + dispatched to
+          customers, each tied to a sales order. Track status from
+          <em> printed → in-transit → delivered</em>, and email the
+          customer when a courier hands back an exception.
+        </>
+      }
+    >
       <div className="flex flex-col gap-4">
         <SummaryStrip
           tiles={[

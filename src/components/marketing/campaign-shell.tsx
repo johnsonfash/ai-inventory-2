@@ -11,6 +11,8 @@ import { FormFooter } from "@/components/forms/form-footer"
 import { FormAside } from "@/components/forms/form-aside"
 import { InputAddon } from "@/components/forms/input-addon"
 import { SwitchField } from "@/components/forms/switch-field"
+import { ConnectionCard } from "@/components/integrations/connection-chip"
+import { getStatus } from "@/lib/integrations/data"
 
 type Tone = "sky" | "fuchsia" | "rose"
 
@@ -23,10 +25,15 @@ type Props = {
   /** Either "campaign" (top-level objective + ads) or "listing" (single
       ad creative within a campaign). Drives section labels + tips. */
   kind: "campaign" | "listing"
+  /** Provider id that powers this channel. When passed, the wizard
+      shows a connection card at the top + blocks submit if the
+      provider isn't connected. */
+  providerId?: string
 }
 
-export function CampaignShell({ channel, Icon, backHref, kind }: Props) {
+export function CampaignShell({ channel, Icon, backHref, kind, providerId }: Props) {
   const [submitting, setSubmitting] = React.useState(false)
+  const providerConnected = providerId ? getStatus(providerId) === "connected" : true
 
   return (
     <FormShell
@@ -37,7 +44,11 @@ export function CampaignShell({ channel, Icon, backHref, kind }: Props) {
           : "Single ad creative — drops into an existing campaign."
       }
       backHref={backHref}
-      onSubmit={() => { setSubmitting(true); setTimeout(() => setSubmitting(false), 500) }}
+      onSubmit={() => {
+        if (!providerConnected) return
+        setSubmitting(true)
+        setTimeout(() => setSubmitting(false), 500)
+      }}
       aside={
         <FormAside
           tips={
@@ -62,6 +73,14 @@ export function CampaignShell({ channel, Icon, backHref, kind }: Props) {
         />
       }
     >
+      {providerId && (
+        <ConnectionCard
+          providerId={providerId}
+          reason={providerConnected
+            ? `${channel} is connected — Pallio will publish this ${kind} when you click submit.`
+            : `${channel} isn't connected yet. Connect it to publish — your draft is saved either way.`}
+        />
+      )}
       <FormSection title="Basics" Icon={Icon}>
         <FormGrid cols={2}>
           <FormField label="Name" required>

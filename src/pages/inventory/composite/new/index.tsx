@@ -39,6 +39,14 @@ export default function NewComposite() {
     <FormShell
       title="New composite item"
       description="Bundle multiple SKUs into one sellable kit."
+      titleTooltip={
+        <>
+          A virtual SKU that, when sold, deducts each underlying
+          component from stock automatically. Use it for gift sets,
+          meal deals, "buy 3 get 1", or starter packs — anything where
+          one purchase decision touches multiple physical items.
+        </>
+      }
       backHref="/inventory/composite"
       onSubmit={() => { setSubmitting(true); setTimeout(() => setSubmitting(false), 500) }}
       aside={

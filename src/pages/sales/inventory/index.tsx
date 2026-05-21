@@ -48,7 +48,18 @@ export default function SalesInventoryPage() {
   const totalValue = catalog.reduce((s, c) => s + (c.stock ?? 0) * c.price, 0)
 
   return (
-    <PageShell title="Live inventory" withToolbar>
+    <PageShell
+      title="Live inventory"
+      withToolbar
+      titleTooltip={
+        <>
+          A sales-rep-friendly read of stock: what's available right
+          now, where it is, and the reorder cushion you have left.
+          Doesn't allow editing — for that, head to <strong>Inventory
+          → Items</strong>.
+        </>
+      }
+    >
       <div className="flex flex-col gap-4">
         <SummaryStrip
           tiles={[

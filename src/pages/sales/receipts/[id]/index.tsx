@@ -39,7 +39,18 @@ export default function ReceiptDetail() {
   }
 
   return (
-    <PageShell title={`Receipt ${receipt.number}`} withToolbar={false}>
+    <PageShell
+      title={`Receipt ${receipt.number}`}
+      withToolbar={false}
+      titleTooltip={
+        <>
+          Proof a customer paid you. Pallio prints these
+          automatically at every till transaction and after every
+          online invoice is settled. Reprint, email, or attach to a
+          refund from the action bar.
+        </>
+      }
+    >
       <div className="flex flex-col gap-4">
         <Link to="/sales/receipts" className="inline-flex w-fit items-center gap-1 text-xs font-medium text-muted-foreground hover:text-foreground">
           <ArrowLeft className="h-3.5 w-3.5" /> All receipts

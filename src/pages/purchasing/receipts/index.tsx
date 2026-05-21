@@ -43,7 +43,18 @@ export default function Receipts() {
   const totalReceived = rows.reduce((s, r) => s + r.receivedItems, 0)
 
   return (
-    <PageShell title="Goods receipts" withToolbar>
+    <PageShell
+      title="Goods receipts"
+      withToolbar
+      titleTooltip={
+        <>
+          A <strong>goods receipt</strong> is the moment stock physically
+          arrives at your shop or warehouse from a supplier. Recording
+          one tells Pallio "this PO showed up — add the new units to my
+          on-hand count and start the return-window clock."
+        </>
+      }
+    >
       <div className="flex flex-col gap-4">
         <SummaryStrip
           tiles={[

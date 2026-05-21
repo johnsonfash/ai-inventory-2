@@ -77,6 +77,14 @@ export default function TrendingProduct() {
     <ReportShell
       title="Trending products"
       description="Top sellers and growth leaders for the period"
+      titleTooltip={
+        <>
+          What's catching fire. Ranks SKUs by week-over-week growth
+          (not just total volume) so you spot rising stars before the
+          shelves go bare. Use this to negotiate price breaks with
+          your supplier on the items that are about to move.
+        </>
+      }
       period={period}
       onPeriodChange={setPeriod}
       exportFilename={`pallio-trending-${period}`}

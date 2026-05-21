@@ -184,7 +184,9 @@ export function CommandPalette() {
           transition={{ duration: 0.12 }}
           className={cn(
             "fixed inset-0 z-[90] flex bg-black/60 backdrop-blur-md",
-            isMobile ? "items-end" : "items-start justify-center pt-[12vh]",
+            // Top-anchored Spotlight-style on desktop, with breathing
+            // room above so it feels balanced; bottom-sheet on mobile.
+            isMobile ? "items-end" : "items-start justify-center p-4 pt-[10vh] sm:p-6 sm:pt-[10vh]",
           )}
           role="dialog"
           aria-modal="true"
@@ -199,7 +201,10 @@ export function CommandPalette() {
             onClick={(e) => e.stopPropagation()}
             className={cn(
               "flex w-full flex-col overflow-hidden border border-border bg-card shadow-2xl shadow-black/40",
-              isMobile ? "max-h-[85dvh] rounded-t-3xl" : "max-w-2xl rounded-2xl",
+              // Constrain the desktop modal height so the inner results
+              // list can actually scroll instead of spilling past the
+              // viewport. Mobile already capped at 85dvh.
+              isMobile ? "max-h-[85dvh] rounded-t-3xl" : "max-h-[min(80vh,640px)] max-w-2xl rounded-2xl",
             )}
           >
             {/* Search input */}

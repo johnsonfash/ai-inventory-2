@@ -10,6 +10,10 @@ type PageShellProps = {
   mobileTrailing?: React.ReactNode
   /** Override the page-level CTAs in the desktop toolbar. */
   toolbarActions?: React.ReactNode
+  /** Optional plain-English explanation of the page title. Renders
+   *  as an info button next to the title. Use on pages with
+   *  jargon-y names (RMA, Goods receipt, Balance sheet). */
+  titleTooltip?: React.ReactNode
 }
 
 // Thin "publish my page meta + render content" wrapper. The actual
@@ -27,7 +31,8 @@ export function PageShell({
   withToolbar = true,
   mobileTrailing,
   toolbarActions,
+  titleTooltip,
 }: PageShellProps) {
-  useSetPageMeta({ title, withToolbar, mobileTrailing, toolbarActions })
+  useSetPageMeta({ title, withToolbar, mobileTrailing, toolbarActions, titleTooltip })
   return <>{children}</>
 }

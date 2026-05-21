@@ -18,6 +18,15 @@ export default function NewWarranty() {
     <FormShell
       title="New warranty plan"
       description="Define a coverage policy that can be attached to one or more items."
+      titleTooltip={
+        <>
+          A reusable guarantee template — e.g. "12-month manufacturer
+          replacement on electronics." Attach the plan to as many
+          items as it covers; Pallio prints it on the receipt + nudges
+          you when a covered item comes back so you can claim against
+          the manufacturer.
+        </>
+      }
       backHref="/inventory/warranties"
       onSubmit={() => { setSubmitting(true); setTimeout(() => setSubmitting(false), 400) }}
       aside={

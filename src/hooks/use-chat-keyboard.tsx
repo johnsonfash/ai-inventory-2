@@ -209,6 +209,25 @@ export function useChatKeyboard(): Bindings {
     }, 0)
   }, [])
 
+  // On web / PWA / desktop, the browser handles keyboard inset on its
+  // own (now wired via `interactive-widget=resizes-content` in
+  // index.html). Forcing kbHeight to 0 + composerFocused to false off-
+  // native makes `paddingBottom: kb.composerFocused ? kb.kbHeight : 0`
+  // a no-op there — no double shift, no 291-px gap below inputs.
+  if (!isNative) {
+    return {
+      isNative: false,
+      kbHeight: 0,
+      composerFocused: false,
+      composerZoneProps: {
+        className: "pallio-composer-zone",
+        onFocus: handleFocus,
+        onBlur: handleBlur,
+      },
+      scrollContainerRef,
+    }
+  }
+
   return {
     isNative,
     kbHeight,

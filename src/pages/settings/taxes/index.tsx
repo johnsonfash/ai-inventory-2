@@ -9,6 +9,7 @@ import { useRegisterPageRefresh } from "@/hooks/use-pull-to-refresh"
 import { EmptyState } from "@/components/lists/empty-state"
 import { StatusBadge, type StatusTone } from "@/components/lists/status-badge"
 import { SummaryStrip } from "@/components/lists/summary-strip"
+import { InfoTooltip } from "@/components/info-tooltip"
 
 type Row = {
   id: string
@@ -21,11 +22,11 @@ type Row = {
 }
 
 const rows: Row[] = [
-  { id: "TX-1", name: "Standard VAT", rate: 20, scope: "global", appliesTo: "All taxable items", default: true, active: true },
-  { id: "TX-2", name: "Reduced VAT", rate: 5, scope: "category", appliesTo: "Books · Beauty", default: false, active: true },
-  { id: "TX-3", name: "Zero-rated", rate: 0, scope: "category", appliesTo: "Food", default: false, active: true },
-  { id: "TX-4", name: "Sales tax · TX", rate: 8.25, scope: "region", appliesTo: "Austin warehouses", default: false, active: true },
-  { id: "TX-5", name: "Sales tax · CA", rate: 7.25, scope: "region", appliesTo: "West Hub", default: false, active: false },
+  { id: "TX-1", name: "Nigerian VAT",     rate: 7.5,  scope: "global",   appliesTo: "All taxable items",       default: true,  active: true },
+  { id: "TX-2", name: "Zero-rated",       rate: 0,    scope: "category", appliesTo: "Basic food · Books",      default: false, active: true },
+  { id: "TX-3", name: "WHT — Services",   rate: 5,    scope: "category", appliesTo: "Professional services",   default: false, active: true },
+  { id: "TX-4", name: "Ghana VAT",        rate: 12.5, scope: "region",   appliesTo: "Ghana stores",            default: false, active: true },
+  { id: "TX-5", name: "Kenya VAT",        rate: 16,   scope: "region",   appliesTo: "Nairobi Boutique",        default: false, active: false },
 ]
 
 const scopeTone: Record<Row["scope"], StatusTone> = {
@@ -54,8 +55,38 @@ export default function TaxRates() {
   const avgRate = rows.reduce((s, r) => s + r.rate, 0) / rows.length
 
   return (
-    <PageShell title="Tax rates" withToolbar={false}>
+    <PageShell
+      title="Tax rates"
+      withToolbar={false}
+      titleTooltip={
+        <>
+          Define the VAT / GST / sales-tax rules Pallio applies at
+          checkout, on invoices, and across reports. Nigerian standard
+          is 7.5%. Add zero-rated categories for exempt items (basic
+          food, books) and regional overrides for cross-border sales.
+        </>
+      }
+    >
       <div className="flex flex-col gap-4">
+        <div className="rounded-2xl border border-border bg-card p-4">
+          <div className="flex items-baseline gap-1.5">
+            <h2 className="text-sm font-semibold md:text-base">How Pallio uses these rates</h2>
+            <InfoTooltip label="Tax rates" size="xs">
+              Every taxable item on a sale, invoice, or PO gets one of
+              these rates applied. The <strong>Default</strong> rate
+              kicks in when no other matches; <strong>category</strong>{" "}
+              rates override the default for items in that category;
+              <strong> regional</strong> rates override both when the
+              sale happens at a specific location.
+            </InfoTooltip>
+          </div>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Nigeria's standard VAT is <strong>7.5%</strong> (set by FIRS).
+            Add reduced or zero rates for exempt items like basic food.
+            Selling across borders? Add a regional rate per country.
+          </p>
+        </div>
+
         <SummaryStrip
           tiles={[
             { label: "Active rates", value: String(active), tone: "success", hint: "live" },
@@ -108,9 +139,32 @@ export default function TaxRates() {
                 <tr>
                   <th className="px-3 py-2.5 font-medium">Name</th>
                   <th className="px-3 py-2.5 text-right font-medium">Rate</th>
-                  <th className="px-3 py-2.5 font-medium">Scope</th>
+                  <th className="px-3 py-2.5 font-medium">
+                    <span className="inline-flex items-baseline gap-1">
+                      Scope
+                      <InfoTooltip label="Scope" size="xs">
+                        <ul className="space-y-1.5">
+                          <li><strong>Global</strong> — applies to every taxable item unless something more specific overrides.</li>
+                          <li><strong>Category</strong> — applies only to items in a given category (e.g. all books at 0%).</li>
+                          <li><strong>Region</strong> — applies only to sales at a specific store / country (e.g. Ghana VAT for the Accra branch).</li>
+                        </ul>
+                      </InfoTooltip>
+                    </span>
+                  </th>
                   <th className="px-3 py-2.5 font-medium">Applies to</th>
-                  <th className="px-3 py-2.5 font-medium">Flags</th>
+                  <th className="px-3 py-2.5 font-medium">
+                    <span className="inline-flex items-baseline gap-1">
+                      Flags
+                      <InfoTooltip label="Flags" size="xs">
+                        <strong>Default</strong> = the rate Pallio uses
+                        when no category or region rule matches.
+                        <br />
+                        <strong>Inactive</strong> = paused; no new sales
+                        will use it, but historical records keep their
+                        original rate.
+                      </InfoTooltip>
+                    </span>
+                  </th>
                   <th className="px-3 py-2.5 text-right font-medium" />
                 </tr>
               </thead>

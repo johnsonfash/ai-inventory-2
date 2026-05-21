@@ -18,6 +18,7 @@ import { StatusBadge } from "@/components/lists/status-badge"
 import { SummaryStrip } from "@/components/lists/summary-strip"
 import { EmptyState } from "@/components/lists/empty-state"
 import { InfoTooltip } from "@/components/info-tooltip"
+import { Avatar } from "@/components/avatar"
 import { useRegisterPageRefresh } from "@/hooks/use-pull-to-refresh"
 import { MESSAGES, TEMPLATES } from "@/lib/comms/data"
 import type { EmailMessage } from "@/lib/comms/types"
@@ -40,24 +41,6 @@ function relTime(iso: string): string {
   if (h < 24) return `${h}h`
   const d = Math.round(h / 24)
   return d === 1 ? "1d" : `${d}d`
-}
-
-function initials(name: string): string {
-  return name.split(/\s+/).slice(0, 2).map((s) => s[0]!.toUpperCase()).join("")
-}
-
-function avatarTint(name: string): string {
-  const palette = [
-    "bg-brand/15 text-brand dark:bg-primary/20 dark:text-primary",
-    "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300",
-    "bg-amber-500/15 text-amber-700 dark:text-amber-300",
-    "bg-rose-500/15 text-rose-700 dark:text-rose-300",
-    "bg-sky-500/15 text-sky-700 dark:text-sky-300",
-    "bg-fuchsia-500/15 text-fuchsia-700 dark:text-fuchsia-300",
-  ]
-  let h = 0
-  for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0
-  return palette[h % palette.length]!
 }
 
 export default function CommunicationsHub() {
@@ -89,6 +72,14 @@ export default function CommunicationsHub() {
     <PageShell
       title="Communications"
       withToolbar={false}
+      titleTooltip={
+        <>
+          All outbound + inbound messages your business sends through
+          Pallio: order confirmations, payment receipts, marketing
+          blasts, support replies. Templates live one tab over so the
+          team isn't re-writing the same email every time.
+        </>
+      }
       mobileTrailing={
         <Link to="/communications/new">
           <button
@@ -198,9 +189,7 @@ function MessageRow({ message, folder }: { message: EmailMessage; folder: Folder
           : "border-border bg-card",
       )}
     >
-      <span className={cn("flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-xs font-bold", avatarTint(name))}>
-        {initials(name)}
-      </span>
+      <Avatar seed={email || name} name={name} size={40} />
       <div className="min-w-0 flex-1">
         <div className="flex items-center justify-between gap-2">
           <p className="truncate text-sm font-semibold">

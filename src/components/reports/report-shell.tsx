@@ -2,12 +2,19 @@ import * as React from "react"
 import { PageShell } from "@/components/page-shell"
 import { PeriodChips, type Period } from "@/components/reports/period-chips"
 import { ExportMenu } from "@/components/reports/export-menu"
+import { InfoTooltip } from "@/components/info-tooltip"
 import { cn } from "@/lib/utils"
 
 type Props = {
   title: string
   /** Short subtitle shown under the page title on the report header. */
   description?: string
+  /** Optional plain-English explainer rendered as an `InfoTooltip`
+   *  next to the report title — same prop / behaviour as
+   *  `PageShell.titleTooltip`, so reports with jargon names ("Sell
+   *  Payment", "Customer Group", "Trending Product") get inline
+   *  help without restructuring. */
+  titleTooltip?: React.ReactNode
   period: Period
   onPeriodChange: (p: Period) => void
   /** Filename stem for CSV/PDF export. */
@@ -24,6 +31,7 @@ type Props = {
 export function ReportShell({
   title,
   description,
+  titleTooltip,
   period,
   onPeriodChange,
   exportFilename,
@@ -35,6 +43,7 @@ export function ReportShell({
     <PageShell
       title={title}
       withToolbar={false}
+      titleTooltip={titleTooltip}
       mobileTrailing={
         <ExportMenu
           filename={exportFilename}
@@ -49,7 +58,14 @@ export function ReportShell({
         <header className="flex flex-col gap-3">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
-              <h2 className={cn("text-lg font-bold tracking-tight md:text-xl print:text-2xl")}>{title}</h2>
+              <h2 className={cn("inline-flex items-center gap-1 text-lg font-bold tracking-tight md:text-xl print:text-2xl")}>
+                {title}
+                {titleTooltip && (
+                  <InfoTooltip label={title} size="sm">
+                    {titleTooltip}
+                  </InfoTooltip>
+                )}
+              </h2>
               {description && (
                 <p className="mt-0.5 text-sm text-muted-foreground">{description}</p>
               )}

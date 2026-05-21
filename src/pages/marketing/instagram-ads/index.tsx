@@ -13,11 +13,21 @@ export default function InstagramAds() {
     <ChannelShell
       title="Instagram Ads"
       description="Reels, Stories, and Shopping ads from your Pallio catalog."
+      titleTooltip={
+        <>
+          Paid placements on Instagram — Reels mid-scroll, Stories
+          between friends' posts, and tagged Shopping items in feed.
+          Same audience pool as Facebook (Meta) but younger-skewing.
+          Reels content typically wins on engagement, Shopping wins
+          on conversion.
+        </>
+      }
       Icon={Instagram}
       tone="fuchsia"
       campaigns={campaigns}
       newCampaignHref="/marketing/instagram-ads/new-campaign"
       newListingHref="/marketing/instagram-ads/new-listing"
+      providerId="instagram-ads"
     />
   )
 }

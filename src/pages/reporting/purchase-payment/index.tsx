@@ -42,6 +42,14 @@ export default function PurchasePaymentReport() {
     <ReportShell
       title="Purchase payment"
       description="Status of payments out to vendors"
+      titleTooltip={
+        <>
+          Money <em>flowing out</em> to suppliers. Each row is one
+          payment against a vendor bill, with its status — pending
+          (queued to send), partial (still owe more), or paid (fully
+          settled). The mirror of <strong>Sell payment</strong>.
+        </>
+      }
       period={period}
       onPeriodChange={setPeriod}
       exportFilename={`pallio-purchase-payment-${period}`}

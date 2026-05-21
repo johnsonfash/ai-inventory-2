@@ -83,7 +83,18 @@ export default function Appointments() {
     .slice(0, 5)
 
   return (
-    <PageShell title="Appointments" withToolbar>
+    <PageShell
+      title="Appointments"
+      withToolbar
+      titleTooltip={
+        <>
+          Customer bookings — fittings, consults, pickups, in-store
+          appointments. Each one ties to a staff member, a location,
+          and optionally an order, so the same calendar drives revenue
+          + roster planning.
+        </>
+      }
+    >
       <div className="flex flex-col gap-4">
         {/* Header strip */}
         <div className="flex items-end justify-between gap-2">

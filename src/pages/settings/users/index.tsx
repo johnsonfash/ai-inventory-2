@@ -122,6 +122,14 @@ export default function TeamHub() {
     <PageShell
       title="Team"
       withToolbar={false}
+      titleTooltip={
+        <>
+          Every person with access to your Pallio account — staff,
+          managers, sales reps, marketers, and external affiliates.
+          Manage role assignments, location access, pending invites,
+          and active sessions from here.
+        </>
+      }
       mobileTrailing={
         <Link to="/settings/users/new">
           <button

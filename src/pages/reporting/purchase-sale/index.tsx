@@ -51,6 +51,15 @@ export default function PurchaseSale() {
     <ReportShell
       title="Purchase & sale"
       description="Inflow vs outflow comparison"
+      titleTooltip={
+        <>
+          Side-by-side: money in from sales vs money out to suppliers,
+          month by month. When the green bars (sales) consistently
+          dwarf the rose ones (purchases), your stock is turning
+          faster than you're restocking — a good problem to have for
+          a season or two, but watch for stock-outs.
+        </>
+      }
       period={period}
       onPeriodChange={setPeriod}
       exportFilename={`pallio-purchase-sale-${period}`}

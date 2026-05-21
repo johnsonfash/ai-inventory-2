@@ -49,7 +49,17 @@ export default function PaymentAccounts() {
   const banks = new Set(rows.map((r) => r.bank)).size
 
   return (
-    <PageShell title="Withdrawal accounts" withToolbar={false}>
+    <PageShell
+      title="Payout Accounts"
+      withToolbar={false}
+      titleTooltip={
+        <>
+          Bank accounts Pallio is allowed to <strong>send money
+          OUT to</strong> — payroll, commission payouts, vendor
+          bills, withdrawals. Distinct from <Link to="/settings/payments/business-accounts" className="font-semibold text-brand hover:underline dark:text-primary">Receiving Accounts</Link> which is where money LANDS. Different accounts can be set as default per location.
+        </>
+      }
+    >
       <div className="flex flex-col gap-4">
         <SummaryStrip
           tiles={[

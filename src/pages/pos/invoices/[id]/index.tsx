@@ -58,7 +58,17 @@ export default function InvoiceDetailPage() {
   }
 
   return (
-    <PageShell title={`Invoice ${invoice.number}`}>
+    <PageShell
+      title={`Invoice ${invoice.number}`}
+      titleTooltip={
+        <>
+          A formal invoice generated at the till — printed copy plus
+          PDF email to the customer. Different from the regular
+          /sales/invoices flow because POS invoices are paid in full
+          at the moment of issue.
+        </>
+      }
+    >
       <div ref={ref}>
         <InvoicePreview invoice={invoice} />
       </div>
@@ -67,14 +77,14 @@ export default function InvoiceDetailPage() {
           to={`/communications/new?template=tpl-invoice${invoice.customer?.email ? `&to=${encodeURIComponent(invoice.customer.email)}` : ""}`}
         >
           <Button variant="outline">
-            <Mail className="mr-2 h-4 w-4" /> Send via email
+            <Mail className="h-4 w-4" /> Send via email
           </Button>
         </Link>
         <Button variant="outline" onClick={onShare}>
-          <Share2 className="mr-2 h-4 w-4" /> Share
+          <Share2 className="h-4 w-4" /> Share
         </Button>
         <Button onClick={() => ref.current && printInvoiceNode(ref.current)}>
-          <Printer className="mr-2 h-4 w-4" /> Print
+          <Printer className="h-4 w-4" /> Print
         </Button>
       </div>
     </PageShell>

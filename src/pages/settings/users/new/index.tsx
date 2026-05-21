@@ -82,6 +82,23 @@ export default function InviteMember() {
       description={isAffiliate
         ? "External partner with a unique referral link + commission rate."
         : "Send an email or copy a one-time invite link to onboard a new member."}
+      titleTooltip={
+        isAffiliate ? (
+          <>
+            Affiliates are <em>external</em> — they don't sign in to
+            run your business, they just refer customers. Pallio
+            generates a unique code + tracking link for them; every
+            attributed sale earns the commission you set below.
+          </>
+        ) : (
+          <>
+            Send an invite to someone you want to give Pallio access
+            to. Pick the role (Cashier, Manager, Sales Rep, Owner)
+            and which locations they can work from. The invite link
+            expires after 7 days for security.
+          </>
+        )
+      }
       backHref="/settings/users"
       onSubmit={submit}
       aside={

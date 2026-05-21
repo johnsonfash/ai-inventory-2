@@ -48,7 +48,18 @@ export default function Categories() {
   const top = [...rows].sort((a, b) => b.revenue - a.revenue)[0]!
 
   return (
-    <PageShell title="Categories" withToolbar>
+    <PageShell
+      title="Categories"
+      withToolbar
+      titleTooltip={
+        <>
+          Groupings that bucket similar items together — Apparel,
+          Electronics, Beauty, Food, etc. Categories drive reports
+          ("revenue by category"), tax overrides, and the storefront
+          menu structure. Every item belongs to exactly one category.
+        </>
+      }
+    >
       <div className="flex flex-col gap-4">
         <SummaryStrip
           tiles={[

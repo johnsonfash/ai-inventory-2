@@ -2,5 +2,5 @@ import { Facebook } from "lucide-react"
 import { CampaignShell } from "@/components/marketing/campaign-shell"
 
 export default function NewFacebookListing() {
-  return <CampaignShell channel="Facebook Ads" Icon={Facebook} tone="sky" backHref="/marketing/facebook-ads" kind="listing" />
+  return <CampaignShell channel="Facebook Ads" Icon={Facebook} tone="sky" backHref="/marketing/facebook-ads" kind="listing" providerId="facebook-ads" />
 }

@@ -18,6 +18,14 @@ export default function NewWithdrawalAccount() {
     <FormShell
       title="New withdrawal account"
       description="Where Pallio sends a location or cashier's revenue."
+      titleTooltip={
+        <>
+          A bank account, virtual account, or mobile wallet Pallio is
+          allowed to send your settlement balance to. Verification
+          (a small test deposit) runs before the first payout — keeps
+          you safe from typos that send money to a stranger.
+        </>
+      }
       backHref="/settings/payments/accounts"
       onSubmit={() => { setSubmitting(true); setTimeout(() => setSubmitting(false), 500) }}
       aside={

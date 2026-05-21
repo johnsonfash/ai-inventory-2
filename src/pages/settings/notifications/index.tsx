@@ -75,6 +75,15 @@ export default function NotificationSettings() {
     <FormShell
       title="Notification settings"
       description="Pick the events you want to hear about, and how."
+      titleTooltip={
+        <>
+          Granular control over which events trigger which channels
+          (email, SMS, push, in-app). Quiet hours pause everything
+          except critical alerts. Tune this down once your team grows
+          — too many pings is the fastest way to make people ignore
+          all of them.
+        </>
+      }
       backHref="/settings"
       onSubmit={() => {
         setSubmitting(true)

@@ -16,6 +16,7 @@ import { ChartTooltipContent } from "@/components/ui/chart"
 import { useRegisterPageRefresh } from "@/hooks/use-pull-to-refresh"
 import { StatusBadge, type StatusTone } from "@/components/lists/status-badge"
 import { SummaryStrip } from "@/components/lists/summary-strip"
+import { ConnectionCard } from "@/components/integrations/connection-chip"
 import { ChartCard } from "@/components/reports/chart-card"
 import { useCurrency } from "@/contexts/currency"
 
@@ -64,7 +65,19 @@ export default function FacebookMarketplace() {
   const soldCount = listings.filter((l) => l.status === "sold").length
 
   return (
-    <PageShell title="Facebook Marketplace" withToolbar>
+    <PageShell
+      title="Facebook Marketplace"
+      withToolbar
+      titleTooltip={
+        <>
+          Free local listings on Facebook. Unlike paid Ads, Marketplace
+          works on barter-style discovery — buyers browse and message
+          you directly. Best for high-margin unique items (vintage,
+          handmade, one-off bundles) where photo + caption do the
+          selling.
+        </>
+      }
+    >
       <div className="flex flex-col gap-4">
         <div className="relative overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-brand-soft via-card to-card p-5 dark:from-primary/10">
           <div className="relative flex flex-wrap items-end justify-between gap-3">
@@ -86,6 +99,12 @@ export default function FacebookMarketplace() {
             </Link>
           </div>
         </div>
+
+        {/* Underlying integration */}
+        <ConnectionCard
+          providerId="facebook-marketplace"
+          reason="Cross-posts your products to Facebook Marketplace classifieds — buyer messages route into Pallio Comms."
+        />
 
         <SummaryStrip
           tiles={[

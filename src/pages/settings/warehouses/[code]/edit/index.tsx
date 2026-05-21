@@ -10,7 +10,18 @@ export default function EditWarehouse() {
   const params = useParams<{ code: string }>()
   const code = params.code?.toUpperCase?.() ?? "WH-?"
   return (
-    <PageShell title={`Settings — Edit Warehouse (${code})`} withToolbar={false}>
+    <PageShell
+      title={`Edit warehouse · ${code}`}
+      withToolbar={false}
+      titleTooltip={
+        <>
+          Update the address, manager, capacity, or operating hours
+          for this location. Changes apply immediately — newly-saved
+          values flow into every PO, label, and report. Archive the
+          location instead of deleting if you've used it before.
+        </>
+      }
+    >
       <Card>
         <CardHeader>
           <CardTitle>Edit Warehouse</CardTitle>

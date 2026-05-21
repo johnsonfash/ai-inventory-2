@@ -42,7 +42,19 @@ export default function MarketingCommissionsPage() {
 
   return (
     <RoleGuard permission="view:commissions">
-      <PageShell title="Marketing — Commissions & Bonuses" withToolbar>
+      <PageShell
+        title="Commissions & Bonuses"
+        withToolbar
+        titleTooltip={
+          <>
+            Admin view of every payout your sales reps + affiliates
+            are due. Calculator simulates "if I changed the % rate or
+            the bonus threshold, what would the team earn?". Each
+            individual affiliate sees only their own numbers at
+            <strong> /affiliate/dashboard</strong>.
+          </>
+        }
+      >
         <div className="mb-2 flex items-center gap-2">
           <ExportCSVButton data={data} filename="commissions.csv" />
           <ExportPDFButton selector="#commissions-report" filename="commissions.pdf" />

@@ -21,6 +21,7 @@ import { SummaryStrip } from "@/components/lists/summary-strip"
 import { ChartCard } from "@/components/reports/chart-card"
 import { PeriodChips, type Period } from "@/components/reports/period-chips"
 import { RoleGuard } from "@/components/auth/role-guard"
+import { Avatar } from "@/components/avatar"
 import { aggregateSalesByChannel, aggregateSalesByLocation, aggregateSalesBySalesperson } from "@/lib/pos/storage"
 import { fetchAnalyticsTeams } from "@/lib/api-mocks/analytics-teams"
 import { useCurrency } from "@/contexts/currency"
@@ -31,23 +32,8 @@ type ChRow = { channel: string; sales: number; revenue: number }
 
 const axisProps = { stroke: "var(--muted-foreground)", fontSize: 11, tickLine: false, axisLine: false } as const
 
-function initialsOf(name: string) {
-  return name.split(/\s+/).slice(0, 2).map((s) => s[0]!.toUpperCase()).join("")
-}
-
-function avatarTint(name: string) {
-  const palette = [
-    "bg-brand/15 text-brand dark:bg-primary/20 dark:text-primary",
-    "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300",
-    "bg-amber-500/15 text-amber-700 dark:text-amber-300",
-    "bg-rose-500/15 text-rose-700 dark:text-rose-300",
-    "bg-sky-500/15 text-sky-700 dark:text-sky-300",
-    "bg-fuchsia-500/15 text-fuchsia-700 dark:text-fuchsia-300",
-  ]
-  let h = 0
-  for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0
-  return palette[h % palette.length]!
-}
+// (Avatars now come from the shared `Avatar` component — seeded by
+// name so the same person always gets the same face.)
 
 export default function TeamPerformancePage() {
   const [period, setPeriod] = React.useState<Period>("30d")
@@ -92,7 +78,18 @@ export default function TeamPerformancePage() {
 
   return (
     <RoleGuard permission="view:team">
-      <PageShell title="Team performance" withToolbar>
+      <PageShell
+        title="Team performance"
+        withToolbar
+        titleTooltip={
+          <>
+            Sales-by-rep leaderboard. Each row shows total sales rung
+            up by that team member, plus their commission earnings
+            and tier (leader / podium / rest). Numbers update live as
+            transactions clear.
+          </>
+        }
+      >
         <div className="flex flex-col gap-4">
           <SummaryStrip
             tiles={[
@@ -146,9 +143,7 @@ export default function TeamPerformancePage() {
                           <span className="text-[9px] uppercase text-muted-foreground">Rank</span>
                           <span className="text-base font-bold tabular-nums leading-tight">{idx + 1}</span>
                         </div>
-                        <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-xs font-bold ${avatarTint(r.salesperson)}`}>
-                          {initialsOf(r.salesperson)}
-                        </span>
+                        <Avatar seed={r.salesperson} name={r.salesperson} size={40} />
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center justify-between gap-2">
                             <p className="truncate text-sm font-semibold">{r.salesperson}</p>

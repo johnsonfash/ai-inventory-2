@@ -60,7 +60,17 @@ export default function TransactionsPage() {
   const net = sales - refunds
 
   return (
-    <PageShell title="POS transactions" withToolbar={false}>
+    <PageShell
+      title="POS transactions"
+      withToolbar={false}
+      titleTooltip={
+        <>
+          Every individual sale, refund, or void rung up at the
+          register. Think of it as the till tape — one line per swipe.
+          Use this when reconciling cash at end-of-day.
+        </>
+      }
+    >
       <div className="flex flex-col gap-4">
         <SummaryStrip
           tiles={[

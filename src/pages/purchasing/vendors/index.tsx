@@ -11,7 +11,18 @@ export default function Vendors() {
     { name: "Delta", email: "orders@delta.com", phone: "+1 555 0101" },
   ]
   return (
-    <PageShell title="Purchases — Vendors" withToolbar>
+    <PageShell
+      title="Vendors"
+      withToolbar
+      titleTooltip={
+        <>
+          Suppliers you buy stock from. Each row stores their contact,
+          payment terms, lead time, currency, and running spend.
+          Adding a vendor here lets you reference them on POs, bills,
+          and credit memos.
+        </>
+      }
+    >
       <Card>
         <CardHeader className="flex items-center justify-between">
           <CardTitle>Vendors</CardTitle>

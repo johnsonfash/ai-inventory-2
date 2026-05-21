@@ -30,6 +30,11 @@ import * as React from "react"
 
 export type PageMeta = {
   title: string
+  /** Optional inline help rendered as an `InfoTooltip` next to the
+   *  page title in the AppFrame header — for jargon-heavy pages
+   *  (Balance sheet, RMA, Bills, Goods receipt) where a layman
+   *  needs a one-tap definition. */
+  titleTooltip?: React.ReactNode
   /** Show the desktop quick-action toolbar under the header. */
   withToolbar: boolean
   /** Override the default desktop toolbar actions (new item, new
@@ -75,5 +80,5 @@ export function useSetPageMeta(meta: PageMeta): void {
   const setMeta = React.useContext(PageMetaSetterContext)
   React.useLayoutEffect(() => {
     setMeta(meta)
-  }, [setMeta, meta.title, meta.withToolbar, meta.toolbarActions, meta.mobileTrailing])
+  }, [setMeta, meta.title, meta.titleTooltip, meta.withToolbar, meta.toolbarActions, meta.mobileTrailing])
 }

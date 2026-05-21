@@ -61,7 +61,17 @@ export default function CreateReturnPage() {
   }
 
   return (
-    <PageShell title="Sell Return">
+    <PageShell
+      title="Sell Return"
+      titleTooltip={
+        <>
+          Returns rung up at the till. Walk-in customer hands back an
+          item — you scan the original receipt, pick the refund method
+          (cash, original card, store credit, transfer), and decide
+          whether to restock or write off the item.
+        </>
+      }
+    >
       <Card>
         <CardHeader className="pb-2">
           <CardTitle>Create Return</CardTitle>

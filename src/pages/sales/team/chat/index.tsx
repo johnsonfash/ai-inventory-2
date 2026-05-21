@@ -9,6 +9,8 @@ import { useChatKeyboard } from "@/hooks/use-chat-keyboard"
 import { kvJson } from "@/lib/storage/kv"
 import { EmptyState } from "@/components/lists/empty-state"
 import { RoleGuard } from "@/components/auth/role-guard"
+import { Avatar } from "@/components/avatar"
+import { ConnectionChip } from "@/components/integrations/connection-chip"
 import { cn } from "@/lib/utils"
 import { formatPriceFor } from "@/contexts/currency"
 
@@ -39,23 +41,6 @@ const seed: Message[] = [
   { id: "m4", author: "Priya Patel", text: "IG Reels campaign live — first 24h CTR 6.2%.", ts: Date.now() - 86_400_000, channel: "marketing" },
 ]
 
-function initialsOf(name: string) {
-  return name.split(/\s+/).slice(0, 2).map((s) => s[0]!.toUpperCase()).join("")
-}
-
-function avatarTint(name: string) {
-  const palette = [
-    "bg-brand/15 text-brand dark:bg-primary/20 dark:text-primary",
-    "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300",
-    "bg-amber-500/15 text-amber-700 dark:text-amber-300",
-    "bg-rose-500/15 text-rose-700 dark:text-rose-300",
-    "bg-sky-500/15 text-sky-700 dark:text-sky-300",
-    "bg-fuchsia-500/15 text-fuchsia-700 dark:text-fuchsia-300",
-  ]
-  let h = 0
-  for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0
-  return palette[h % palette.length]!
-}
 
 function relTime(ms: number) {
   const diff = Date.now() - ms
@@ -137,6 +122,14 @@ export default function TeamChatPage() {
       <PageShell
         title="Team chat"
         withToolbar={false}
+        titleTooltip={
+          <>
+            Real-time chat for your team inside Pallio — channels for
+            ops, sales, marketing, general. Mentions, file drops, and
+            sales-context replies (@Alex, can you ship SO-7842?) all
+            live here so WhatsApp doesn't sprawl out of control.
+          </>
+        }
         mobileTrailing={
           <button
             type="button"
@@ -148,6 +141,13 @@ export default function TeamChatPage() {
           </button>
         }
       >
+        {/* Slack integration — when connected, channel messages
+            mirror to a matching Slack channel + DM mentions notify
+            the user's Slack. */}
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+          <p className="text-[11px] text-muted-foreground">Mirror channels to Slack so the team gets Pallio messages where they already work.</p>
+          <ConnectionChip providerId="slack" />
+        </div>
         <div className="grid h-[calc(100dvh-180px)] grid-cols-1 gap-4 md:h-[calc(100dvh-200px)] lg:grid-cols-[240px_1fr]">
           {/* Channels sidebar */}
           <aside className="hidden flex-col gap-1 lg:flex">
@@ -245,9 +245,7 @@ export default function TeamChatPage() {
                       transition={{ type: "spring", damping: 28, stiffness: 320 }}
                       className="group mb-3 flex gap-2.5"
                     >
-                      <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[11px] font-bold ${avatarTint(m.author)}`}>
-                        {initialsOf(m.author)}
-                      </span>
+                      <Avatar seed={m.author} name={m.author} size={36} />
                       <div className="min-w-0 flex-1">
                         <div className="flex items-baseline gap-2">
                           <p className="truncate text-sm font-semibold">{m.author}</p>

@@ -20,6 +20,13 @@ export default function NewWithdrawal() {
     <FormShell
       title="New withdrawal"
       description="Initiate a payout from the Pallio balance to one of your bank accounts."
+      titleTooltip={
+        <>
+          Pull money out of your Pallio settlement balance into a
+          verified bank account. Transfers run on Nigerian banking
+          hours; cut-off is 4 pm WAT for same-day arrival.
+        </>
+      }
       backHref="/settings/payments/withdrawals"
       onSubmit={() => { setSubmitting(true); setTimeout(() => setSubmitting(false), 500) }}
       aside={

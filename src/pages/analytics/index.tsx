@@ -5,7 +5,18 @@ import { CategoryBreakdownChart, SalesVsPurchaseChart, StockLevelsChart } from "
 
 export default function Analytics() {
   return (
-    <PageShell title="Analytics" withToolbar={false}>
+    <PageShell
+      title="Analytics"
+      withToolbar={false}
+      titleTooltip={
+        <>
+          Cross-business KPI overview — sales velocity, channel mix,
+          cohort retention, ad ROAS. The "where to focus this week"
+          board. For deeper drill-downs (P&amp;L, tax, inventory by
+          SKU), use the Reports section.
+        </>
+      }
+    >
       <div className="grid gap-4 lg:grid-cols-2">
         <Card>
           <CardHeader>

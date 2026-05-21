@@ -17,6 +17,14 @@ export default function NewReceipt() {
     <FormShell
       title="New goods receipt"
       description="Record inbound stock against a purchase order."
+      titleTooltip={
+        <>
+          The boxes just arrived from your supplier. Logging the
+          receipt tells Pallio to bump your on-hand count, start the
+          return-window clock, and auto-flag any shortage versus the
+          PO so you can claim a vendor credit straight away.
+        </>
+      }
       backHref="/purchasing/receipts"
       onSubmit={() => { setSubmitting(true); setTimeout(() => setSubmitting(false), 500) }}
       aside={
@@ -31,26 +39,34 @@ export default function NewReceipt() {
     >
       <FormSection title="PO + dates" Icon={Truck}>
         <FormGrid cols={3}>
-          <FormField label="Purchase order" required>
+          <FormField
+            label="Purchase order"
+            required
+            tooltip="Which order the goods arrived against. Pallio uses this to compare what was ordered vs what arrived and flag any shortages."
+          >
             <Select defaultValue="PO-1042">
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="PO-1042">PO-1042 · Cobalt Distributors</SelectItem>
                 <SelectItem value="PO-1041">PO-1041 · Glow Co</SelectItem>
-                <SelectItem value="PO-1040">PO-1040 · Acme Supplies</SelectItem>
+                <SelectItem value="PO-1040">PO-1040 · Delta Apparel</SelectItem>
               </SelectContent>
             </Select>
           </FormField>
-          <FormField label="Receipt date" required>
+          <FormField label="Receipt date" required tooltip="The day the goods physically arrived at your location. Pallio uses this to age inventory and trigger return-window timers.">
             <Input type="date" defaultValue={new Date().toISOString().slice(0, 10)} required />
           </FormField>
-          <FormField label="Received by">
+          <FormField
+            label="Received by"
+            tooltip="Who signed for the delivery. Important when there's a dispute — Pallio shows this on the receipt audit log."
+          >
             <Select defaultValue="mia">
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="mia">Mia Chen</SelectItem>
                 <SelectItem value="alex">Alex Larson</SelectItem>
                 <SelectItem value="priya">Priya Patel</SelectItem>
+                <SelectItem value="tunde">Tunde Bello</SelectItem>
               </SelectContent>
             </Select>
           </FormField>
@@ -59,26 +75,58 @@ export default function NewReceipt() {
 
       <FormSection title="Lines" description="Confirm received quantities" Icon={Box}>
         <FormGrid cols={3}>
-          <FormField label="SKU" required span={2}>
+          <FormField label="SKU" required span={2} tooltip="The product code on the box. Scan the barcode for fastest entry — Pallio matches it against the linked PO automatically.">
             <Input placeholder="EL-2109" required />
           </FormField>
-          <FormField label="Received qty" required>
+          <FormField
+            label="Received qty"
+            required
+            tooltip="How many units actually showed up. If less than the ordered qty, Pallio opens a vendor-credit task so you get a refund or replacement."
+          >
             <Input type="number" min={1} defaultValue={20} required />
           </FormField>
-          <FormField label="Lot / batch (optional)" span={2}>
+          <FormField
+            label="Lot / batch (optional)"
+            span={2}
+            tooltip={
+              <>
+                Manufacturer's batch number — printed on the box near the
+                expiry date. Capturing it means you can do a targeted
+                recall (e.g. only batch <span className="font-mono">B-1223</span>{" "}
+                was contaminated) instead of pulling every unit.
+              </>
+            }
+          >
             <Input placeholder="B-1223" />
           </FormField>
-          <FormField label="Expiry (optional)">
+          <FormField
+            label="Expiry (optional)"
+            tooltip="For perishables — Pallio flags items nearing expiry on the dashboard so you can discount + clear them before they have to be written off."
+          >
             <Input type="date" />
           </FormField>
         </FormGrid>
       </FormSection>
 
       <FormSection title="Behaviour" Icon={CalendarDays}>
-        <SwitchField label="Auto-close PO" description="Mark the PO as complete if all lines are now received." defaultChecked />
-        <SwitchField label="Print labels for received items" />
-        <SwitchField label="Flag discrepancies" description="Open a vendor-credit task when received qty differs from ordered." defaultChecked />
-        <FormField label="Notes">
+        <SwitchField
+          label="Auto-close PO"
+          description="If this receipt brings every line to fully-received, mark the PO as complete and stop nagging you about it on the dashboard."
+          defaultChecked
+        />
+        <SwitchField
+          label="Print labels for received items"
+          description="Pallio sends a print job to your default label printer so newly-received stock has a scannable barcode before it hits the shelf."
+        />
+        <SwitchField
+          label="Flag discrepancies"
+          description="When received qty ≠ ordered qty, Pallio opens a vendor-credit task automatically. Highly recommended — it's how you get money back for shortages."
+          defaultChecked
+        />
+        <FormField
+          label="Notes"
+          tooltip="Damage on arrival, wrong items, courier complaints. Future-you (and your supplier) will thank you for the detail."
+        >
           <Textarea placeholder="Any discrepancies or damage notes…" />
         </FormField>
       </FormSection>

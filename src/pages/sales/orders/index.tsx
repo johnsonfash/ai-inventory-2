@@ -82,7 +82,19 @@ export default function SalesOrders() {
   const fulfilled = ORDERS.filter((o) => o.status === "fulfilled").length
 
   return (
-    <PageShell title="Sales orders" withToolbar>
+    <PageShell
+      title="Sales orders"
+      withToolbar
+      titleTooltip={
+        <>
+          A <strong>sales order</strong> is what you create when a
+          customer agrees to buy — but before money changes hands or
+          the goods leave the shelf. Pallio holds the stock so it
+          can't get sold twice, then converts it to an invoice + a
+          shipment once you're ready.
+        </>
+      }
+    >
       <div className="flex flex-col gap-4">
         <SummaryStrip
           tiles={[

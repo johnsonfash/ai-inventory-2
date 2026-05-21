@@ -43,7 +43,18 @@ export default function Transfers() {
   const received = rows.filter((r) => r.status === "received").length
 
   return (
-    <PageShell title="Stock transfers" withToolbar>
+    <PageShell
+      title="Stock transfers"
+      withToolbar
+      titleTooltip={
+        <>
+          Moving units between your own locations — e.g. shifting a
+          pallet from your Ikeja warehouse to the Lekki shop. Doesn't
+          change your total on-hand, just where it sits. Use this
+          instead of POs (which order from suppliers).
+        </>
+      }
+    >
       <div className="flex flex-col gap-4">
         <SummaryStrip
           tiles={[

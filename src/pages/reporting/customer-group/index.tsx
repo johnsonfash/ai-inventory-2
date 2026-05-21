@@ -41,6 +41,15 @@ export default function CustomerGroup() {
     <ReportShell
       title="Customer groups"
       description="Aggregated buyer segments and their performance"
+      titleTooltip={
+        <>
+          Buckets your customers by tier (VIP / Regular / New / Lapsed
+          / Wholesale) and shows total revenue + average order size
+          per group. Use this to spot where to focus retention
+          marketing — e.g. small "Lapsed" group with high LTV is gold
+          for a "we miss you" campaign.
+        </>
+      }
       period={period}
       onPeriodChange={setPeriod}
       exportFilename={`pallio-customer-groups-${period}`}

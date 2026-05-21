@@ -117,6 +117,14 @@ export default function StockReport() {
     <ReportShell
       title="Stock report"
       description="On-hand, value, and reorder health by SKU"
+      titleTooltip={
+        <>
+          A row per SKU showing how many units you have, how much
+          they're worth at cost, and whether the count is below the
+          reorder threshold. The quickest answer to "what's running
+          out and what should I order next?"
+        </>
+      }
       period={period}
       onPeriodChange={setPeriod}
       exportFilename={`pallio-stock-${period}`}

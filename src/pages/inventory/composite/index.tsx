@@ -73,7 +73,18 @@ export default function CompositeItems() {
   )
 
   return (
-    <PageShell title="Composite items" withToolbar>
+    <PageShell
+      title="Composite items"
+      withToolbar
+      titleTooltip={
+        <>
+          Bundles or kits — a single SKU made up of multiple
+          underlying items. When you sell the bundle, Pallio
+          automatically deducts each component from stock. Great for
+          gift sets, meal deals, or "buy 3 get 1" packs.
+        </>
+      }
+    >
       <div className="flex flex-col gap-4">
         <SummaryStrip
           tiles={[

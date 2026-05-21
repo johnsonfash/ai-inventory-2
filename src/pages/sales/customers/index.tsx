@@ -18,6 +18,7 @@ import { useRegisterPageRefresh } from "@/hooks/use-pull-to-refresh"
 import { StatusBadge, type StatusTone } from "@/components/lists/status-badge"
 import { EmptyState } from "@/components/lists/empty-state"
 import { SwipeableRow } from "@/components/mobile/swipeable-row"
+import { Avatar } from "@/components/avatar"
 import { useCurrency } from "@/contexts/currency"
 
 type Customer = {
@@ -47,29 +48,6 @@ const tierTone: Record<Customer["tier"], StatusTone> = {
   regular: "info",
   new: "success",
   lapsed: "warning",
-}
-
-function initialsOf(name: string) {
-  return name
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((s) => s[0]!.toUpperCase())
-    .join("")
-}
-
-function avatarTint(name: string) {
-  const palette = [
-    "bg-brand/15 text-brand dark:bg-primary/20 dark:text-primary",
-    "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300",
-    "bg-amber-500/15 text-amber-700 dark:text-amber-300",
-    "bg-rose-500/15 text-rose-700 dark:text-rose-300",
-    "bg-sky-500/15 text-sky-700 dark:text-sky-300",
-    "bg-fuchsia-500/15 text-fuchsia-700 dark:text-fuchsia-300",
-  ]
-  let h = 0
-  for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0
-  return palette[h % palette.length]!
 }
 
 export default function Customers() {
@@ -109,7 +87,18 @@ export default function Customers() {
   const ltv = customers.reduce((s, c) => s + c.lifetimeSpend, 0)
 
   return (
-    <PageShell title="Customers" withToolbar>
+    <PageShell
+      title="Customers"
+      withToolbar
+      titleTooltip={
+        <>
+          People + businesses who buy from you. Each row stores their
+          contact info, payment terms, default price list, lifetime
+          spend, and the orders they've placed. "Walk-in (cash)" is a
+          catch-all for retail shoppers without an account.
+        </>
+      }
+    >
       <div className="flex flex-col gap-4">
         <div className="-mx-4 flex gap-2.5 overflow-x-auto px-4 pb-1 scrollbar-hide snap-x snap-mandatory md:mx-0 md:grid md:grid-cols-4 md:gap-3 md:overflow-visible md:px-0">
           {[
@@ -208,11 +197,7 @@ export default function Customers() {
                         ]}
                       >
                         <Link to="/sales/customers" className="flex items-center gap-3 p-3">
-                          <span
-                            className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-xs font-bold ${avatarTint(c.name)}`}
-                          >
-                            {initialsOf(c.name)}
-                          </span>
+                          <Avatar seed={c.email || c.name} name={c.name} size={40} />
                           <div className="min-w-0 flex-1">
                             <div className="flex items-center justify-between gap-2">
                               <p className="truncate text-sm font-semibold">{c.name}</p>
@@ -251,11 +236,7 @@ export default function Customers() {
                   <tr key={c.email} className="transition-colors hover:bg-accent/30">
                     <td className="px-3 py-2.5">
                       <div className="flex items-center gap-2">
-                        <span
-                          className={`flex h-7 w-7 items-center justify-center rounded-full text-[10px] font-bold ${avatarTint(c.name)}`}
-                        >
-                          {initialsOf(c.name)}
-                        </span>
+                        <Avatar seed={c.email || c.name} name={c.name} size={28} />
                         <span className="font-medium">{c.name}</span>
                       </div>
                     </td>

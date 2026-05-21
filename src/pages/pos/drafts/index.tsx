@@ -54,7 +54,18 @@ export default function DraftsPage() {
   const totalValue = drafts.reduce((s, d) => s + d.items.reduce((ss, i) => ss + i.qty * i.price, 0), 0)
 
   return (
-    <PageShell title="POS drafts" withToolbar={false}>
+    <PageShell
+      title="POS drafts"
+      withToolbar={false}
+      titleTooltip={
+        <>
+          Carts you've parked mid-sale — the customer left to grab one
+          more item, the queue grew, or you swapped registers. Pallio
+          holds the items + the price on the draft so you can pick it
+          up exactly where you stopped.
+        </>
+      }
+    >
       <div className="flex flex-col gap-4">
         <SummaryStrip
           tiles={[

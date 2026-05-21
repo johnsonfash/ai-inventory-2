@@ -35,6 +35,14 @@ export default function NewOrder() {
     <FormShell
       title="Create sales order"
       description="Capture customer, items, and totals before fulfilment."
+      titleTooltip={
+        <>
+          Lock in a customer's intent to buy before any money or
+          goods move. Pallio reserves the stock (so it can't be sold
+          twice), then converts the order into an invoice + shipment
+          when you're ready to fulfil.
+        </>
+      }
       backHref="/sales/orders"
       onSubmit={() => {
         setSubmitting(true)
@@ -65,7 +73,7 @@ export default function NewOrder() {
     >
       <FormSection title="Customer" description="Who this order is for" Icon={User}>
         <FormGrid cols={3}>
-          <FormField label="Customer" required span={2}>
+          <FormField label="Customer" required span={2} tooltip="Who's buying. Use 'Walk-in' for retail shoppers without an account.">
             <Select defaultValue="nova">
               <SelectTrigger><SelectValue placeholder="Pick a customer" /></SelectTrigger>
               <SelectContent>
@@ -76,13 +84,27 @@ export default function NewOrder() {
               </SelectContent>
             </Select>
           </FormField>
-          <FormField label="Order number" hint="Auto-generated if blank.">
+          <FormField label="Order number" hint="Auto-generated if blank." tooltip={<>Unique reference for this order (e.g. <span className="font-mono">SO-7850</span>). Leave blank — Pallio assigns the next number for you.</>}>
             <Input placeholder="SO-7850" />
           </FormField>
-          <FormField label="Order date" required>
+          <FormField label="Order date" required tooltip="The day the order was placed. Used as the start date for fulfilment SLA tracking.">
             <Input type="date" defaultValue={new Date().toISOString().slice(0, 10)} required />
           </FormField>
-          <FormField label="Channel">
+          <FormField
+            label="Channel"
+            tooltip={
+              <>
+                Where the order came from. Pallio uses this for reports
+                ("which sales channel made me the most money?") and to apply
+                channel-specific tax / shipping rules.
+                <ul className="mt-1.5 list-disc pl-4">
+                  <li><strong>Online</strong> — your website or storefront.</li>
+                  <li><strong>Retail</strong> — walk-in at the POS.</li>
+                  <li><strong>Wholesale</strong> — B2B bulk order.</li>
+                </ul>
+              </>
+            }
+          >
             <Select defaultValue="online">
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
@@ -92,14 +114,14 @@ export default function NewOrder() {
               </SelectContent>
             </Select>
           </FormField>
-          <FormField label="Currency">
-            <Select defaultValue="USD">
+          <FormField label="Currency" tooltip="The currency the customer pays in. Defaults to your business currency.">
+            <Select defaultValue="NGN">
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="USD">USD</SelectItem>
-                <SelectItem value="EUR">EUR</SelectItem>
-                <SelectItem value="GBP">GBP</SelectItem>
                 <SelectItem value="NGN">NGN</SelectItem>
+                <SelectItem value="USD">USD</SelectItem>
+                <SelectItem value="GBP">GBP</SelectItem>
+                <SelectItem value="EUR">EUR</SelectItem>
               </SelectContent>
             </Select>
           </FormField>

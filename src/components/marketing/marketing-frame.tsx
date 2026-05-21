@@ -2,6 +2,7 @@ import * as React from "react"
 import { Link, NavLink } from "react-router-dom"
 import { motion, AnimatePresence } from "framer-motion"
 import { ArrowRight, Github, Instagram, Linkedin, Menu, Twitter, X } from "lucide-react"
+import { BrandMark } from "@/components/brand-mark"
 import { Button } from "@/components/ui/button"
 import { ModeToggle } from "@/components/mode-toggle"
 import { SignInModal } from "@/components/marketing/sign-in-modal"
@@ -132,9 +133,7 @@ function Header({
     <header className="sticky top-0 z-50 border-b border-border/60 bg-background/80 backdrop-blur-md pwa-top">
       <div className="mx-auto flex h-16 max-w-7xl items-center gap-3 px-4 md:px-6">
         <Link to="/" className="flex items-center gap-2">
-          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-brand to-fuchsia-500 text-sm font-bold text-white shadow-sm shadow-brand/30">
-            P
-          </span>
+          <BrandMark className="h-8 w-8 shrink-0 shadow-sm shadow-violet-500/20" />
           <span className="text-base font-bold tracking-tight">Pallio</span>
         </Link>
 
@@ -196,9 +195,7 @@ function Footer() {
           {/* Brand column */}
           <div className="md:col-span-2">
             <Link to="/" className="flex items-center gap-2">
-              <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-brand to-fuchsia-500 text-base font-bold text-white shadow-sm shadow-brand/30">
-                P
-              </span>
+              <BrandMark className="h-9 w-9 shrink-0 shadow-sm shadow-violet-500/20" />
               <span className="text-lg font-bold tracking-tight">Pallio</span>
             </Link>
             <p className="mt-3 max-w-sm text-sm text-muted-foreground">

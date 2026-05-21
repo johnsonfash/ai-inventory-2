@@ -2,12 +2,18 @@ import * as React from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { ArrowLeft } from "lucide-react"
 import { PageShell } from "@/components/page-shell"
+import { InfoTooltip } from "@/components/info-tooltip"
 import { cn } from "@/lib/utils"
 
 type Props = {
   title: string
   /** Subtitle below the page title. */
   description?: string
+  /** Optional plain-English explainer rendered as an `InfoTooltip`
+   *  next to the form title — same prop / behaviour as
+   *  `PageShell.titleTooltip`, plus an in-form info button so users
+   *  who never glance at the topbar still see the hint. */
+  titleTooltip?: React.ReactNode
   /** Where the "Back" affordance points. Defaults to going back in history. */
   backHref?: string
   /** Submit handler — wired to the <form> element. */
@@ -24,6 +30,7 @@ type Props = {
 export function FormShell({
   title,
   description,
+  titleTooltip,
   backHref,
   onSubmit,
   footer,
@@ -33,7 +40,7 @@ export function FormShell({
   const navigate = useNavigate()
 
   return (
-    <PageShell title={title} withToolbar={false}>
+    <PageShell title={title} withToolbar={false} titleTooltip={titleTooltip}>
       <form
         onSubmit={(e) => {
           e.preventDefault()
@@ -60,7 +67,14 @@ export function FormShell({
             </button>
           )}
           <div>
-            <h2 className="text-lg font-bold tracking-tight md:text-xl">{title}</h2>
+            <h2 className="inline-flex items-center gap-1 text-lg font-bold tracking-tight md:text-xl">
+              {title}
+              {titleTooltip && (
+                <InfoTooltip label={title} size="sm">
+                  {titleTooltip}
+                </InfoTooltip>
+              )}
+            </h2>
             {description && <p className="mt-0.5 text-sm text-muted-foreground">{description}</p>}
           </div>
         </header>

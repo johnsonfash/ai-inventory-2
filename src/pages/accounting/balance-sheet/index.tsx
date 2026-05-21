@@ -4,6 +4,7 @@ import { ReportShell } from "@/components/reports/report-shell"
 import { KpiBand } from "@/components/reports/kpi-band"
 import { useRegisterPageRefresh } from "@/hooks/use-pull-to-refresh"
 import { type Period } from "@/components/reports/period-chips"
+import { ConnectionCard } from "@/components/integrations/connection-chip"
 import { useCurrency } from "@/contexts/currency"
 
 const assets: { name: string; amount: number; sub: string }[] = [
@@ -50,6 +51,17 @@ export default function BalanceSheet() {
     <ReportShell
       title="Balance sheet"
       description="Snapshot of assets, liabilities, and equity"
+      titleTooltip={
+        <>
+          A photo of your business's finances on a single day.
+          <ul className="mt-1.5 list-disc pl-4">
+            <li><strong>Assets</strong> — what you own (cash, stock, equipment, money customers owe you).</li>
+            <li><strong>Liabilities</strong> — what you owe (vendor bills, loans, tax payable).</li>
+            <li><strong>Equity</strong> — what's left for the owners after subtracting liabilities from assets.</li>
+          </ul>
+          They always balance: <em>Assets = Liabilities + Equity</em>.
+        </>
+      }
       period={period}
       onPeriodChange={setPeriod}
       exportFilename={`pallio-balance-sheet-${period}`}
@@ -63,6 +75,21 @@ export default function BalanceSheet() {
           { title: "Assets ÷ liab.", value: `${ratio}×`, caption: balanced ? "balanced" : "off by 1+", Icon: Scale, tone: balanced ? "emerald" : "amber" },
         ]}
       />
+
+      {/* Accounting integrations — sync your books to QuickBooks /
+          Xero / Sage so the tax-return prep stops being a December
+          fire drill. */}
+      <section>
+        <div className="flex items-baseline justify-between">
+          <h3 className="text-sm font-semibold md:text-base">Bookkeeping sync</h3>
+          <span className="text-[11px] text-muted-foreground">Every Pallio entry mirrors into your books in real time.</span>
+        </div>
+        <div className="mt-3 grid gap-2 sm:grid-cols-3">
+          <ConnectionCard providerId="quickbooks" reason="Most popular for Nigerian SMBs." />
+          <ConnectionCard providerId="xero"        reason="Strong for African + cross-border businesses." />
+          <ConnectionCard providerId="sage"        reason="Enterprise-grade for larger merchants." />
+        </div>
+      </section>
 
       <div className="grid gap-4 lg:grid-cols-2">
         <Block title="Assets" Icon={Banknote} rows={assets} total={totalAssets} accent="emerald" formatPrice={formatPrice} />

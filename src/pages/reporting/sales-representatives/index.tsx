@@ -126,6 +126,14 @@ export default function SalesRepresentatives() {
     <ReportShell
       title="Sales representatives"
       description="Team performance ranked by revenue, orders, and attainment"
+      titleTooltip={
+        <>
+          The official rep scorecard. Ranks each team member by total
+          revenue rung up + their attainment vs target. The numbers
+          here drive the commission calculation in
+          <strong> Marketing → Commissions</strong>.
+        </>
+      }
       period={period}
       onPeriodChange={setPeriod}
       exportFilename={`pallio-sales-reps-${period}`}

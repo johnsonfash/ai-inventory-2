@@ -93,6 +93,14 @@ export default function ActivityLog() {
     <ReportShell
       title="Activity log"
       description="System-wide audit trail of user and system actions"
+      titleTooltip={
+        <>
+          Every meaningful action taken in Pallio — sign-ins, sales,
+          stock changes, settings tweaks, role grants. Filterable by
+          actor + severity. Your first stop when something looks off
+          and you need to trace exactly when + who did what.
+        </>
+      }
       period={period}
       onPeriodChange={setPeriod}
       exportFilename={`pallio-activity-${period}`}

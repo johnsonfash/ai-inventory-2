@@ -47,6 +47,14 @@ export default function StockAdjustmentReport() {
     <ReportShell
       title="Stock adjustments"
       description="Manual reconciliations and write-offs"
+      titleTooltip={
+        <>
+          Audit trail of every manual change to stock counts —
+          shrinkage, breakage, returns from suppliers, recounts. Each
+          row shows who made the change, when, and why. A useful
+          sanity check before a tax filing.
+        </>
+      }
       period={period}
       onPeriodChange={setPeriod}
       exportFilename={`pallio-stock-adjustments-${period}`}

@@ -11,11 +11,22 @@ export default function YoutubeAdsense() {
     <ChannelShell
       title="YouTube & AdSense"
       description="Affiliate placements + video ad inventory."
+      titleTooltip={
+        <>
+          Two Google ad surfaces in one place:
+          <ul className="mt-1.5 list-disc pl-4">
+            <li><strong>YouTube</strong> — pre-roll + in-stream video ads on creator videos.</li>
+            <li><strong>AdSense</strong> — banner + native ads on partner websites across the open web.</li>
+          </ul>
+          Slower to convert than Meta but cheaper per impression — best for top-of-funnel awareness.
+        </>
+      }
       Icon={Youtube}
       tone="rose"
       campaigns={campaigns}
       newCampaignHref="/marketing/youtube-adsense/new-campaign"
       newListingHref="/marketing/youtube-adsense/new-listing"
+      providerId="youtube-adsense"
     />
   )
 }

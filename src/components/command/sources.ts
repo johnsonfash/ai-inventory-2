@@ -110,7 +110,7 @@ const NAVIGATE: CommandItem[] = [
   { id: "nav-team-chat",      group: "Navigate", title: "Team chat",            subtitle: "/sales/team/chat",          Icon: Users,        href: "/sales/team/chat",            searchTerms: "team chat messages dms channels" },
   { id: "nav-purchasing",     group: "Navigate", title: "Purchase orders",     subtitle: "/purchasing/pos",            Icon: Box,          href: "/purchasing/pos",             searchTerms: "purchase orders po purchasing vendors" },
   { id: "nav-bills",          group: "Navigate", title: "Bills",                subtitle: "/purchasing/bills",         Icon: FileText,     href: "/purchasing/bills",           searchTerms: "bills ap accounts payable" },
-  { id: "nav-receipts",       group: "Navigate", title: "Goods receipts",       subtitle: "/purchasing/receipts",      Icon: FileCheck,    href: "/purchasing/receipts",        searchTerms: "goods receipts grn receiving inbound" },
+  { id: "nav-goods-receipts", group: "Navigate", title: "Goods receipts",       subtitle: "/purchasing/receipts",      Icon: FileCheck,    href: "/purchasing/receipts",        searchTerms: "goods receipts grn receiving inbound" },
   { id: "nav-vendors",        group: "Navigate", title: "Vendors",              subtitle: "/purchasing/vendors",       Icon: Building2,    href: "/purchasing/vendors",         searchTerms: "vendors suppliers" },
   { id: "nav-reporting",      group: "Navigate", title: "Reporting",            subtitle: "/reporting",                Icon: FileText,     href: "/reporting/sales",            searchTerms: "reports reporting analytics" },
   { id: "nav-pnl",            group: "Navigate", title: "Profit & Loss",        subtitle: "/reporting/profit-loss",    Icon: DollarSign,   href: "/reporting/profit-loss",      searchTerms: "pnl profit loss income statement" },
@@ -124,6 +124,10 @@ const NAVIGATE: CommandItem[] = [
   { id: "nav-comms-tpls",     group: "Navigate", title: "Email templates",      subtitle: "/communications/templates", Icon: Megaphone,    href: "/communications/templates",   searchTerms: "templates email library marketing transactional" },
   { id: "nav-notifications",  group: "Navigate", title: "Notifications",        subtitle: "/notifications",            Icon: Bell,         href: "/notifications",              searchTerms: "notifications alerts inbox" },
   { id: "nav-appointments",   group: "Navigate", title: "Appointments",         subtitle: "/appointments",             Icon: CalendarDays, href: "/appointments",               searchTerms: "appointments calendar bookings" },
+  { id: "nav-storefront",     group: "Navigate", title: "Storefront",           subtitle: "/storefront",               Icon: Globe,        href: "/storefront",                 searchTerms: "storefront shop website online template subdomain domain hosted ecommerce" },
+  { id: "nav-templates",      group: "Navigate", title: "Storefront templates", subtitle: "/storefront/templates",     Icon: Layers,       href: "/storefront/templates",       searchTerms: "templates storefront design themes shop gallery" },
+  { id: "nav-affiliate",      group: "Navigate", title: "My commissions",       subtitle: "/affiliate/dashboard",      Icon: Wallet,       href: "/affiliate/dashboard",        searchTerms: "affiliate commission referral my earnings code link" },
+  { id: "nav-glossary",       group: "Help",     title: "Glossary",             subtitle: "/help/glossary",            Icon: FileText,     href: "/help/glossary",              searchTerms: "glossary terms dictionary jargon sku cogs roas vat tin meaning" },
 ]
 
 // --- Settings: the most-asked-for settings pages. ---

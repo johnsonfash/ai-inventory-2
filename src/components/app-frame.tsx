@@ -10,6 +10,7 @@ import { MobileBottomNav } from "@/components/mobile/mobile-bottom-nav"
 import { MobileMoreDrawer } from "@/components/mobile/mobile-more-drawer"
 import { UserMenu } from "@/components/app/user-menu"
 import { NotificationBell } from "@/components/app/notification-bell"
+import { InfoTooltip } from "@/components/info-tooltip"
 import { usePullToRefresh, usePageRefreshHandler } from "@/hooks/use-pull-to-refresh"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { usePageMeta } from "@/contexts/page-meta"
@@ -37,6 +38,26 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
     enabled: isMobile,
   })
 
+  // Hard-lock document scroll while AppFrame is mounted. The outer
+  // `<div h-[100dvh] overflow-hidden>` already clips overflow, but a
+  // single misbehaving descendant (a sticky bar with negative margins,
+  // a fixed-positioned overlay outside the AppFrame tree, an iOS
+  // momentum scroll chained from `<main>`) used to be able to drag
+  // the document body, pulling the sidebar up and exposing a blank
+  // band at the bottom. Setting body overflow to hidden makes that
+  // impossible — `<main>` is the only thing that scrolls. Restored on
+  // unmount so MarketingFrame's window-scroll routes still work.
+  React.useEffect(() => {
+    const prevHtml = document.documentElement.style.overflow
+    const prevBody = document.body.style.overflow
+    document.documentElement.style.overflow = "hidden"
+    document.body.style.overflow = "hidden"
+    return () => {
+      document.documentElement.style.overflow = prevHtml
+      document.body.style.overflow = prevBody
+    }
+  }, [])
+
   // Default mobile-trailing slot: search + notification bell + user
   // menu. Pages that publish their own mobileTrailing (e.g. settings
   // sheets) override this.
@@ -58,7 +79,7 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
   if (isMobile) {
     return (
       <div className="flex h-[100dvh] min-h-0 flex-col overflow-hidden bg-background">
-        <MobileTopBar title={meta.title} trailing={meta.mobileTrailing ?? defaultMobileTrailing} />
+        <MobileTopBar title={meta.title} titleTooltip={meta.titleTooltip} trailing={meta.mobileTrailing ?? defaultMobileTrailing} />
 
         {/* Pull-to-refresh indicator. Anchored to the top of the
             scroll container; opacity scales with pull distance. */}
@@ -107,7 +128,14 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
       <AppSidebar />
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="sticky top-0 z-30 flex h-16 items-center gap-2 border-b border-border bg-background/80 px-4 backdrop-blur md:gap-3 md:px-5">
-          <h1 className="truncate text-base font-semibold tracking-tight">{meta.title}</h1>
+          <h1 className="flex min-w-0 items-center gap-1 truncate text-base font-semibold tracking-tight">
+            <span className="truncate">{meta.title}</span>
+            {meta.titleTooltip && (
+              <InfoTooltip label={meta.title} size="sm">
+                {meta.titleTooltip}
+              </InfoTooltip>
+            )}
+          </h1>
           <div className="ml-auto flex items-center gap-1.5 md:gap-2">
             <OrgLocationSwitch />
             {/* Command-palette trigger. Tap or hit ⌘K. */}
@@ -173,7 +201,7 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
           </div>
         )}
 
-        <main id="main" className="flex-1 overflow-y-auto p-5">
+        <main id="main" className="flex-1 overflow-y-auto overscroll-contain p-5">
           {children}
         </main>
       </div>

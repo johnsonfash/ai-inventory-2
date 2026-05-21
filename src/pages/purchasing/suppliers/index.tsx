@@ -72,7 +72,18 @@ export default function Suppliers() {
   const lifetimeSpend = rows.reduce((s, r) => s + r.lifetime, 0)
 
   return (
-    <PageShell title="Suppliers" withToolbar>
+    <PageShell
+      title="Suppliers"
+      withToolbar
+      titleTooltip={
+        <>
+          Old-school synonym for <strong>Vendors</strong> — same data,
+          same actions — the businesses you buy stock from. Pallio
+          uses "Vendors" in the official sidebar but accepts
+          "Suppliers" everywhere retail jargon expects it.
+        </>
+      }
+    >
       <div className="flex flex-col gap-4">
         <SummaryStrip
           tiles={[

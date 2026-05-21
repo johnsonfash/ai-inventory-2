@@ -31,7 +31,7 @@ export default function WoocommerceConfig() {
             <Input placeholder="https://shop.example.com" />
           </FormField>
           <FormField label="Storefront name">
-            <Input placeholder="Acme Co Shop" />
+            <Input placeholder="Funke Apparel Shop" />
           </FormField>
         </FormGrid>
       </FormSection>

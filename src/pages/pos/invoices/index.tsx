@@ -25,7 +25,18 @@ export default function InvoicesListPage() {
   })
 
   return (
-    <PageShell title="Invoices">
+    <PageShell
+      title="POS Invoices"
+      titleTooltip={
+        <>
+          Invoices generated straight from the till — typically when a
+          customer asks for a formal invoice rather than just a
+          receipt (B2B walk-in, tax-deduction request, expense claim).
+          For invoices created from sales orders, see
+          <strong> Sales → Invoices</strong>.
+        </>
+      }
+    >
       <Card>
         <CardHeader className="pb-2">
           <CardTitle>Invoices</CardTitle>
@@ -73,7 +84,7 @@ export default function InvoicesListPage() {
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
                           <Button size="sm" onClick={() => navigate(`/pos/invoices/${i.id}`)}>
-                            <ReceiptText className="mr-2 h-4 w-4" /> View
+                            <ReceiptText className="h-4 w-4" /> View
                           </Button>
                           <Button
                             size="sm"
@@ -81,7 +92,7 @@ export default function InvoicesListPage() {
                             className="bg-transparent"
                             onClick={() => navigate(`/pos/invoices/${i.id}?print=1`)}
                           >
-                            <Printer className="mr-2 h-4 w-4" /> Print
+                            <Printer className="h-4 w-4" /> Print
                           </Button>
                         </div>
                       </TableCell>

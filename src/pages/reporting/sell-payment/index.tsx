@@ -43,6 +43,14 @@ export default function SellPaymentReport() {
     <ReportShell
       title="Sell payment"
       description="Customer payment collection status"
+      titleTooltip={
+        <>
+          Money <em>flowing in</em> from customers. Each row is a
+          single payment — card, cash, transfer, etc. — with whether
+          it's settled, pending, or partially paid. Use this to chase
+          up "pending" rows and clear "partial" amounts.
+        </>
+      }
       period={period}
       onPeriodChange={setPeriod}
       exportFilename={`pallio-sell-payment-${period}`}

@@ -82,6 +82,15 @@ export default function NewRole() {
     <FormShell
       title="New role"
       description="Group permissions into a reusable scope that you can assign to users."
+      titleTooltip={
+        <>
+          A named bundle of permissions (e.g. "Floor manager",
+          "Affiliate", "Bookkeeper"). Build the bundle once, then
+          assign the role to as many team members as you like — they
+          all inherit the same access. Easier than ticking every
+          permission per person.
+        </>
+      }
       backHref="/settings/roles"
       onSubmit={() => { setSubmitting(true); setTimeout(() => setSubmitting(false), 500) }}
       aside={

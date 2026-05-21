@@ -7,7 +7,15 @@
     <link rel="icon" type="image/png" sizes="16x16" href="/icons/favicon-16.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png" />
     <link rel="manifest" href="/manifest.json" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <!--
+      `maximum-scale=1` blocks the iOS Safari auto-zoom that triggers
+      when an input's computed font-size is < 16 px. Manual pinch-zoom
+      still works on iOS 17+ + on all current Android browsers.
+      `interactive-widget=resizes-content` is the modern, web-standard
+      way to handle the on-screen keyboard pushing layout up — we let
+      the browser do it, instead of measuring with JS.
+    -->
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover, interactive-widget=resizes-content" />
     <meta name="theme-color" content="#7c3aed" />
     <meta name="description" content="Pallio — all-in-one inventory, POS, and sales operations." />
     <meta property="og:title" content="Pallio" />

@@ -30,12 +30,54 @@ import type {
 } from "@/lib/integrations/types"
 import { cn } from "@/lib/utils"
 
+// Where each category is consumed across the app. Surfaces here
+// mirror the chip/card grids we render on the feature pages — so a
+// user reading "Powering Checkout · Storefront billing" can map it
+// straight back to a place they've seen the chip already.
+const CATEGORY_USAGE: Record<IntegrationCategory, { label: string; href: string }[]> = {
+  payments:   [
+    { label: "Storefront checkout",   href: "/storefront/settings#checkout" },
+    { label: "POS card payments",     href: "/pos" },
+    { label: "Subscription billing",  href: "/storefront/billing" },
+  ],
+  commerce:   [
+    { label: "Storefront catalog sync", href: "/storefront/products" },
+    { label: "Multi-channel listings",  href: "/marketing/listings/new" },
+  ],
+  delivery:   [
+    { label: "Checkout shipping rates", href: "/storefront/settings#shipping" },
+    { label: "Storefront orders",        href: "/storefront/orders" },
+  ],
+  comms:      [
+    { label: "Customer notifications",   href: "/storefront/settings#notifications" },
+    { label: "Communications inbox",      href: "/communications" },
+  ],
+  marketing:  [
+    { label: "Marketing hub",             href: "/marketing" },
+    { label: "Ad campaigns",              href: "/marketing/facebook-ads" },
+  ],
+  accounting: [
+    { label: "Bookkeeping sync",          href: "/accounting/balance-sheet" },
+  ],
+  team:       [
+    { label: "Team chat",                 href: "/sales/team/chat" },
+    { label: "Comms routing",             href: "/communications" },
+  ],
+  analytics:  [
+    { label: "Storefront analytics",      href: "/storefront/analytics" },
+    { label: "Dashboard insights",        href: "/" },
+  ],
+}
+
 const CATEGORY_LABEL: Record<IntegrationCategory, string> = {
-  payments: "Payments",
-  commerce: "Commerce",
-  comms: "Comms",
-  team: "Team",
-  analytics: "Analytics",
+  payments:   "Payments",
+  commerce:   "Commerce",
+  delivery:   "Delivery",
+  comms:      "Communications",
+  marketing:  "Marketing",
+  accounting: "Accounting",
+  team:       "Team",
+  analytics:  "Analytics",
 }
 
 const STATUS_TONE: Record<IntegrationStatus, StatusTone> = {
@@ -55,7 +97,7 @@ const STATUS_ICON: Record<IntegrationStatus, React.ElementType> = {
 export default function IntegrationsHub() {
   useRegisterPageRefresh(React.useCallback(async () => { await new Promise((r) => setTimeout(r, 300)) }, []))
 
-  const [category, setCategory] = React.useState<"all" | IntegrationCategory>("all")
+  const [category, setCategory] = React.useState<"all" | "connected" | IntegrationCategory>("all")
   const [query, setQuery] = React.useState("")
   const [connectOpen, setConnectOpen] = React.useState(false)
   const [activeProvider, setActiveProvider] = React.useState<IntegrationProvider | null>(null)
@@ -67,7 +109,11 @@ export default function IntegrationsHub() {
   const filtered = React.useMemo(() => {
     const q = query.trim().toLowerCase()
     return PROVIDERS
-      .filter((p) => category === "all" || p.category === category)
+      .filter((p) => {
+        if (category === "all") return true
+        if (category === "connected") return connections[p.id]?.status === "connected"
+        return p.category === category
+      })
       .filter((p) =>
         !q
           ? true
@@ -78,11 +124,12 @@ export default function IntegrationsHub() {
   }, [category, query])
 
   const byCategoryCount: Record<IntegrationCategory, number> = {
-    payments: 0, commerce: 0, comms: 0, team: 0, analytics: 0,
+    payments: 0, commerce: 0, delivery: 0, comms: 0, marketing: 0, accounting: 0, team: 0, analytics: 0,
   }
   for (const p of PROVIDERS) byCategoryCount[p.category]++
 
   const connectedCount = Object.values(connections).filter((c) => c.status === "connected").length
+  const erroredCount   = Object.values(connections).filter((c) => c.status === "error").length
 
   const openConnect = (provider: IntegrationProvider) => {
     setActiveProvider(provider)
@@ -90,21 +137,34 @@ export default function IntegrationsHub() {
   }
 
   return (
-    <PageShell title="Integrations" withToolbar={false}>
+    <PageShell
+      title="Integrations"
+      withToolbar={false}
+      titleTooltip={
+        <>
+          External services Pallio can talk to — payment rails,
+          courier APIs, accounting software, marketing tools.
+          Connecting one is a 30-second paste of two API keys; from
+          then on Pallio reads + writes data on your behalf so you
+          don't switch tabs.
+        </>
+      }
+    >
       <div className="flex flex-col gap-4">
         <SummaryStrip
           tiles={[
-            { label: "Available",  value: String(PROVIDERS.length),   tone: "brand",   hint: "across 5 categories" },
-            { label: "Connected",  value: String(connectedCount),     tone: "success", hint: "active" },
-            { label: "Payments",   value: String(byCategoryCount.payments), tone: "info", hint: "rails" },
-            { label: "Channels",   value: String(byCategoryCount.comms + byCategoryCount.team), tone: "warning", hint: "comms + team" },
+            { label: "Available",   value: String(PROVIDERS.length),   tone: "brand",   hint: "across 8 categories" },
+            { label: "Connected",   value: String(connectedCount),     tone: "success", hint: "active" },
+            { label: "Needs attention", value: String(erroredCount),   tone: erroredCount > 0 ? "danger" : "neutral", hint: erroredCount > 0 ? "errors" : "all healthy" },
+            { label: "Delivery",    value: String(byCategoryCount.delivery), tone: "warning", hint: "couriers" },
           ]}
         />
 
-        {/* Category tabs + search */}
+        {/* Filter strip — "Connected" tab when the user just wants to
+            see what's live; category chips for browsing the catalog. */}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="-mx-4 flex gap-1.5 overflow-x-auto px-4 scrollbar-hide sm:mx-0 sm:px-0">
-            {(["all", "payments", "commerce", "comms", "team", "analytics"] as const).map((c) => (
+            {(["all", "connected", "payments", "commerce", "delivery", "comms", "marketing", "accounting", "team", "analytics"] as const).map((c) => (
               <button
                 key={c}
                 type="button"
@@ -116,7 +176,7 @@ export default function IntegrationsHub() {
                     : "border-border bg-card text-muted-foreground hover:bg-accent hover:text-foreground",
                 )}
               >
-                {c === "all" ? "All" : CATEGORY_LABEL[c]}
+                {c === "all" ? "All" : c === "connected" ? `Connected · ${connectedCount}` : CATEGORY_LABEL[c]}
               </button>
             ))}
           </div>
@@ -214,9 +274,31 @@ function ProviderCard({
         </div>
       </header>
 
-      <p className="mt-3 flex-1 text-xs leading-relaxed text-muted-foreground">
+      <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
         {provider.tagline}
       </p>
+
+      {/* Powering chip rail — shows where this provider is consumed
+          across the app. Helps the user understand the blast radius
+          before disconnecting. */}
+      <div className="mt-3 flex-1">
+        <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+          Powers {CATEGORY_USAGE[provider.category].length} {CATEGORY_USAGE[provider.category].length === 1 ? "feature" : "features"}
+        </p>
+        <ul className="mt-1.5 flex flex-wrap gap-1">
+          {CATEGORY_USAGE[provider.category].map((u) => (
+            <li key={u.label}>
+              <Link
+                to={u.href}
+                className="inline-flex items-center gap-1 rounded-full border border-border bg-muted/40 px-2 py-0.5 text-[10px] font-medium text-muted-foreground hover:bg-accent hover:text-foreground"
+              >
+                {u.label}
+                <ArrowRight className="h-2.5 w-2.5" />
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </div>
 
       <footer className="mt-4 flex items-center justify-between gap-2 border-t border-border pt-3">
         <StatusBadge tone={STATUS_TONE[status]} withDot>

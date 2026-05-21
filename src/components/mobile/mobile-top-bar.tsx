@@ -1,6 +1,8 @@
 import { ChevronLeft } from "lucide-react"
 import { useNavigate, useLocation } from "react-router-dom"
 import { ModeToggle } from "@/components/mode-toggle"
+import { BrandMark } from "@/components/brand-mark"
+import { InfoTooltip } from "@/components/info-tooltip"
 import { cn } from "@/lib/utils"
 
 type Props = {
@@ -9,10 +11,13 @@ type Props = {
   showBack?: boolean
   /** Slot rendered between the title and the trailing actions (search, etc). */
   trailing?: React.ReactNode
+  /** Optional explanation rendered as an info button next to the
+   *  title — published by PageShell as `titleTooltip`. */
+  titleTooltip?: React.ReactNode
   className?: string
 }
 
-export function MobileTopBar({ title, showBack, trailing, className }: Props) {
+export function MobileTopBar({ title, showBack, trailing, titleTooltip, className }: Props) {
   const navigate = useNavigate()
   const { pathname } = useLocation()
   const isRoot = pathname === "/"
@@ -36,13 +41,18 @@ export function MobileTopBar({ title, showBack, trailing, className }: Props) {
         </button>
       ) : (
         <div className="ml-1.5 flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-md bg-gradient-to-br from-brand to-fuchsia-500 text-white font-bold shadow-sm shadow-brand/30">
-            P
-          </div>
+          <BrandMark className="h-8 w-8 shrink-0 shadow-sm shadow-violet-500/20" />
         </div>
       )}
 
-      <h1 className="min-w-0 flex-1 truncate text-base font-semibold tracking-tight">{title}</h1>
+      <h1 className="flex min-w-0 flex-1 items-center gap-1 truncate text-base font-semibold tracking-tight">
+        <span className="truncate">{title}</span>
+        {titleTooltip && (
+          <InfoTooltip label={title} size="sm">
+            {titleTooltip}
+          </InfoTooltip>
+        )}
+      </h1>
 
       {trailing}
       <ModeToggle />

@@ -17,6 +17,15 @@ export default function Barcodes() {
     <FormShell
       title="Barcode settings"
       description="Symbology, label layout, and default printer assignment."
+      titleTooltip={
+        <>
+          How Pallio prints + scans barcodes. The
+          <strong> symbology</strong> is the encoding standard (UPC-A
+          in the US, EAN-13 elsewhere, Code 128 for in-house SKUs).
+          Pick the one your scanner is set up for; everything else
+          (size, content, font) is just cosmetic.
+        </>
+      }
       backHref="/settings"
       onSubmit={() => {
         setSubmitting(true)

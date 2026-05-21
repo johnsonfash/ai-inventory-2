@@ -52,7 +52,18 @@ export default function PaymentLocations() {
   const acceptCash = rows.filter((r) => r.methods.cash).length
 
   return (
-    <PageShell title="Per-location payments" withToolbar={false}>
+    <PageShell
+      title="Per-location payments"
+      withToolbar={false}
+      titleTooltip={
+        <>
+          Which payment methods are allowed at each store. Useful if
+          one branch can only take cash (no card terminal) or your
+          wholesale warehouse should only accept transfer. Override
+          the business-wide default per location here.
+        </>
+      }
+    >
       <div className="flex flex-col gap-4">
         <SummaryStrip
           tiles={[

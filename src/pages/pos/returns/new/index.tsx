@@ -41,7 +41,17 @@ export default function NewReturnPage() {
 
   if (!invoice) {
     return (
-      <PageShell title="POS — New Return" withToolbar={false}>
+      <PageShell
+        title="POS — New Return"
+        withToolbar={false}
+        titleTooltip={
+          <>
+            Look up the customer's original receipt to start a return
+            at the till. Receipt number, customer name, or last 4 of
+            the card all work.
+          </>
+        }
+      >
         <Card>
           <CardHeader>
             <CardTitle>Find Invoice</CardTitle>
@@ -104,7 +114,18 @@ export default function NewReturnPage() {
   }
 
   return (
-    <PageShell title="POS — New Return" withToolbar={false}>
+    <PageShell
+      title="POS — New Return"
+      withToolbar={false}
+      titleTooltip={
+        <>
+          Customer's at the till bringing something back. Pick refund
+          method (cash, original card, transfer, store credit), then
+          decide whether to restock or write off the item. Done in
+          under a minute.
+        </>
+      }
+    >
       <Card>
         <CardHeader className="pb-2">
           <CardTitle>Return for {invoice.number}</CardTitle>

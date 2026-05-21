@@ -38,6 +38,13 @@ export default function ProductSell() {
     <ReportShell
       title="Product sell"
       description="Per-product sales breakdown"
+      titleTooltip={
+        <>
+          Sales volume + revenue per individual SKU for the period.
+          Sort by "Units sold" to find your bestsellers, by "Avg
+          price" to see where customers are accepting premium pricing.
+        </>
+      }
       period={period}
       onPeriodChange={setPeriod}
       exportFilename={`pallio-product-sell-${period}`}

@@ -47,6 +47,16 @@ export default function RegisterReport() {
     <ReportShell
       title="Register"
       description="Cash register sessions and till variance"
+      titleTooltip={
+        <>
+          Each shift that ran on the POS register. Shows the opening
+          float, total sales, closing count, and any
+          <strong> variance</strong> (closing - opening - sales).
+          Non-zero variance means the till is short or over — common
+          causes are mis-typed change, voided sales, or pocketed
+          cash.
+        </>
+      }
       period={period}
       onPeriodChange={setPeriod}
       exportFilename={`pallio-register-${period}`}

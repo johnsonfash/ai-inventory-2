@@ -65,7 +65,7 @@ export default function ContactPage() {
                 <Input type="email" name="email" placeholder="you@business.com" required />
               </Field>
               <Field label="Company" Icon={Building2}>
-                <Input name="company" placeholder="Acme Co" />
+                <Input name="company" placeholder="Your business name" />
               </Field>
               <Field label="Topic" Icon={MessageSquare}>
                 <Select defaultValue="general">

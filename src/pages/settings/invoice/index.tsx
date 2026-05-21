@@ -17,6 +17,15 @@ export default function InvoiceSettings() {
     <FormShell
       title="Invoice settings"
       description="Numbering, defaults, and templating for customer-facing documents."
+      titleTooltip={
+        <>
+          How your invoices look + are numbered. Pick a prefix (e.g.
+          <span className="font-mono"> INV- </span>) and Pallio takes
+          care of the rest — sequential numbering, your logo on every
+          PDF, default payment terms, and the legal text required for
+          tax compliance.
+        </>
+      }
       backHref="/settings"
       onSubmit={() => {
         setSubmitting(true)

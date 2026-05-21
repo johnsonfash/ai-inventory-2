@@ -49,6 +49,15 @@ export default function StockExpiry() {
     <ReportShell
       title="Stock expiry"
       description="Batches approaching their expiry date"
+      titleTooltip={
+        <>
+          Time-sensitive stock — anything within 90 days of its
+          printed expiry date. Sort by "Days left" to find what needs
+          a flash discount or markdown to clear before it has to be
+          written off. Only relevant for perishables (food, cosmetics,
+          pharma).
+        </>
+      }
       period={period}
       onPeriodChange={setPeriod}
       exportFilename={`pallio-stock-expiry-${period}`}

@@ -125,7 +125,18 @@ export default function SettingsIndex() {
   const totalCount = GROUPS.reduce((s, g) => s + g.tiles.length, 0)
 
   return (
-    <PageShell title="Settings" withToolbar={false}>
+    <PageShell
+      title="Settings"
+      withToolbar={false}
+      titleTooltip={
+        <>
+          The control room for Pallio. Business identity, currency,
+          tax rates, locations, the team that can sign in, hardware
+          (printers + scanners), and a row of toggles for the small
+          stuff. Most of what's here is set once and forgotten.
+        </>
+      }
+    >
       <div className="flex flex-col gap-6">
         {/* Hero */}
         <div className="relative overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-brand-soft via-card to-sky-50/50 p-5 dark:from-primary/10 dark:via-card dark:to-sky-950/15">

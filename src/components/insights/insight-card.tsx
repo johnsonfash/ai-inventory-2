@@ -73,7 +73,11 @@ export function InsightCard({ insight }: { insight: Insight }) {
     <Wrapper
       {...wrapperProps}
       className={cn(
-        "group flex h-full w-[18rem] shrink-0 snap-start flex-col gap-3 rounded-2xl border border-border bg-card p-4 text-left transition-all",
+        // Footer is now a fixed 32-px row in every variant, so
+        // `min-h-[12rem]` is enough to keep cards visually balanced
+        // when the body text is short. `h-full` then lets the flex
+        // container stretch every sibling to the tallest one.
+        "group flex h-full min-h-[12rem] w-[18rem] shrink-0 snap-start flex-col gap-3 rounded-2xl border border-border bg-card p-4 text-left transition-all",
         "hover:border-brand/40 hover:shadow-sm",
         "md:w-auto",
       )}
@@ -94,32 +98,49 @@ export function InsightCard({ insight }: { insight: Insight }) {
               {insight.severity}
             </span>
           </div>
-          <p className="mt-1 text-sm font-semibold leading-tight">{insight.title}</p>
+          {/* Title is reserved at 2-line height so the card stays the
+              same size whether the headline is "Quiet morning" (1 line)
+              or "Cobalt Distributors is consistently 2 days late"
+              (2 lines). `line-clamp-2` truncates anything longer. */}
+          <p className="mt-1 line-clamp-2 min-h-[2.25rem] text-sm font-semibold leading-tight">
+            {insight.title}
+          </p>
         </div>
       </div>
 
-      <p className="text-xs leading-relaxed text-muted-foreground line-clamp-3">{insight.body}</p>
+      {/* Body is reserved at exactly 3 lines (≈ 3.75 rem at the
+          `text-xs leading-relaxed` cadence). Short bodies leave
+          whitespace below — but the card height never wobbles. */}
+      <p className="line-clamp-3 min-h-[3.75rem] text-xs leading-relaxed text-muted-foreground">
+        {insight.body}
+      </p>
 
-      {(insight.metric || insight.sparkline) && (
-        <div className="flex items-end justify-between gap-2 border-t border-border pt-3">
-          {insight.metric && (
-            <span className={cn("text-base font-bold tabular-nums", tone.metric)}>
-              {insight.metric}
+      {/* Footer — single compact row so cards have a uniform bottom
+          regardless of which fields the insight carries:
+          [metric] [sparkline]                 [action →]
+          Empty side collapses; the row is one line tall in every
+          combination. */}
+      {(insight.metric || insight.sparkline || insight.action) && (
+        <div className="mt-auto flex h-8 items-center justify-between gap-2 border-t border-border pt-3">
+          <div className="flex min-w-0 flex-1 items-center gap-2">
+            {insight.metric && (
+              <span className={cn("shrink-0 text-sm font-bold tabular-nums", tone.metric)}>
+                {insight.metric}
+              </span>
+            )}
+            {insight.sparkline && (
+              <MiniSparkline
+                data={insight.sparkline}
+                className={cn("h-5 w-16 shrink-0", tone.spark)}
+              />
+            )}
+          </div>
+          {insight.action && (
+            <span className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap text-xs font-semibold text-brand dark:text-primary">
+              <span className="max-w-[8rem] truncate">{insight.action.label}</span>
+              <ArrowRight className="h-3 w-3 shrink-0 transition-transform group-hover:translate-x-0.5" />
             </span>
           )}
-          {insight.sparkline && (
-            <MiniSparkline
-              data={insight.sparkline}
-              className={cn("h-7 w-24", tone.spark)}
-            />
-          )}
-        </div>
-      )}
-
-      {insight.action && (
-        <div className="mt-auto flex items-center justify-between gap-2 pt-1 text-xs font-semibold text-brand transition-colors group-hover:text-brand dark:text-primary">
-          <span>{insight.action.label}</span>
-          <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
         </div>
       )}
     </Wrapper>

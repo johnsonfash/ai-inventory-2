@@ -54,7 +54,18 @@ export default function Brands() {
   const top = [...rows].sort((a, b) => b.revenue - a.revenue)[0]!
 
   return (
-    <PageShell title="Brands" withToolbar>
+    <PageShell
+      title="Brands"
+      withToolbar
+      titleTooltip={
+        <>
+          Manufacturer or label badges attached to items — Apple,
+          Adidas, your own house brand. Filtering by brand on the
+          storefront helps customers shop the names they trust;
+          reports show you which brands actually move stock.
+        </>
+      }
+    >
       <div className="flex flex-col gap-4">
         <SummaryStrip
           tiles={[

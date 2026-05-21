@@ -52,7 +52,18 @@ export default function Locations() {
   const warehouses = rows.filter((r) => r.type === "warehouse").length
 
   return (
-    <PageShell title="Locations" withToolbar={false}>
+    <PageShell
+      title="Locations"
+      withToolbar={false}
+      titleTooltip={
+        <>
+          Public-facing business addresses — what customers see on
+          your storefront's "Find us" page, on invoices, and in
+          delivery zones. Distinct from <strong>Warehouses</strong>,
+          which is the internal stock view.
+        </>
+      }
+    >
       <div className="flex flex-col gap-4">
         <SummaryStrip
           tiles={[

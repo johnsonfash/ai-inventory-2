@@ -41,6 +41,14 @@ export default function ItemReport() {
     <ReportShell
       title="Items"
       description="Per-item full statistics across the period"
+      titleTooltip={
+        <>
+          The unified view of every SKU's life — how much you've
+          bought, sold, and have left on hand, plus the revenue it's
+          generated. Sort by any column to find dead stock (low sold
+          / high on hand) or stars (high sold / high revenue).
+        </>
+      }
       period={period}
       onPeriodChange={setPeriod}
       exportFilename={`pallio-items-${period}`}

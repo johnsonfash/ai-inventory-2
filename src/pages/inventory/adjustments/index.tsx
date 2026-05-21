@@ -38,7 +38,18 @@ export default function Adjustments() {
   const net = positives + negatives
 
   return (
-    <PageShell title="Stock adjustments" withToolbar>
+    <PageShell
+      title="Stock adjustments"
+      withToolbar
+      titleTooltip={
+        <>
+          Manual changes to your on-hand count — for shrinkage,
+          spoilage, breakage, theft, or just a recount that didn't
+          match the system. Logged separately so your auditor can see
+          why the count moved without a sale or PO.
+        </>
+      }
+    >
       <div className="flex flex-col gap-4">
         <SummaryStrip
           tiles={[

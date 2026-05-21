@@ -23,9 +23,11 @@ import { useRegisterPageRefresh } from "@/hooks/use-pull-to-refresh"
 import {
   disconnectProvider,
   getConnection,
+  getInsights,
   getProvider,
   recordTest,
 } from "@/lib/integrations/data"
+import { IntegrationConfig } from "@/components/integrations/integration-config"
 import type {
   IntegrationConnection,
   IntegrationStatus,
@@ -83,7 +85,17 @@ export default function IntegrationDetail() {
 
   if (!connection) {
     return (
-      <PageShell title={provider.name} withToolbar={false}>
+      <PageShell
+        title={provider.name}
+        withToolbar={false}
+        titleTooltip={
+          <>
+            {provider.name} hasn't been connected yet. Tap "Connect"
+            on the catalog card to paste your API keys; we'll run a
+            test call before activating.
+          </>
+        }
+      >
         <div className="flex flex-col gap-4">
           <Link to="/settings/integrations" className="inline-flex w-fit items-center gap-1 text-xs font-medium text-muted-foreground hover:text-foreground">
             <ArrowLeft className="h-3.5 w-3.5" /> All integrations
@@ -131,7 +143,18 @@ export default function IntegrationDetail() {
   }
 
   return (
-    <PageShell title={provider.name} withToolbar={false}>
+    <PageShell
+      title={provider.name}
+      withToolbar={false}
+      titleTooltip={
+        <>
+          Manage your connection to {provider.name} — see live
+          insights, rotate credentials, copy webhook URLs, review
+          the event log, or disconnect. The Test button fires a fake
+          call before you commit changes.
+        </>
+      }
+    >
       <div className="flex flex-col gap-4">
         <Link to="/settings/integrations" className="inline-flex w-fit items-center gap-1 text-xs font-medium text-muted-foreground hover:text-foreground">
           <ArrowLeft className="h-3.5 w-3.5" /> All integrations
@@ -180,6 +203,55 @@ export default function IntegrationDetail() {
             </div>
           </div>
         </section>
+
+        {/* Insights strip — what Pallio is actually doing with this
+            connection in the last 30 days. Driven by `getInsights`
+            in lib/integrations/data.ts (mock for now, live later). */}
+        {(() => {
+          const insights = getInsights(provider.id, connection)
+          if (insights.length === 0) return null
+          return (
+            <section className="rounded-2xl border border-border bg-card p-4">
+              <div className="flex items-baseline gap-1.5">
+                <h3 className="text-sm font-semibold md:text-base">Insights</h3>
+                <InfoTooltip label="Insights" size="xs">
+                  A 30-day snapshot of what Pallio is doing with this
+                  integration. Useful for spotting drift — e.g. payment
+                  success rate dipping, or a courier's on-time rate
+                  slipping below SLA.
+                </InfoTooltip>
+              </div>
+              <ul className={cn(
+                "mt-3 grid gap-2.5",
+                insights.length === 4 ? "sm:grid-cols-2 lg:grid-cols-4" : "sm:grid-cols-2 lg:grid-cols-3",
+              )}>
+                {insights.map((it) => (
+                  <li key={it.label} className="rounded-xl border border-border bg-background p-3">
+                    <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{it.label}</p>
+                    <p className="mt-1 text-lg font-bold tabular-nums leading-none">{it.value}</p>
+                    <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+                      {it.delta && (
+                        <span className={cn(
+                          "inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-bold tabular-nums",
+                          it.trend === "up"   && "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300",
+                          it.trend === "down" && "bg-rose-500/15 text-rose-700 dark:text-rose-300",
+                          (!it.trend || it.trend === "neutral") && "bg-muted text-muted-foreground",
+                        )}>
+                          {it.delta}
+                        </span>
+                      )}
+                      {it.hint && <span className="text-[10px] text-muted-foreground">{it.hint}</span>}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )
+        })()}
+
+        {/* Functional configuration — category-aware tabs that do
+            real work (settlement, refunds, hubs, sender, etc.). */}
+        <IntegrationConfig provider={provider} connection={connection} />
 
         {/* 2-col layout: stored credentials + webhook | event log */}
         <div className="grid gap-4 lg:grid-cols-[1.4fr_1fr]">

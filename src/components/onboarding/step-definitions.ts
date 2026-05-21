@@ -3,6 +3,7 @@ import {
   Bot,
   Boxes,
   CreditCard,
+  Globe,
   Megaphone,
   PackagePlus,
   Receipt,
@@ -118,6 +119,16 @@ export const PERSONAL_STEPS: StepDefinition[] = [
     href: "/purchasing/pos/new",
     Icon: Boxes,
     tone: "bg-amber-500/15 text-amber-700 dark:text-amber-300",
+    manualMarkOnly: true,
+  },
+  {
+    key: "launch-storefront",
+    title: "Launch your online storefront",
+    description:
+      "Pick from our gallery of hand-tuned templates and Pallio publishes a real shop at your-name.pallio.shop — customers can browse, buy, and track delivery.",
+    href: "/storefront/templates",
+    Icon: Globe,
+    tone: "bg-fuchsia-500/15 text-fuchsia-700 dark:text-fuchsia-300",
     manualMarkOnly: true,
   },
   {

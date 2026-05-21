@@ -19,6 +19,14 @@ export default function NewExpense() {
     <FormShell
       title="Record expense"
       description="Operating cost entry — affects the P&L immediately."
+      titleTooltip={
+        <>
+          Log money you spent running the business — rent, logistics,
+          NEPA bill, fuel, marketing spend, staff reimbursement. Each
+          entry hits your P&amp;L immediately under the category you
+          pick. Attach the receipt photo so tax season is painless.
+        </>
+      }
       backHref="/expenses"
       onSubmit={() => {
         setSubmitting(true)
@@ -37,7 +45,11 @@ export default function NewExpense() {
     >
       <FormSection title="Details" description="What was the spend?" Icon={Receipt}>
         <FormGrid cols={3}>
-          <FormField label="Category" required>
+          <FormField
+            label="Category"
+            required
+            tooltip="Buckets expenses on your Profit-and-Loss report so you can see, for example, how much you spent on marketing this quarter. Pick the closest match — you can add your own categories in Settings."
+          >
             <Select defaultValue="logistics">
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
@@ -50,29 +62,35 @@ export default function NewExpense() {
               </SelectContent>
             </Select>
           </FormField>
-          <FormField label="Vendor / payee">
+          <FormField
+            label="Vendor / payee"
+            tooltip="Who you paid (DHL, NEPA, the landlord). Optional, but lets Pallio total all spend with a given supplier across the year."
+          >
             <Input placeholder="DHL" />
           </FormField>
-          <FormField label="Date" required>
+          <FormField label="Date" required tooltip="The day money actually left your account. Used to place the expense on the right week / month / quarter in reports.">
             <Input type="date" defaultValue={new Date().toISOString().slice(0, 10)} required />
           </FormField>
-          <FormField label="Amount" required>
+          <FormField label="Amount" required tooltip="The full amount you paid, including tax.">
             <InputAddon leading="$">
               <input type="number" step="0.01" placeholder="0.00" required />
             </InputAddon>
           </FormField>
-          <FormField label="Currency">
-            <Select defaultValue="USD">
+          <FormField label="Currency" tooltip="What currency you paid in. If it's not your business currency, Pallio converts at today's rate for the P&L.">
+            <Select defaultValue="NGN">
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="USD">USD</SelectItem>
-                <SelectItem value="EUR">EUR</SelectItem>
-                <SelectItem value="GBP">GBP</SelectItem>
                 <SelectItem value="NGN">NGN</SelectItem>
+                <SelectItem value="USD">USD</SelectItem>
+                <SelectItem value="GBP">GBP</SelectItem>
+                <SelectItem value="EUR">EUR</SelectItem>
               </SelectContent>
             </Select>
           </FormField>
-          <FormField label="Payment method">
+          <FormField
+            label="Payment method"
+            tooltip="How you paid. Useful when you reconcile against bank statements at month-end — Pallio can filter expenses by card vs cash vs transfer."
+          >
             <Select defaultValue="card">
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
@@ -83,7 +101,12 @@ export default function NewExpense() {
               </SelectContent>
             </Select>
           </FormField>
-          <FormField label="Description" span={3} hint="Optional. Shows in the activity log.">
+          <FormField
+            label="Description"
+            span={3}
+            hint="Optional. Shows in the activity log."
+            tooltip="One-line context so future-you can remember what this was. Tax auditors also like it ('PO-1042 express shipping' is much better than just 'shipping')."
+          >
             <Textarea placeholder="Express shipping for PO-1042." />
           </FormField>
         </FormGrid>
@@ -91,13 +114,17 @@ export default function NewExpense() {
 
       <FormSection title="Receipt" Icon={Paperclip}>
         <FormGrid cols={1}>
-          <FormField label="Attach receipt" hint="PNG, JPG, or PDF — max 8MB.">
+          <FormField
+            label="Attach receipt"
+            hint="PNG, JPG, or PDF — max 8MB."
+            tooltip="A photo of the paper receipt or the email PDF. Pallio stores it forever — when the tax man comes asking, this is your proof the expense is real."
+          >
             <Input type="file" accept="image/*,application/pdf" />
           </FormField>
           <FormField>
             <SwitchField
               label="Reimbursable expense"
-              description="Track this as owed to an employee."
+              description="The employee paid out of their own pocket; the business owes them back. Pallio adds this to their reimbursable balance, which shows up on the next payroll run."
             />
           </FormField>
         </FormGrid>

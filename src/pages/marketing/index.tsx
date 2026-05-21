@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button"
 import { useRegisterPageRefresh } from "@/hooks/use-pull-to-refresh"
 import { StatusBadge, type StatusTone } from "@/components/lists/status-badge"
 import { SummaryStrip } from "@/components/lists/summary-strip"
+import { ConnectionCard } from "@/components/integrations/connection-chip"
 import { cn } from "@/lib/utils"
 import { useCurrency } from "@/contexts/currency"
 
@@ -60,7 +61,18 @@ export default function Marketing() {
   const topRoas = [...CHANNELS].filter((c) => c.roas != null).sort((a, b) => (b.roas ?? 0) - (a.roas ?? 0))[0]
 
   return (
-    <PageShell title="Marketing" withToolbar>
+    <PageShell
+      title="Marketing"
+      withToolbar
+      titleTooltip={
+        <>
+          Where you launch ad campaigns, manage your storefront
+          listings, track ROAS, and pay affiliate commissions. Pallio
+          syncs catalog + stock to every connected channel so prices
+          stay in lock-step.
+        </>
+      }
+    >
       <div className="flex flex-col gap-4">
         {/* Hero */}
         <div className="relative overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-brand-soft via-card to-fuchsia-50/40 p-5 dark:from-primary/10 dark:via-card dark:to-fuchsia-950/15">
@@ -188,6 +200,25 @@ export default function Marketing() {
               <ArrowRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
             </div>
           </Link>
+        </section>
+
+        {/* Marketing tool integrations — surface connection status so
+            the user knows which campaign automations + tracking + ESP
+            tools are live. Each card deep-links to the integration
+            connect / config page. */}
+        <section className="flex flex-col gap-3">
+          <div>
+            <h3 className="text-sm font-semibold md:text-base">Marketing tools</h3>
+            <p className="text-[11px] text-muted-foreground">Email-service providers, ad-pixel + analytics tools that power your campaigns.</p>
+          </div>
+          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            <ConnectionCard providerId="mailchimp"  reason="Email newsletters + abandoned-cart automation." />
+            <ConnectionCard providerId="klaviyo"    reason="Behavioural emails — win-backs, post-purchase flows." />
+            <ConnectionCard providerId="meta-pixel" reason="Track Meta ad conversions on your storefront." />
+            <ConnectionCard providerId="ga4"        reason="Google Analytics 4 — site traffic + funnel." />
+            <ConnectionCard providerId="mixpanel"   reason="Event-level analytics for product launches." />
+            <ConnectionCard providerId="whatsapp-cloud" reason="WhatsApp Business broadcasts + campaigns." />
+          </div>
         </section>
       </div>
     </PageShell>

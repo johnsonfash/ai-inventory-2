@@ -56,6 +56,15 @@ export default function SupplierCustomer() {
     <ReportShell
       title="Supplier & customer"
       description="Two-sided ledger of receivables and payables"
+      titleTooltip={
+        <>
+          Who owes whom right now. On the customer side, the
+          outstanding column is your <strong>receivables</strong>{" "}
+          (money to collect); on the supplier side, it's your
+          <strong> payables</strong> (money to pay). The two big
+          numbers at the top tell you net cash position.
+        </>
+      }
       period={period}
       onPeriodChange={setPeriod}
       exportFilename={`pallio-supplier-customer-${period}`}

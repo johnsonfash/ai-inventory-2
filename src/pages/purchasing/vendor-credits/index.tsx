@@ -44,7 +44,18 @@ export default function VendorCredits() {
   const applied = rows.filter((r) => r.status === "applied").reduce((s, r) => s + r.amount, 0)
 
   return (
-    <PageShell title="Vendor credits" withToolbar>
+    <PageShell
+      title="Vendor credits"
+      withToolbar
+      titleTooltip={
+        <>
+          A <strong>vendor credit</strong> is money the supplier owes
+          you back — for over-billing, damaged goods, short shipments,
+          or rebates. Pallio applies it to the supplier's next bill so
+          you pay less, rather than waiting for an actual refund.
+        </>
+      }
+    >
       <div className="flex flex-col gap-4">
         <SummaryStrip
           tiles={[

@@ -5,9 +5,12 @@
 export type IntegrationCategory =
   | "payments"      // Paystack, Flutterwave, Opay, PalmPay, Stripe
   | "commerce"      // Shopify, WooCommerce, FB Shop
+  | "delivery"      // GIG Logistics, Sendbox, Kwik, DHL, EasyShip
   | "comms"         // Mailgun, Twilio, WhatsApp Cloud
+  | "marketing"     // Mailchimp, Klaviyo, Meta Pixel
+  | "accounting"    // Xero, QuickBooks, Sage
   | "team"          // Slack, Microsoft Teams
-  | "analytics"     // Google Analytics, Segment
+  | "analytics"     // Google Analytics, Mixpanel, Segment
 
 export type FieldKind = "text" | "password" | "url" | "select" | "switch"
 
@@ -57,4 +60,16 @@ export type IntegrationConnection = {
   connectedAt: string
   /** Ad-hoc event log we show on the detail page. */
   events: { at: string; kind: "connected" | "test" | "disconnected" | "error"; message: string }[]
+}
+
+// Per-provider insight tile — surfaced on the detail page so the
+// integration earns its place ("here's what Pallio is doing with
+// this connection"). Values are derived/mock for now; real backend
+// will compute live.
+export type IntegrationInsight = {
+  label: string
+  value: string
+  delta?: string
+  trend?: "up" | "down" | "neutral"
+  hint?: string
 }

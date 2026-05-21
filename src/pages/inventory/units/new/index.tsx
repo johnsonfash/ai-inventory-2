@@ -15,6 +15,14 @@ export default function NewUnit() {
     <FormShell
       title="New unit of measure"
       description="Define a way to count or weigh items in the catalog."
+      titleTooltip={
+        <>
+          How you sell something. Use built-ins (pieces, kg, litres,
+          dozens) or define a custom one (e.g. "carton of 24"). The
+          unit shows on receipts + invoices so customers see what
+          they're actually buying.
+        </>
+      }
       backHref="/inventory/units"
       onSubmit={() => { setSubmitting(true); setTimeout(() => setSubmitting(false), 400) }}
       aside={

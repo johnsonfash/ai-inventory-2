@@ -88,7 +88,11 @@ export type ReturnRecord = {
 const DRAFTS_KEY = "pos:drafts"
 const INVOICES_KEY = "pos:invoices"
 const RETURNS_KEY = "pos:returns"
-const CATALOG_KEY = "pos:catalog:mode"
+// Bumped to v2 when product images switched from
+// /placeholder.svg to real Unsplash photos. The key suffix forces a
+// re-seed for users whose localStorage still holds the placeholder
+// catalog from a previous session.
+const CATALOG_KEY = "pos:catalog:mode:v2"
 
 // -------------- KV Helpers --------------
 // Backed by src/lib/storage/kv.ts — reads are sync (localStorage),
@@ -135,6 +139,10 @@ export function genReturnNumber() {
 // -------------- Catalog --------------
 export function loadCatalog(mode: "retail" | "restaurant" | "services" | "auto" = "retail"): CatalogItem[] {
   const commonTax = 0.08
+  // Product photography pulled from Unsplash via their CDN. Each URL
+  // pins a specific photo id so the catalog tile shows the same image
+  // every time (no random "Source.unsplash" lottery). `w=320&q=80` is
+  // a sweet spot for crisp tiles + 4G-friendly bytes.
   const items: CatalogItem[] = [
     {
       id: "p1",
@@ -143,7 +151,7 @@ export function loadCatalog(mode: "retail" | "restaurant" | "services" | "auto" 
       name: "Cotton Tee - Black",
       price: 12.5,
       taxRate: commonTax,
-      image: "/placeholder.svg?height=160&width=160",
+      image: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=320&h=320&fit=crop&auto=format&q=80",
       category: "Apparel",
       brand: "BasicCo",
       stock: 120,
@@ -156,7 +164,7 @@ export function loadCatalog(mode: "retail" | "restaurant" | "services" | "auto" 
       name: "Wireless Mouse",
       price: 19.99,
       taxRate: commonTax,
-      image: "/placeholder.svg?height=160&width=160",
+      image: "https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?w=320&h=320&fit=crop&auto=format&q=80",
       category: "Electronics",
       brand: "Gizmo",
       stock: 64,
@@ -169,7 +177,7 @@ export function loadCatalog(mode: "retail" | "restaurant" | "services" | "auto" 
       name: "Hydrating Serum",
       price: 18.0,
       taxRate: commonTax,
-      image: "/placeholder.svg?height=160&width=160",
+      image: "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=320&h=320&fit=crop&auto=format&q=80",
       category: "Beauty",
       brand: "Glow",
       stock: 34,
@@ -181,7 +189,7 @@ export function loadCatalog(mode: "retail" | "restaurant" | "services" | "auto" 
       name: "Fish and Chips",
       price: 7.5,
       taxRate: 0.1,
-      image: "/placeholder.svg?height=160&width=160",
+      image: "https://images.unsplash.com/photo-1580959375944-abd7e991f971?w=320&h=320&fit=crop&auto=format&q=80",
       category: "Main course",
       brand: "Kitchen",
       stock: 9999,
@@ -193,7 +201,7 @@ export function loadCatalog(mode: "retail" | "restaurant" | "services" | "auto" 
       name: "Iced Coffee",
       price: 4.2,
       taxRate: 0.1,
-      image: "/placeholder.svg?height=160&width=160",
+      image: "https://images.unsplash.com/photo-1517701604599-bb29b565090c?w=320&h=320&fit=crop&auto=format&q=80",
       category: "Drinks",
       brand: "Kitchen",
       stock: 9999,
@@ -205,7 +213,7 @@ export function loadCatalog(mode: "retail" | "restaurant" | "services" | "auto" 
       name: "Brake Pads Set",
       price: 65.0,
       taxRate: commonTax,
-      image: "/placeholder.svg?height=160&width=160",
+      image: "https://images.unsplash.com/photo-1607860108855-64acf2078ed9?w=320&h=320&fit=crop&auto=format&q=80",
       category: "Auto Parts",
       brand: "AutoMax",
       stock: 22,
@@ -217,7 +225,7 @@ export function loadCatalog(mode: "retail" | "restaurant" | "services" | "auto" 
       name: "Hair Styling Service",
       price: 30,
       taxRate: commonTax,
-      image: "/placeholder.svg?height=160&width=160",
+      image: "https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?w=320&h=320&fit=crop&auto=format&q=80",
       category: "Services",
       brand: "Salon",
       stock: 9999,
@@ -229,7 +237,7 @@ export function loadCatalog(mode: "retail" | "restaurant" | "services" | "auto" 
       name: "Ceramic Mug 12oz",
       price: 8.0,
       taxRate: commonTax,
-      image: "/placeholder.svg?height=160&width=160",
+      image: "https://images.unsplash.com/photo-1514228742587-6b1558fcca3d?w=320&h=320&fit=crop&auto=format&q=80",
       category: "Gifts",
       brand: "Homey",
       stock: 200,
@@ -241,7 +249,7 @@ export function loadCatalog(mode: "retail" | "restaurant" | "services" | "auto" 
       name: "USB‑C Hub 6‑in‑1",
       price: 25.0,
       taxRate: commonTax,
-      image: "/placeholder.svg?height=160&width=160",
+      image: "https://images.unsplash.com/photo-1625948515291-69613efd103f?w=320&h=320&fit=crop&auto=format&q=80",
       category: "Electronics",
       brand: "Gizmo",
       stock: 48,

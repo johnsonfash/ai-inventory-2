@@ -211,12 +211,22 @@ function Hero() {
 
 // ---- Trust bar ----
 function TrustBar() {
-  const logos = ["Acme Co", "BrightLane", "NovaApps", "Cobalt", "Glow Co", "Porcel"]
+  // Realistic-sounding Nigerian SMBs in Pallio's launch market, plus
+  // a couple of regional partners (Ghana, Kenya). Keeps the social
+  // proof feeling local to the buyer while signalling expansion.
+  const logos = [
+    "Funke Apparel",
+    "Eko Provisions",
+    "LagosMart",
+    "Hausa Spice Co.",
+    "GhanaGrocer",
+    "Nairobi Boutique",
+  ]
   return (
     <section className="border-y border-border/60 bg-muted/30 py-6">
       <div className="mx-auto flex max-w-7xl flex-col items-center gap-4 px-4 md:flex-row md:gap-8 md:px-6">
         <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-          Loved by operators at
+          Trusted by independent retailers across West &amp; East Africa
         </p>
         <ul className="flex flex-wrap items-center justify-center gap-4 md:gap-6">
           {logos.map((l) => (
@@ -426,19 +436,21 @@ function DeviceShowcase() {
           </PhoneFrame>
         </div>
 
-        {/* "Where it runs" pills */}
+        {/* "Where it runs" pills — desktop shows the full descriptor,
+            mobile keeps it to the platform name only so the row
+            doesn't wrap into a vertical letter+text stack. */}
         <ul className="mx-auto mt-12 flex max-w-3xl flex-wrap items-center justify-center gap-2 md:mt-16">
           {[
-            { label: "iOS", body: "Native via Capacitor · Face ID · Push" },
+            { label: "iOS",     body: "Native via Capacitor · Face ID · Push" },
             { label: "Android", body: "Native via Capacitor · Adaptive icons" },
-            { label: "Web", body: "Vite SPA · Installable PWA · Offline" },
-            { label: "iPad", body: "Same Vite build · Sidebar layout" },
+            { label: "Web",     body: "Vite SPA · Installable PWA · Offline" },
+            { label: "iPad",    body: "Same Vite build · Sidebar layout" },
           ].map((p) => (
             <li
               key={p.label}
-              className="flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1.5 text-xs"
+              className="flex items-center gap-2 whitespace-nowrap rounded-full border border-border bg-card px-3 py-1.5 text-xs"
             >
-              <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-gradient-to-br from-brand to-fuchsia-500 text-[10px] font-bold text-white">
+              <span className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-brand to-fuchsia-500 text-[10px] font-bold text-white">
                 {p.label[0]}
               </span>
               <span className="font-semibold">{p.label}</span>
@@ -544,19 +556,19 @@ function Stats() {
 function Testimonials() {
   const quotes = [
     {
-      body: "We dropped four SaaS subscriptions the week we switched. Inventory + POS + reporting in one place, in our pockets.",
-      author: "Mia Chen",
-      title: "Floor manager · Downtown Austin",
+      body: "Pallio replaced four subscriptions in the first week — inventory, POS, accounting, and the spreadsheet I used for stock counts. Whole shop runs from my phone now.",
+      author: "Funke Adesanya",
+      title: "Owner · Funke Apparel, Lekki",
     },
     {
-      body: "The AI insights are the part I tell other operators about. It flagged a vendor running 2 days late before I'd noticed.",
-      author: "Alex Larson",
-      title: "Founder · BrightLane",
+      body: "The AI flagged a vendor running 2 days late before I'd noticed. That alone has saved us two stock-outs this month.",
+      author: "Tunde Bello",
+      title: "Founder · Eko Provisions, Surulere",
     },
     {
-      body: "We run a 4-location pop-up business. Pallio is the first thing that has actually let me see all four stores at once.",
-      author: "Priya Patel",
-      title: "Ops lead · Glow Co",
+      body: "I run three shops across Lagos and one in Abuja. Pallio is the first tool that's actually let me see all four locations on one screen.",
+      author: "Chiamaka Okeke",
+      title: "Operations Lead · LagosMart",
     },
   ]
   return (
@@ -736,7 +748,7 @@ function Integrations() {
         <div className="mt-12 grid gap-4 lg:grid-cols-3">
           <LogoColumn title="Payments" items={PAYMENTS} accent="bg-brand-soft text-brand dark:bg-primary/15 dark:text-primary" />
           <LogoColumn title="Storefronts + commerce" items={COMMERCE} accent="bg-emerald-500/15 text-emerald-700 dark:text-emerald-300" />
-          <LogoColumn title="Comms" items={COMMS} accent="bg-fuchsia-500/15 text-fuchsia-700 dark:text-fuchsia-300" />
+          <LogoColumn title="Communications" items={COMMS} accent="bg-fuchsia-500/15 text-fuchsia-700 dark:text-fuchsia-300" />
         </div>
 
         <p className="mt-8 text-center text-xs text-muted-foreground">

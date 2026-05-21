@@ -80,6 +80,15 @@ export default function ProfitLoss() {
     <ReportShell
       title="Profit & Loss"
       description="Net profit, gross margin, and expense composition"
+      titleTooltip={
+        <>
+          The bottom line. Revenue minus the cost of goods sold (COGS)
+          gives <strong>gross profit</strong>; subtract operating
+          expenses and you get <strong>net profit</strong>. If net
+          profit is positive, you made money in this period — if it's
+          negative, you spent more than you earned.
+        </>
+      }
       period={period}
       onPeriodChange={setPeriod}
       exportFilename={`pallio-profit-loss-${period}`}

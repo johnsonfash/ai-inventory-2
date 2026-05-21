@@ -40,7 +40,18 @@ export default function Warranties() {
   )
 
   return (
-    <PageShell title="Warranties" withToolbar>
+    <PageShell
+      title="Warranties"
+      withToolbar
+      titleTooltip={
+        <>
+          Manufacturer or store guarantees on items — e.g. "12-month
+          replacement on electronics." Pallio prints the warranty on
+          the customer's receipt and flags returns of covered items so
+          you can reclaim against the supplier.
+        </>
+      }
+    >
       <div className="flex flex-col gap-4">
         <SummaryStrip
           tiles={[

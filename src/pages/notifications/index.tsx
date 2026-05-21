@@ -94,7 +94,18 @@ export default function Notifications() {
     setItems((p) => p.map((n) => (n.id === id ? { ...n, read: !n.read } : n)))
 
   return (
-    <PageShell title="Notifications" withToolbar={false}>
+    <PageShell
+      title="Notifications"
+      withToolbar={false}
+      titleTooltip={
+        <>
+          Anything Pallio wanted you to know about — low stock, late
+          deliveries, overdue invoices, AI insights, team @mentions.
+          Filter by category, mark read once triaged. Tune which
+          events trigger pings in Settings → Notifications.
+        </>
+      }
+    >
       <div className="flex flex-col gap-4">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">

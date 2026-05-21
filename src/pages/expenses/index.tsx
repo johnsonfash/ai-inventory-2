@@ -62,7 +62,18 @@ export default function Expenses() {
   const thisMonth = rows.filter((r) => r.date.startsWith("2026-05")).reduce((s, r) => s + r.amount, 0)
 
   return (
-    <PageShell title="Expenses" withToolbar>
+    <PageShell
+      title="Expenses"
+      withToolbar
+      titleTooltip={
+        <>
+          Money flowing <em>out</em> of the business — rent, logistics,
+          utilities, marketing spend, staff reimbursements. Categorise
+          each one so your Profit & Loss report can show where the
+          money actually went.
+        </>
+      }
+    >
       <div className="flex flex-col gap-4">
         <SummaryStrip
           tiles={[

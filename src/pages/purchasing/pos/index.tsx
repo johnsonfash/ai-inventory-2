@@ -140,6 +140,16 @@ export default function PurchaseOrders() {
       title="Purchase orders"
       withToolbar
       mobileTrailing={<FilterButton onClick={() => setFilterOpen(true)} count={appliedCount} />}
+      titleTooltip={
+        <>
+          A <strong>purchase order</strong> (PO) is an official request
+          you send a supplier to deliver goods at agreed prices and
+          terms. Pallio tracks each PO's lifecycle: <em>open → received
+          → billed → paid</em>, and warns you when one is overdue.
+          (Not to be confused with the till "POS" — that's
+          <em> Point of Sale</em>, in the sidebar above.)
+        </>
+      }
     >
       <div className="flex flex-col gap-4">
         <div className="-mx-4 flex gap-2.5 overflow-x-auto px-4 pb-1 scrollbar-hide snap-x snap-mandatory md:mx-0 md:grid md:grid-cols-4 md:gap-3 md:overflow-visible md:px-0">

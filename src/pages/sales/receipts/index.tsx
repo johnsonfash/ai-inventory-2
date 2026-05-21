@@ -34,7 +34,19 @@ export default function ReceiptsList() {
   const totalIssued = RECEIPTS.reduce((s, r) => s + r.amountUsd, 0)
 
   return (
-    <PageShell title="Receipts" withToolbar>
+    <PageShell
+      title="Receipts"
+      withToolbar
+      titleTooltip={
+        <>
+          The proof-of-payment slips you've issued to customers. A
+          <strong> receipt</strong> says "you paid"; an
+          <strong> invoice</strong> says "you owe." Pallio creates one
+          automatically every time a customer settles an invoice or a
+          POS sale.
+        </>
+      }
+    >
       <div className="flex flex-col gap-4">
         <SummaryStrip
           tiles={[

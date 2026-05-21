@@ -47,7 +47,18 @@ export default function Discounts() {
   const scheduled = rows.filter((r) => r.status === "scheduled").length
 
   return (
-    <PageShell title="Discounts" withToolbar>
+    <PageShell
+      title="Discounts"
+      withToolbar
+      titleTooltip={
+        <>
+          Promo codes customers can type at checkout — percent off,
+          flat amount, audience-restricted. Each row shows live
+          redemption count and how much margin you're giving away so
+          you can spot runaway promos.
+        </>
+      }
+    >
       <div className="flex flex-col gap-4">
         <SummaryStrip
           tiles={[

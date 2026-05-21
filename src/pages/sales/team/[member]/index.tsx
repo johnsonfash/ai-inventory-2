@@ -41,7 +41,19 @@ export default function MemberDetailPage() {
 
   return (
     <RoleGuard permission="view:team:detail">
-      <PageShell title={member} withToolbar={false}>
+      <PageShell
+        title={member}
+        withToolbar={false}
+        titleTooltip={
+          <>
+            Personal performance + history for one team member.
+            Numbers cover the period you pick from the chips —
+            revenue rung up, units moved, commission earned, attainment
+            vs target. Use this in 1:1s to celebrate wins or coach
+            slow weeks.
+          </>
+        }
+      >
         <div className="flex flex-col gap-4">
           <Link to="/sales/team" className="inline-flex w-fit items-center gap-1 text-xs font-medium text-muted-foreground hover:text-foreground">
             <ArrowLeft className="h-3.5 w-3.5" /> All team

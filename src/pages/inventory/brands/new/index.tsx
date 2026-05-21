@@ -16,6 +16,14 @@ export default function NewBrand() {
     <FormShell
       title="New brand"
       description="Brands group items by manufacturer or label."
+      titleTooltip={
+        <>
+          The maker or label of an item — Apple, Nike, your own house
+          brand. Lets customers filter the storefront by names they
+          recognise and lets you see which brand actually drives
+          revenue. Optional but boosts conversion in retail.
+        </>
+      }
       backHref="/inventory/brands"
       onSubmit={() => { setSubmitting(true); setTimeout(() => setSubmitting(false), 400) }}
       aside={

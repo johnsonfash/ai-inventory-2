@@ -236,6 +236,15 @@ export default function PointOfSale() {
     <PageShell
       title="Point of sale"
       withToolbar={false}
+      titleTooltip={
+        <>
+          The till. Tap items from the catalog to build a cart, scan a
+          barcode for the fastest entry, then take payment (cash,
+          card, transfer, or split). Every sale rung up here updates
+          stock and the dashboard instantly. Drafts let you park a
+          cart and resume later.
+        </>
+      }
       mobileTrailing={
         <button
           type="button"

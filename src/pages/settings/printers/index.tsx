@@ -57,7 +57,18 @@ export default function Printers() {
   const offline = rows.filter((r) => r.status === "offline").length
 
   return (
-    <PageShell title="Receipt printers" withToolbar={false}>
+    <PageShell
+      title="Receipt printers"
+      withToolbar={false}
+      titleTooltip={
+        <>
+          Hardware Pallio sends print jobs to — thermal receipt
+          printers (the till slip), label printers (barcode stickers
+          for stock), and kitchen printers (restaurants). Connect once
+          here and every checkout uses the right device.
+        </>
+      }
+    >
       <div className="flex flex-col gap-4">
         <SummaryStrip
           tiles={[

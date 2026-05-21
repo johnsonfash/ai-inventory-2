@@ -39,6 +39,14 @@ export default function ProductPurchase() {
     <ReportShell
       title="Product purchase"
       description="Item-level inbound history"
+      titleTooltip={
+        <>
+          What you've bought, per SKU. Mirror of "Product sell" but on
+          the buy side — useful for negotiating price breaks with
+          vendors on high-volume items, or spotting over-stocking
+          patterns.
+        </>
+      }
       period={period}
       onPeriodChange={setPeriod}
       exportFilename={`pallio-product-purchase-${period}`}

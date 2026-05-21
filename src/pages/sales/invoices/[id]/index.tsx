@@ -126,7 +126,18 @@ export default function SalesInvoiceDetail() {
   ]
 
   return (
-    <PageShell title={`Invoice ${invoice.number}`} withToolbar={false}>
+    <PageShell
+      title={`Invoice ${invoice.number}`}
+      withToolbar={false}
+      titleTooltip={
+        <>
+          A single invoice you've sent a customer. Use the action bar
+          to email it again, share a payment link, print a PDF, mark
+          it paid, or apply a credit memo. The audit timeline below
+          shows every status change with who did it.
+        </>
+      }
+    >
       <div className="flex flex-col gap-4">
         <Link to="/sales/invoices" className="inline-flex w-fit items-center gap-1 text-xs font-medium text-muted-foreground hover:text-foreground">
           <ArrowLeft className="h-3.5 w-3.5" /> All invoices

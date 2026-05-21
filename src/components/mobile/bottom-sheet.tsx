@@ -1,5 +1,6 @@
 import * as React from "react"
-import { AnimatePresence, motion, type PanInfo } from "framer-motion"
+import { createPortal } from "react-dom"
+import { AnimatePresence, motion, useDragControls, type PanInfo } from "framer-motion"
 import { haptic } from "@/hooks/use-native"
 import { cn } from "@/lib/utils"
 
@@ -63,10 +64,20 @@ export function BottomSheet({
     }
   }
 
-  return (
+  // Drive the drag from the handle + header only — `dragListener: false`
+  // means the sheet itself doesn't intercept pointer events, so the
+  // body's overflow-y-auto can scroll without fighting the drag-to-
+  // dismiss gesture. The drag handle calls `controls.start(event)`
+  // on pointerdown to opt that region in.
+  const dragControls = useDragControls()
+
+  // Portal to body so `position: fixed` is always relative to the
+  // viewport, never trapped inside a transformed / filtered ancestor.
+  if (typeof document === "undefined") return null
+  return createPortal(
     <AnimatePresence>
       {open && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center">
+        <div className="fixed inset-0 z-[100] flex items-end justify-center">
           {/* Backdrop */}
           <motion.div
             className="absolute inset-0 bg-black/50 backdrop-blur-[2px]"
@@ -92,18 +103,33 @@ export function BottomSheet({
             exit={{ y: "100%" }}
             transition={{ type: "spring", damping: 32, stiffness: 320, mass: 0.6 }}
             drag="y"
+            dragListener={false}
+            dragControls={dragControls}
             dragConstraints={{ top: 0, bottom: 0 }}
             dragElastic={{ top: 0, bottom: 0.4 }}
             onDragEnd={handleDragEnd}
           >
-            {/* Drag handle */}
-            <div className="flex justify-center pt-2.5 pb-1.5">
+            {/* Drag handle + header are the only drag-eligible region.
+                Calling `dragControls.start(e)` on pointerdown forwards
+                that gesture to the motion.div. Inside the body, drag
+                stays disabled so the inner scroll is rock-solid. */}
+            <div
+              onPointerDown={(e) => dragControls.start(e)}
+              className="flex shrink-0 cursor-grab justify-center pt-2.5 pb-1.5 active:cursor-grabbing"
+              style={{ touchAction: "none" }}
+              aria-label="Drag to dismiss"
+              role="presentation"
+            >
               <div className="h-1.5 w-10 rounded-full bg-muted-foreground/30" />
             </div>
 
             {/* Header */}
             {(title || description || headerRight) && (
-              <div className="flex items-start gap-3 px-5 pb-3">
+              <div
+                onPointerDown={(e) => dragControls.start(e)}
+                className="flex shrink-0 cursor-grab items-start gap-3 px-5 pb-3 active:cursor-grabbing"
+                style={{ touchAction: "none" }}
+              >
                 <div className="min-w-0 flex-1">
                   {title && <div className="text-base font-semibold leading-tight">{title}</div>}
                   {description && (
@@ -114,8 +140,18 @@ export function BottomSheet({
               </div>
             )}
 
-            {/* Body */}
-            <div className="flex-1 overflow-y-auto px-5 pb-4">{children}</div>
+            {/* Body — `pwa-bottom` adds the iOS home-indicator inset
+                so the last form field can't sit under the safe area.
+                When there's a footer, that footer carries the inset
+                instead and the body just gets a normal pb-4. */}
+            <div
+              className={cn(
+                "flex-1 overflow-y-auto px-5",
+                footer ? "pb-4" : "pb-4 pwa-bottom",
+              )}
+            >
+              {children}
+            </div>
 
             {/* Footer (sticky, safe-area aware) */}
             {footer && (
@@ -126,6 +162,7 @@ export function BottomSheet({
           </motion.div>
         </div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body,
   )
 }

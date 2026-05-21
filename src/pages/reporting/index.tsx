@@ -98,7 +98,19 @@ export default function Reporting() {
   )
 
   return (
-    <PageShell title="Reports" withToolbar={false}>
+    <PageShell
+      title="Reports"
+      withToolbar={false}
+      titleTooltip={
+        <>
+          Every analytical view Pallio offers — sales, stock, tax,
+          payments, vendors, team performance, customer groups,
+          activity log. Each one is exportable as CSV / PDF and
+          period-comparable. Use this index to bookmark the reports
+          you check most.
+        </>
+      }
+    >
       <div className="flex flex-col gap-6">
         <div className="relative overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-brand-soft via-card to-emerald-50/50 p-5 dark:from-primary/10 dark:via-card dark:to-emerald-950/15">
           <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-brand/20 blur-3xl dark:bg-primary/20" aria-hidden />
