@@ -107,13 +107,13 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
         <main
           id="main"
           {...bind}
-          className="flex-1 overflow-y-auto overscroll-contain pb-mobile-nav"
+          className="flex-1 overflow-y-auto overflow-x-hidden overscroll-contain pb-mobile-nav"
           style={{
             transform: `translateY(${pull * 0.4}px)`,
             transition: refreshing ? "none" : pull === 0 ? "transform 200ms ease" : "none",
           }}
         >
-          <div className="px-4 pt-3 pb-2">{children}</div>
+          <div className="min-w-0 px-4 pt-3 pb-2">{children}</div>
         </main>
 
         <MobileBottomNav onMoreClick={() => setMoreOpen(true)} />
@@ -201,7 +201,7 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
           </div>
         )}
 
-        <main id="main" className="flex-1 overflow-y-auto overscroll-contain p-5">
+        <main id="main" className="flex-1 overflow-y-auto overflow-x-hidden overscroll-contain p-5">
           {children}
         </main>
       </div>
