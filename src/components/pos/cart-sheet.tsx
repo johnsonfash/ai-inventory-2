@@ -86,7 +86,10 @@ export function CartSheet({
         ) : null
       }
       footer={
-        <div className="flex items-center gap-2">
+        // pb-3 inside the footer slot — on web `pwa-bottom` resolves
+        // to 0, so without this the Charge button would sit only 12px
+        // from the sheet's bottom edge.
+        <div className="flex items-center gap-2 pb-3">
           <Button
             type="button"
             variant="outline"
