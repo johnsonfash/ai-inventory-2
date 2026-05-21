@@ -263,10 +263,7 @@ export default function PointOfSale() {
         </button>
       }
     >
-      {/* -mt-3 on mobile pulls the catalog up to butt right against the
-          mobile top bar — eliminates the dead space the global AppFrame
-          pt-3 adds for other pages. Desktop keeps the normal spacing. */}
-      <div className="-mt-3 flex flex-col gap-3 md:mt-0 md:gap-4">
+      <div className="flex flex-col gap-3 md:gap-4">
         {/* Desktop: quick action strip + full scan bar.
             Mobile: compact unified search/scan/menu row — see below. */}
         <div className="hidden md:flex md:flex-col md:gap-4">
