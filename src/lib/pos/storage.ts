@@ -92,7 +92,7 @@ const RETURNS_KEY = "pos:returns"
 // /placeholder.svg to real Unsplash photos. The key suffix forces a
 // re-seed for users whose localStorage still holds the placeholder
 // catalog from a previous session.
-const CATALOG_KEY = "pos:catalog:mode:v3"
+const CATALOG_KEY = "pos:catalog:mode:v4"
 
 // -------------- KV Helpers --------------
 // Backed by src/lib/storage/kv.ts — reads are sync (localStorage),
@@ -362,7 +362,11 @@ export function loadCatalog(mode: "retail" | "restaurant" | "services" | "auto" 
   ]
   const key = `${CATALOG_KEY}:${mode}`
   const ls = getLS<CatalogItem[] | null>(key, null)
-  if (!ls) setLS(key, items)
+  // Reseed when nothing is cached OR when the cached catalog is
+  // shorter than the latest seed (covers the case where a previous
+  // version's HMR cached an older items[] under the same versioned
+  // key before the bundle finished updating).
+  if (!ls || ls.length < items.length) setLS(key, items)
   return getLS<CatalogItem[]>(key, items)
 }
 
