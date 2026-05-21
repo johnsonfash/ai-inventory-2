@@ -1,0 +1,78 @@
+{
+  "$schema": "https://schema.tauri.app/config/2.0.0",
+  "productName": "Pallio",
+  "version": "1.2.0",
+  "identifier": "app.pallio",
+  "build": {
+    "frontendDist": "../dist",
+    "devUrl": "http://localhost:3210",
+    "beforeDevCommand": "npm run dev",
+    "beforeBuildCommand": "npm run build"
+  },
+  "app": {
+    "windows": [
+      {
+        "label": "main",
+        "title": "Pallio",
+        "width": 1280,
+        "height": 800,
+        "minWidth": 360,
+        "minHeight": 600,
+        "decorations": true,
+        "resizable": true,
+        "fullscreen": false,
+        "transparent": false,
+        "alwaysOnTop": false
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "category": "Productivity",
+    "shortDescription": "Inventory + POS + storefront + accounting",
+    "longDescription": "Pallio is the all-in-one inventory, point-of-sale, hosted storefront, and accounting suite designed for Nigerian SMBs.",
+    "macOS": {
+      "minimumSystemVersion": "11.0"
+    },
+    "windows": {
+      "wix": {
+        "language": "en-US"
+      }
+    },
+    "linux": {
+      "deb": {
+        "depends": ["webkit2gtk-4.1", "libssl-dev"]
+      }
+    }
+  },
+  "plugins": {
+    "deep-link": {
+      "mobile": [
+        {
+          "host": "pallio.app",
+          "pathPrefix": ["/"]
+        }
+      ],
+      "desktop": {
+        "schemes": ["pallio", "app.pallio"]
+      }
+    },
+    "updater": {
+      "endpoints": [
+        "https://pallio.app/updates/{{target}}/{{arch}}/{{current_version}}"
+      ],
+      "pubkey": ""
+    }
+  }
+}

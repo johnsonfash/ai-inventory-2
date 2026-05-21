@@ -6,8 +6,8 @@ import { kv } from "@/lib/storage/kv"
 //   * Access token lives in memory only — never written to storage.
 //     Lifetime is one tab session; lost on reload, which is fine
 //     because we refresh from the refresh token on app boot.
-//   * Refresh token lives in kv (localStorage + @capacitor/preferences
-//     mirror from Wave 22.1) so it survives reloads and reinstalls.
+//   * Refresh token lives in kv (localStorage + @tauri-apps/plugin-store
+//     mirror) so it survives reloads and reinstalls.
 //     This is acceptable for a single-device app store on native;
 //     once we add httpOnly-cookie refresh for the web build, the kv
 //     branch becomes native-only.

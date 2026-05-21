@@ -83,7 +83,23 @@ export default defineConfig({
       "Access-Control-Allow-Origin": "*",
       "Service-Worker-Allowed": "/",
     },
+    // Tauri requires a fixed port (it spawns the webview against the
+    // URL in tauri.conf.json → build.devUrl). strictPort throws if the
+    // port is busy instead of silently picking another one.
+    strictPort: true,
+    hmr: {
+      // Allow the webview (which loads from tauri://localhost on mobile)
+      // to connect back to the dev server over the LAN. host=0.0.0.0
+      // already binds the right interface; this exposes it to HMR too.
+      host: "0.0.0.0",
+    },
+    watch: {
+      // Don't trigger a Vite restart when Cargo rebuilds.
+      ignored: ["**/src-tauri/**"],
+    },
   },
+  // Keep CLI output from the `tauri dev` watcher intact.
+  clearScreen: false,
   publicDir: "public",
   build: {
     sourcemap: true,
@@ -150,8 +166,10 @@ export default defineConfig({
             id.includes("/@tanstack/query-core/")
           ) return "query-vendor"
 
-          // Capacitor runtime — only loaded inside the native shell.
-          if (id.includes("/@capacitor/")) return "capacitor-vendor"
+          // Tauri runtime + plugins — only loaded inside the Tauri shell
+          // (desktop, iOS, Android). On the web build these end up in
+          // dead code that the isTauri() guards never call.
+          if (id.includes("/@tauri-apps/") || id.includes("/tauri-plugin-")) return "tauri-vendor"
 
           // Core React + react-dom + scheduler + the JSX runtime go in
           // their own dedicated chunk. Every other vendor chunk depends

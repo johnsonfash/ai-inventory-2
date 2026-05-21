@@ -1,14 +1,19 @@
 import * as React from "react"
-import { NativeBiometric, BiometryType } from "@capgo/capacitor-native-biometric"
+import {
+  checkStatus,
+  authenticate,
+  BiometryType,
+  type Status,
+} from "@tauri-apps/plugin-biometric"
 import { isNative } from "@/hooks/use-native"
 
-// Wraps @capgo/capacitor-native-biometric for the common cases
-// Pallio actually needs:
+// Wraps @tauri-apps/plugin-biometric for the common cases Pallio
+// actually needs:
 //
 //   * isAvailable() — does the device have Face ID / Touch ID /
 //     fingerprint set up and enrolled?
 //   * verify(reason) — show the native prompt; resolves true on
-//     success, false on cancel/fallback/error.
+//     success, false on cancel / fallback / error.
 //
 // Web is a clean no-op: `isAvailable()` returns
 // { available: false, type: "none" } so callers can render a
@@ -21,26 +26,23 @@ export type BiometryAvailability = {
   type: "face" | "touch" | "fingerprint" | "none"
 }
 
-const TYPE_LABELS: Record<BiometryType, BiometryAvailability["type"]> = {
-  [BiometryType.NONE]: "none",
-  [BiometryType.TOUCH_ID]: "touch",
-  [BiometryType.FACE_ID]: "face",
-  [BiometryType.FINGERPRINT]: "fingerprint",
-  [BiometryType.FACE_AUTHENTICATION]: "face",
-  [BiometryType.IRIS_AUTHENTICATION]: "face", // close enough for label purposes
-  [BiometryType.MULTIPLE]: "fingerprint",
-  // Newer Android: device passcode / pattern / PIN. We treat it as
-  // "available" for label purposes; the toggle copy says "Biometrics".
-  [BiometryType.DEVICE_CREDENTIAL]: "fingerprint",
+function labelFor(status: Status): BiometryAvailability["type"] {
+  switch (status.biometryType) {
+    case BiometryType.TouchID:    return "touch"
+    case BiometryType.FaceID:     return "face"
+    case BiometryType.Iris:       return "face"  // close enough for label purposes
+    // BiometryType.None / unknown → "none"
+    default:                      return status.isAvailable ? "fingerprint" : "none"
+  }
 }
 
 export async function isAvailable(): Promise<BiometryAvailability> {
   if (!isNative) return { available: false, type: "none" }
   try {
-    const res = await NativeBiometric.isAvailable()
+    const status = await checkStatus()
     return {
-      available: !!res.isAvailable,
-      type: TYPE_LABELS[res.biometryType] ?? "none",
+      available: !!status.isAvailable,
+      type: labelFor(status),
     }
   } catch {
     return { available: false, type: "none" }
@@ -50,19 +52,20 @@ export async function isAvailable(): Promise<BiometryAvailability> {
 export async function verify(reason: string): Promise<boolean> {
   if (!isNative) return false
   try {
-    await NativeBiometric.verifyIdentity({
-      reason,
-      // Title + subtitle are used on Android only — iOS shows the
-      // standard Face ID / Touch ID prompt with `reason` as the
-      // localizedReason.
+    await authenticate(reason, {
+      // iOS shows `reason` as the prompt subtitle (under "Pallio").
+      // Android uses `title` + `subtitle` separately.
       title: "Pallio",
       subtitle: reason,
+      // `allowDeviceCredential: true` lets the user fall back to PIN /
+      // pattern / password if biometry isn't enrolled or fails.
+      allowDeviceCredential: true,
     })
     return true
   } catch {
-    // User cancelled, failed, or biometry wasn't available. We
-    // don't distinguish — callers can re-prompt if they want to
-    // retry, or fall back to a passcode flow when one exists.
+    // User cancelled, failed, or biometry wasn't available. We don't
+    // distinguish — callers can re-prompt if they want to retry, or
+    // fall back to a passcode flow when one exists.
     return false
   }
 }

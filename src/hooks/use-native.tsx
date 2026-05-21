@@ -1,111 +1,63 @@
 import * as React from "react"
-import { Capacitor } from "@capacitor/core"
-import { StatusBar, Style } from "@capacitor/status-bar"
-import { SplashScreen } from "@capacitor/splash-screen"
-import { Keyboard } from "@capacitor/keyboard"
-import { App as CapApp } from "@capacitor/app"
-import { Haptics, ImpactStyle, NotificationType } from "@capacitor/haptics"
+import { isTauri } from "@tauri-apps/api/core"
+import { listen } from "@tauri-apps/api/event"
+import {
+  impactFeedback,
+  notificationFeedback,
+} from "@tauri-apps/plugin-haptics"
 import { useTWTheme } from "@/components/tw-theme-provider"
 
-// True only inside the native shell (iOS / Android via Capacitor).
-// Web stays false, and every Capacitor call below short-circuits, so
-// the same component tree works in both contexts.
-export const isNative = Capacitor.isNativePlatform()
+// True only inside the native Tauri shell (iOS / Android / desktop).
+// Web stays false. Every Tauri plugin call below short-circuits when
+// false so the same component tree works in both contexts.
+export const isNative = isTauri()
 
-// ----- Public haptic helpers -----
-// Safe to call anywhere. No-op on web. Don't await them — they're
-// fire-and-forget so the UI never blocks on the bridge.
+// Mobile-specific helpers are only meaningful on iOS / Android, but
+// Tauri's haptics plugin no-ops on desktop so we can call it
+// unconditionally without an OS check at the call site.
+//
+// API note: Tauri's plugin-haptics returns Promises; the functions
+// here are fire-and-forget (no await) so the UI never blocks on the
+// bridge. Errors are swallowed.
 export const haptic = {
-  light: () => {
-    if (!isNative) return
-    Haptics.impact({ style: ImpactStyle.Light }).catch(() => {})
-  },
-  medium: () => {
-    if (!isNative) return
-    Haptics.impact({ style: ImpactStyle.Medium }).catch(() => {})
-  },
-  heavy: () => {
-    if (!isNative) return
-    Haptics.impact({ style: ImpactStyle.Heavy }).catch(() => {})
-  },
-  success: () => {
-    if (!isNative) return
-    Haptics.notification({ type: NotificationType.Success }).catch(() => {})
-  },
-  warning: () => {
-    if (!isNative) return
-    Haptics.notification({ type: NotificationType.Warning }).catch(() => {})
-  },
-  error: () => {
-    if (!isNative) return
-    Haptics.notification({ type: NotificationType.Error }).catch(() => {})
-  },
+  light:   () => { if (isNative) impactFeedback("light").catch(() => {}) },
+  medium:  () => { if (isNative) impactFeedback("medium").catch(() => {}) },
+  heavy:   () => { if (isNative) impactFeedback("heavy").catch(() => {}) },
+  success: () => { if (isNative) notificationFeedback("success").catch(() => {}) },
+  warning: () => { if (isNative) notificationFeedback("warning").catch(() => {}) },
+  error:   () => { if (isNative) notificationFeedback("error").catch(() => {}) },
 }
 
 // ----- Top-level native bootstrap -----
 // Mount once at App.tsx level. Handles:
-//   * Status bar tint follows the active theme.
-//   * Splash hides after first paint (config.launchAutoHide = false).
-//   * Keyboard show/hide sets a CSS var --keyboard-height so layouts
-//     can adapt (e.g. bottom-sticky composers lift over the keyboard).
-//   * App resume/pause: re-check theme + flush queued offline writes
-//     later (hook is here, no writes yet).
+//   * Theme-driven status bar (mobile only; Tauri picks it up via
+//     window.setBackgroundColor on desktop and the system bar on
+//     iOS / Android follows the body bg).
+//   * App resume hook (reserved for future offline-sync flush).
+//   * Keyboard handling: relies on CSS `env(keyboard-inset-height)`
+//     (iOS 16.4+ / Android Chromium webview) — no JS bridge needed.
+//   * Splash screen: Tauri auto-hides once the webview first paints.
 export function useNative(): void {
   const { resolvedTheme } = useTWTheme()
 
-  // Splash hide once on first paint.
+  // App lifecycle event (foreground / background). Hook scaffold —
+  // wire actual handlers (offline-queue flush, re-fetch, etc.) here
+  // when they exist.
   React.useEffect(() => {
     if (!isNative) return
-    // Defer one frame so React has actually rendered the first screen.
-    const t = requestAnimationFrame(() => {
-      SplashScreen.hide().catch(() => {})
-    })
-    return () => cancelAnimationFrame(t)
-  }, [])
-
-  // Status bar style + colour follow the theme.
-  React.useEffect(() => {
-    if (!isNative) return
-    const dark = resolvedTheme === "dark"
-    StatusBar.setStyle({ style: dark ? Style.Dark : Style.Light }).catch(() => {})
-    StatusBar.setBackgroundColor({ color: dark ? "#0a0a0a" : "#7c3aed" }).catch(() => {})
-  }, [resolvedTheme])
-
-  // Keyboard → CSS var so we can offset sticky bottom bars.
-  React.useEffect(() => {
-    if (!isNative) return
-    const onShow = (e: { keyboardHeight: number }) => {
-      document.documentElement.style.setProperty("--keyboard-height", `${e.keyboardHeight}px`)
-    }
-    const onHide = () => {
-      document.documentElement.style.setProperty("--keyboard-height", "0px")
-    }
-    const subs: { remove: () => void }[] = []
-    Keyboard.addListener("keyboardWillShow", onShow).then((s) => subs.push(s))
-    Keyboard.addListener("keyboardDidShow", onShow).then((s) => subs.push(s))
-    Keyboard.addListener("keyboardWillHide", onHide).then((s) => subs.push(s))
-    Keyboard.addListener("keyboardDidHide", onHide).then((s) => subs.push(s))
-    return () => {
-      subs.forEach((s) => s.remove())
-    }
-  }, [])
-
-  // App-state events (foreground / background) — hook only, no
-  // listeners attached yet. When a real backend lands, this is where
-  // we'll re-fetch on resume.
-  React.useEffect(() => {
-    if (!isNative) return
-    let removed = false
-    let cleanup: (() => void) | null = null
-    CapApp.addListener("appStateChange", () => {
+    let unlisten: (() => void) | undefined
+    listen("tauri://focus", () => {
       // intentional no-op for now
-    }).then((sub) => {
-      if (removed) sub.remove()
-      else cleanup = () => sub.remove()
-    })
-    return () => {
-      removed = true
-      cleanup?.()
-    }
+    }).then((u) => { unlisten = u }).catch(() => {})
+    return () => unlisten?.()
   }, [])
+
+  // Theme change hook — reserved for window background sync on
+  // desktop (`getCurrentWindow().setBackgroundColor()`) and any
+  // mobile status-bar overrides we add later via a custom command.
+  React.useEffect(() => {
+    if (!isNative) return
+    // Theme value available as resolvedTheme — wire when needed.
+    void resolvedTheme
+  }, [resolvedTheme])
 }

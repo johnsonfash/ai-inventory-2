@@ -1,13 +1,10 @@
 import * as React from "react"
-import { Keyboard, KeyboardResize } from "@capacitor/keyboard"
-import { App as CapApp } from "@capacitor/app"
 import { isNative } from "@/hooks/use-native"
 
 // ---- Cached keyboard height ----
-// The first focus of a session can fire before iOS reports the
-// keyboard height. To avoid a fallback-then-correct jump we keep the
-// last seen height in localStorage; chat pages preset the composer
-// offset to this value before the listener has had a chance to fire.
+// Used to preset the composer offset before the visualViewport listener
+// has had a chance to fire. Reduces fallback-then-correct jumps on
+// first focus.
 
 const STORAGE_KEY = "pallio:chat-kb-height"
 const DEFAULT_HEIGHT = 291 // iPhone portrait + predictive bar
@@ -19,7 +16,7 @@ export function getCachedKbHeight(): number {
     const v = parseInt(localStorage.getItem(STORAGE_KEY) || "", 10)
     if (Number.isFinite(v) && v > 100 && v < 800) return v
   } catch {
-    /* private mode / quota — fall through */
+    /* private mode / quota */
   }
   return DEFAULT_HEIGHT
 }
@@ -28,55 +25,60 @@ function persistKbHeight(h: number) {
   try { localStorage.setItem(STORAGE_KEY, String(h)) } catch { /* ignore */ }
 }
 
+// ---- visualViewport-based keyboard detection ----
+// Tauri 2 doesn't ship a Capacitor-style Keyboard plugin. The native
+// webviews already fire `visualViewport` resize events when the IME
+// shows/hides, so we use that — works on iOS WKWebView (16.4+),
+// Android Chromium WebView, and every modern browser. Returns the
+// keyboard height in CSS pixels.
+//
+// The `viewport-fit=cover` + `interactive-widget=resizes-content`
+// meta config in index.html keeps the visual viewport from auto-
+// scrolling when the keyboard opens, so we can use the height
+// delta as the IME size.
+function getKeyboardHeight(): number {
+  if (typeof window === "undefined") return 0
+  const vv = window.visualViewport
+  if (!vv) return 0
+  const delta = window.innerHeight - vv.height
+  if (delta > 100 && delta < 800) return Math.round(delta)
+  return 0
+}
+
 // Cache-only listener. Mount once near the top of the tree (App.tsx)
-// so the kb-height cache populates from the very first input focus
-// in the app — by the time the user reaches /ai or /sales/team/chat
-// the cache is warm and useChatKeyboard preloads the right composer
-// offset on its first render (no fallback-then-correct jump).
+// so the kb-height cache populates from the first input focus.
 //
-// Idempotent: useChatKeyboard binds its own keyboardWillShow listener
-// while it's mounted. Capacitor's bridge allows multiple subscribers,
-// and both end up writing the same value, so there's no conflict.
-//
-// No-op on web.
+// No-op on desktop / web with no visualViewport (extremely rare).
 export function useKeyboardHeightCapture(): void {
   React.useEffect(() => {
-    if (!isNative) return
-    let cancelled = false
-    let cleanup: (() => void) | null = null
+    if (typeof window === "undefined") return
+    const vv = window.visualViewport
+    if (!vv) return
 
-    Keyboard.addListener("keyboardWillShow", (info) => {
-      const h = info.keyboardHeight
-      if (h <= 100 || h >= 800) return
-      // Use the cached value as the "current" reference — we don't
-      // hold state ourselves, just want to avoid pointless writes.
+    const onResize = () => {
+      const h = getKeyboardHeight()
+      if (h === 0) return
       const cached = getCachedKbHeight()
       if (Math.abs(h - cached) < TOLERANCE) return
       persistKbHeight(h)
-    }).then((sub) => {
-      if (cancelled) sub.remove()
-      else cleanup = () => sub.remove()
-    }).catch(() => { /* ignore */ })
-
-    return () => {
-      cancelled = true
-      cleanup?.()
     }
+
+    vv.addEventListener("resize", onResize)
+    return () => vv.removeEventListener("resize", onResize)
   }, [])
 }
 
 type Bindings = {
-  /** True only on native (iOS/Android). */
+  /** True only inside the Tauri shell (mobile or desktop). Browsers
+   *  on desktop also use the visualViewport path but skip the layout
+   *  override since the browser handles it. */
   isNative: boolean
-  /** Last measured keyboard height — falls back to cached/default. */
+  /** Last measured keyboard height (CSS px). 0 when no keyboard. */
   kbHeight: number
   /** True while a child of the composer zone holds focus. */
   composerFocused: boolean
   /** Spread on the composer wrapper. Picks up focus/blur from any
-   *  child input via focusin/focusout (which bubble through
-   *  contentEditable, unlike onFocus/onBlur). Also tags the element
-   *  with a sentinel class the blur handler uses to ignore intra-zone
-   *  focus moves. */
+   *  child input via onFocus/onBlur (synthetic React bubbling). */
   composerZoneProps: {
     className: string
     onFocus: React.FocusEventHandler<HTMLDivElement>
@@ -92,47 +94,16 @@ type Bindings = {
 
 // Reusable chat-keyboard plumbing. Mount once per chat-style page.
 //
-// What this does on native (no-op on web):
-//   1. Switches Capacitor's keyboard resize mode to `None` for the
-//      lifetime of the page. The app default is `Native`, which would
-//      stack on top of our padding-bottom and double-shift the
-//      composer. Restored to `Native` on unmount.
-//   2. Tracks `kbHeight` from `keyboardWillShow` events (clamped + de-
-//      duped) so the page can compose its own bottom-padding.
-//   3. Tracks `composerFocused` via focusin/focusout — bubbles through
-//      contentEditables and textarea wrappers, unlike onFocus/onBlur.
-//      A focus move between siblings inside the composer zone (e.g.
-//      input → emoji toggle) doesn't drop focused state.
-//   4. Auto-scrolls the messages container to the bottom when the
-//      container shrinks while `composerFocused` is true and the user
-//      was already at the bottom (within 50 px).
-//   5. Drops `composerFocused` when the app backgrounds (via
-//      `appStateChange`) so the layout returns to rest on resume.
-//
-// Typical usage in a chat page:
-//
-//   const kb = useChatKeyboard()
-//   return (
-//     <div style={{ paddingBottom: kb.composerFocused ? kb.kbHeight : 0 }}>
-//       <div ref={kb.scrollContainerRef}>{...messages}</div>
-//       <div {...kb.composerZoneProps}><input ... /></div>
-//     </div>
-//   )
+// On Tauri mobile + every browser, this uses `window.visualViewport`
+// to detect the IME height — no native plugin required.
 export function useChatKeyboard(): Bindings {
   const [kbHeight, setKbHeight] = React.useState<number>(() => getCachedKbHeight())
   const [composerFocused, setComposerFocused] = React.useState(false)
 
-  // Mirror state into a ref so the keyboard listener can read the
-  // current height without re-binding on every change (which would
-  // briefly tear down + re-attach mid-show).
-  const kbHeightLiveRef = React.useRef(kbHeight)
-  React.useEffect(() => { kbHeightLiveRef.current = kbHeight }, [kbHeight])
-
   const scrollContainerRef = React.useRef<HTMLDivElement | null>(null)
-  // Track "is the user near the bottom" so the ResizeObserver below
-  // only auto-scrolls when they were already there.
   const isAtBottomRef = React.useRef(true)
 
+  // Track "is the user near the bottom"
   React.useEffect(() => {
     const el = scrollContainerRef.current
     if (!el) return
@@ -161,46 +132,25 @@ export function useChatKeyboard(): Bindings {
     return () => ro.disconnect()
   }, [])
 
-  // Native keyboard listeners + height cache.
+  // Track keyboard height via visualViewport (works in webview + web).
   React.useEffect(() => {
-    if (!isNative) return
-    const subs: { remove: () => void }[] = []
-    Keyboard.addListener("keyboardWillShow", (info) => {
-      const h = info.keyboardHeight
-      if (h <= 100 || h >= 800) return
-      if (Math.abs(h - kbHeightLiveRef.current) < TOLERANCE) return
-      setKbHeight(h)
-      persistKbHeight(h)
-    }).then((s) => subs.push(s)).catch(() => { /* ignore */ })
-    Keyboard.addListener("keyboardWillHide", () => setComposerFocused(false))
-      .then((s) => subs.push(s)).catch(() => { /* ignore */ })
-    Keyboard.addListener("keyboardDidHide", () => setComposerFocused(false))
-      .then((s) => subs.push(s)).catch(() => { /* ignore */ })
-    CapApp.addListener("appStateChange", (state) => {
-      if (!state.isActive) setComposerFocused(false)
-    }).then((s) => subs.push(s)).catch(() => { /* ignore */ })
-    return () => { subs.forEach((s) => s.remove()) }
-  }, [])
+    if (typeof window === "undefined") return
+    const vv = window.visualViewport
+    if (!vv) return
 
-  // Take over keyboard-driven layout from iOS while on this page. The
-  // app default is `KeyboardResize.Native`, which would stack on top
-  // of our padding-bottom and double-shift the composer. Switching
-  // to None lets the padding-bottom be the sole source of truth.
-  React.useEffect(() => {
-    if (!isNative) return
-    Keyboard.setResizeMode({ mode: KeyboardResize.None }).catch(() => { /* ignore */ })
-    return () => {
-      Keyboard.setResizeMode({ mode: KeyboardResize.Native }).catch(() => { /* ignore */ })
+    const onResize = () => {
+      const h = getKeyboardHeight()
+      setKbHeight((prev) => (Math.abs(h - prev) < TOLERANCE ? prev : h || prev))
+      if (h > 0) persistKbHeight(h)
     }
+    vv.addEventListener("resize", onResize)
+    return () => vv.removeEventListener("resize", onResize)
   }, [])
 
-  // focusin/focusout (vs onFocus/onBlur) so the wrapper notices
-  // focus moves through a contentEditable / textarea descendant.
+  // Focus / blur handlers — use synthetic React events. The bubbling
+  // covers nested inputs / contentEditables.
   const handleFocus = React.useCallback(() => setComposerFocused(true), [])
   const handleBlur = React.useCallback<React.FocusEventHandler<HTMLDivElement>>(() => {
-    // Defer so a focus move between siblings inside the zone (input
-    // → action button → emoji toggle) doesn't briefly drop the
-    // keyboard offset.
     setTimeout(() => {
       const ae = document.activeElement
       if (!ae || !ae.closest(".pallio-composer-zone")) {
@@ -209,25 +159,10 @@ export function useChatKeyboard(): Bindings {
     }, 0)
   }, [])
 
-  // On web / PWA / desktop, the browser handles keyboard inset on its
-  // own (now wired via `interactive-widget=resizes-content` in
-  // index.html). Forcing kbHeight to 0 + composerFocused to false off-
-  // native makes `paddingBottom: kb.composerFocused ? kb.kbHeight : 0`
-  // a no-op there — no double shift, no 291-px gap below inputs.
-  if (!isNative) {
-    return {
-      isNative: false,
-      kbHeight: 0,
-      composerFocused: false,
-      composerZoneProps: {
-        className: "pallio-composer-zone",
-        onFocus: handleFocus,
-        onBlur: handleBlur,
-      },
-      scrollContainerRef,
-    }
-  }
-
+  // On desktop browsers / desktop Tauri, the browser handles keyboard
+  // inset itself; we keep kbHeight at 0 so the composer doesn't shift.
+  // The mobile native shell + mobile browsers still benefit from the
+  // visualViewport-driven height tracking above.
   return {
     isNative,
     kbHeight,

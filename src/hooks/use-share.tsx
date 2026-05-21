@@ -1,7 +1,6 @@
 import * as React from "react"
-import { Share } from "@capacitor/share"
-import { isNative } from "@/hooks/use-native"
-import { haptic } from "@/hooks/use-native"
+import { shareText } from "@buildyourwebapp/tauri-plugin-sharesheet"
+import { isNative, haptic } from "@/hooks/use-native"
 
 export type SharePayload = {
   /** Title — used as the email subject / iOS sheet header. */
@@ -10,39 +9,39 @@ export type SharePayload = {
   text?: string
   /** URL to share. Combined with text on most targets. */
   url?: string
-  /** Where the iOS share sheet anchors (for iPads). Falls through
-   *  to the centre of the screen if omitted. */
+  /** Optional dialog title (iPad share-sheet anchor / Android picker). */
   dialogTitle?: string
 }
 
 export type ShareResult =
-  | { kind: "shared"; activityType?: string }
+  | { kind: "shared" }
   | { kind: "copied" }
   | { kind: "cancelled" }
   | { kind: "unavailable" }
 
 // Hook returning a single `share` function. Tries the native sheet
-// first (Capacitor on native, navigator.share on the few browsers
-// that support it), then falls back to copying the URL/text to the
-// clipboard. The return value lets callers surface the right toast
-// ("Link copied" vs "Shared").
+// first (tauri-plugin-sharesheet on Tauri shells; navigator.share on
+// the browsers that support it), then falls back to copying the
+// URL/text to the clipboard. The return value lets callers surface
+// the right toast ("Link copied" vs "Shared").
 export function useShare() {
   return React.useCallback(async (payload: SharePayload): Promise<ShareResult> => {
-    // Native sheet — covers iOS + Android with one path.
+    // Tauri native sheet — opens Android Sharesheet / iOS Share Pane.
+    // The plugin's API takes the shareable string as the primary arg,
+    // so we build a single combined text from title + text + url.
     if (isNative) {
       try {
-        const res = await Share.share({
-          title: payload.title,
-          text: payload.text,
-          url: payload.url,
-          dialogTitle: payload.dialogTitle ?? payload.title,
-        })
+        const text = [payload.text, payload.url].filter(Boolean).join("\n").trim()
+          || payload.title
+          || ""
+        if (!text) return { kind: "unavailable" }
+        await shareText(text, { title: payload.title, mimeType: "text/plain" })
         haptic.light()
-        return { kind: "shared", activityType: res.activityType }
+        return { kind: "shared" }
       } catch {
-        // User dismissed or the platform refused. We don't fall back
-        // to clipboard on native — the platform sheet was the
-        // expected affordance and copying would be surprising.
+        // User dismissed or platform refused — don't fall back to
+        // clipboard on native; the share sheet was the expected
+        // affordance and copying would be surprising.
         return { kind: "cancelled" }
       }
     }
@@ -53,18 +52,15 @@ export function useShare() {
         await navigator.share({ title: payload.title, text: payload.text, url: payload.url })
         return { kind: "shared" }
       } catch (err) {
-        // AbortError = user cancelled the picker.
         if (err instanceof Error && err.name === "AbortError") {
           return { kind: "cancelled" }
         }
-        // NotAllowedError happens when called outside a user gesture
-        // (some browsers are strict). Fall through to clipboard.
+        // NotAllowedError or other — fall through to clipboard.
       }
     }
 
-    // Clipboard fallback — copy the URL if we have one, otherwise
-    // the text. Always returns "copied" so callers show the right
-    // confirmation.
+    // Clipboard fallback — copy the URL if we have one, otherwise the
+    // text. Returns "copied" so the caller shows the right toast.
     const text = payload.url ?? payload.text ?? ""
     if (!text) return { kind: "unavailable" }
     try {

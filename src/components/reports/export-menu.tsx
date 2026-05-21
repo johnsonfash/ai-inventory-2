@@ -24,7 +24,7 @@ type Props = {
 // PDF uses `window.print()` against a print-targeted CSS class
 // (handled by the caller). The CSV pathway escapes values + handles
 // commas / quotes / newlines safely. Share uses the native iOS/Android
-// sheet via @capacitor/share + falls back to navigator.share or the
+// sheet via tauri-plugin-sharesheet + falls back to navigator.share or the
 // clipboard on web.
 export function ExportMenu({ filename, rows, onPrint, headers, className, shareTitle }: Props) {
   const share = useShare()

@@ -1,0 +1,23 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "Default capability set for Pallio — grants frontend access to every plugin it needs.",
+  "windows": ["main"],
+  "permissions": [
+    "core:default",
+    "store:default",
+    "os:default",
+    "deep-link:default",
+    "notification:default",
+    "sql:default",
+    "shell:default",
+    "dialog:default",
+    "fs:default",
+    "clipboard-manager:default",
+    "process:default",
+    "opener:default",
+    "sharesheet:default",
+    "thermal-printer:default",
+    "serialplugin:default"
+  ]
+}

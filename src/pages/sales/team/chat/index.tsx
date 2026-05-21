@@ -23,7 +23,7 @@ type Channel = (typeof CHANNELS)[number]
 function getMessages(): Message[] {
   if (typeof window === "undefined") return []
   // kvJson reads sync from localStorage (hydrated from
-  // @capacitor/preferences on app start), so chat history survives
+  // @tauri-apps/plugin-store on app start), so chat history survives
   // app reinstalls on native.
   return kvJson.get<Message[]>(KEY) ?? seed
 }

@@ -1,0 +1,13 @@
+{
+  "$schema": "../gen/schemas/mobile-schema.json",
+  "identifier": "mobile",
+  "description": "Mobile-only capabilities (haptics).",
+  "platforms": ["iOS", "android"],
+  "windows": ["main"],
+  "permissions": [
+    "haptics:default",
+    "barcode-scanner:default",
+    "biometric:default",
+    "keep-screen-on:default"
+  ]
+}

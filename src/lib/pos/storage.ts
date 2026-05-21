@@ -96,7 +96,7 @@ const CATALOG_KEY = "pos:catalog:mode:v5"
 
 // -------------- KV Helpers --------------
 // Backed by src/lib/storage/kv.ts — reads are sync (localStorage),
-// writes mirror to @capacitor/preferences on native so drafts /
+// writes mirror to @tauri-apps/plugin-store on native so drafts /
 // invoices / returns survive app reinstalls + WebView eviction.
 function getLS<T>(key: string, fallback: T): T {
   if (typeof window === "undefined") return fallback
