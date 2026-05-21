@@ -1,5 +1,5 @@
 import * as React from "react"
-import { Plus, Search } from "lucide-react"
+import { Barcode, MoreHorizontal, Plus, Search } from "lucide-react"
 import type { CartItem, CatalogItem } from "@/lib/pos/storage"
 import { Input } from "@/components/ui/input"
 import { useCurrency } from "@/contexts/currency"
@@ -11,12 +11,17 @@ type Props = {
   businessMode: "retail" | "restaurant" | "services" | "auto"
   /** Pass the current cart so each tile can show a qty badge for items already added. */
   cart?: CartItem[]
+  /** Mobile-only: scan trigger rendered as a brand-filled button in the
+   *  sticky search bar. Tapping opens the parent's scan sheet. */
+  onScanRequest?: () => void
+  /** Mobile-only: overflow trigger (drafts / invoices / returns / settings). */
+  onOverflowRequest?: () => void
 }
 
 // Catalog grid with horizontal-snap filter chips + product tiles.
 // Tapping a tile adds the product. Already-in-cart items show a qty
 // badge in the top-right corner.
-export function CatalogGrid({ catalog, onAdd, cart }: Props) {
+export function CatalogGrid({ catalog, onAdd, cart, onScanRequest, onOverflowRequest }: Props) {
   const [q, setQ] = React.useState("")
   const [category, setCategory] = React.useState<string>("All")
   const { formatPrice } = useCurrency()
@@ -43,14 +48,42 @@ export function CatalogGrid({ catalog, onAdd, cart }: Props) {
     <div className="flex flex-col gap-3">
       {/* Sticky search header on mobile so it stays visible while scrolling */}
       <div className="sticky top-14 z-10 -mx-4 border-b border-border bg-background px-4 pt-2 pb-3 md:static md:mx-0 md:border-0 md:px-0 md:py-0">
-        <div className="relative">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            placeholder="Search products by name or SKU…"
-            className="pl-9"
-          />
+        <div className="flex items-stretch gap-1.5">
+          {/* Mobile scan launcher — only renders when parent provides
+              the callback (mobile POS does). Brand-filled to read as
+              the page's primary "add" action. */}
+          {onScanRequest && (
+            <button
+              type="button"
+              onClick={onScanRequest}
+              aria-label="Scan barcode"
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand text-brand-foreground shadow-sm shadow-brand/30 active:scale-[0.97] dark:bg-primary dark:text-primary-foreground md:hidden"
+            >
+              <Barcode className="h-4 w-4" />
+            </button>
+          )}
+
+          <div className="relative flex-1">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder="Search products…"
+              className="h-11 pl-9"
+            />
+          </div>
+
+          {/* Mobile overflow menu — drafts / invoices / returns / settings. */}
+          {onOverflowRequest && (
+            <button
+              type="button"
+              onClick={onOverflowRequest}
+              aria-label="POS actions"
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-border text-foreground/80 hover:bg-accent active:scale-[0.97] md:hidden"
+            >
+              <MoreHorizontal className="h-4 w-4" />
+            </button>
+          )}
         </div>
 
         {/* Category pills — scroll horizontally on mobile */}

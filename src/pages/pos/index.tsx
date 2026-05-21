@@ -299,44 +299,22 @@ export default function PointOfSale() {
           </div>
         </div>
 
-        {/* Mobile: compact 44px top bar with scan + SKU input + overflow.
-            Saves ~170px vs the desktop layout so the user sees the
-            catalog within one scroll of the top bar. */}
-        <div className="flex items-stretch gap-1.5 md:hidden">
-          <button
-            type="button"
-            onClick={() => setMobileScanOpen(true)}
-            aria-label="Scan barcode"
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand text-brand-foreground shadow-sm shadow-brand/30 active:scale-[0.97] dark:bg-primary dark:text-primary-foreground"
-          >
-            <Barcode className="h-4 w-4" />
-          </button>
-          <Input
-            placeholder="Type SKU / name + Enter"
-            className="h-11 flex-1"
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                const v = (e.target as HTMLInputElement).value.trim()
-                if (v) {
-                  addByBarcode(v)
-                  ;(e.target as HTMLInputElement).value = ""
-                }
-              }
-            }}
-          />
-          <button
-            type="button"
-            onClick={() => setMobileOverflowOpen(true)}
-            aria-label="POS actions"
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-border text-foreground/80 hover:bg-accent active:scale-[0.97]"
-          >
-            <MoreHorizontal className="h-4 w-4" />
-          </button>
-        </div>
+        {/* Mobile scan + overflow are merged INTO the CatalogGrid's
+            sticky search bar below — see onScanRequest /
+            onOverflowRequest props. That keeps the mobile top region
+            to a single sticky bar instead of two near-identical
+            search inputs. */}
 
         {/* Catalog + (desktop) cart panel */}
         <div className="grid gap-4 lg:grid-cols-[1fr_360px]">
-          <CatalogGrid catalog={catalog} onAdd={addItem} businessMode={mode} cart={cart} />
+          <CatalogGrid
+            catalog={catalog}
+            onAdd={addItem}
+            businessMode={mode}
+            cart={cart}
+            onScanRequest={() => setMobileScanOpen(true)}
+            onOverflowRequest={() => setMobileOverflowOpen(true)}
+          />
 
           <aside className="hidden lg:block">
             <CartPanel
