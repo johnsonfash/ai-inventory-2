@@ -141,6 +141,11 @@ export function CatalogGrid({ catalog, onAdd, cart, onScanRequest, onOverflowReq
                     src={p.image || "/placeholder.svg"}
                     alt={p.name}
                     loading="lazy"
+                    onError={(e) => {
+                      const img = e.currentTarget
+                      if (img.src.endsWith("/placeholder.svg")) return
+                      img.src = "/placeholder.svg"
+                    }}
                     className="absolute inset-0 h-full w-full object-cover"
                   />
                 </div>

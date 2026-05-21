@@ -92,7 +92,7 @@ const RETURNS_KEY = "pos:returns"
 // /placeholder.svg to real Unsplash photos. The key suffix forces a
 // re-seed for users whose localStorage still holds the placeholder
 // catalog from a previous session.
-const CATALOG_KEY = "pos:catalog:mode:v4"
+const CATALOG_KEY = "pos:catalog:mode:v5"
 
 // -------------- KV Helpers --------------
 // Backed by src/lib/storage/kv.ts — reads are sync (localStorage),
@@ -285,18 +285,18 @@ export function loadCatalog(mode: "retail" | "restaurant" | "services" | "auto" 
       image: "https://images.unsplash.com/photo-1609091839311-d5365f9ff1c5?w=320&h=320&fit=crop&auto=format&q=80",
       category: "Electronics", brand: "Volt", stock: 60, tags: ["electronics", "retail"] },
     { id: "p18", sku: "EL-2811", name: "HDMI Cable 2m", price: 9, taxRate: commonTax,
-      image: "https://images.unsplash.com/photo-1602526211511-a23a40dd0ba8?w=320&h=320&fit=crop&auto=format&q=80",
+      image: "https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=320&h=320&fit=crop&auto=format&q=80",
       category: "Electronics", brand: "Volt", stock: 140, tags: ["electronics", "retail"] },
 
     // Beauty
     { id: "p19", sku: "BT-9205", name: "Lip Balm Trio", price: 12, taxRate: commonTax,
-      image: "https://images.unsplash.com/photo-1631214540242-3cd8c4b0b3b8?w=320&h=320&fit=crop&auto=format&q=80",
+      image: "https://images.unsplash.com/photo-1607779097040-26e80aa78e66?w=320&h=320&fit=crop&auto=format&q=80",
       category: "Beauty", brand: "Glow", stock: 88, tags: ["beauty", "retail"] },
     { id: "p20", sku: "BT-9410", name: "Body Lotion 250ml", price: 16, taxRate: commonTax,
       image: "https://images.unsplash.com/photo-1556228453-efd6c1ff04f6?w=320&h=320&fit=crop&auto=format&q=80",
       category: "Beauty", brand: "Glow", stock: 52, tags: ["beauty", "retail"] },
     { id: "p21", sku: "BT-9606", name: "Clay Face Mask", price: 14, taxRate: commonTax,
-      image: "https://images.unsplash.com/photo-1570194065650-d99fb4bedf0a?w=320&h=320&fit=crop&auto=format&q=80",
+      image: "https://images.unsplash.com/photo-1571781926291-c477ebfd024b?w=320&h=320&fit=crop&auto=format&q=80",
       category: "Beauty", brand: "Glow", stock: 41, tags: ["beauty", "retail"] },
 
     // Main course / restaurant
@@ -310,7 +310,7 @@ export function loadCatalog(mode: "retail" | "restaurant" | "services" | "auto" 
       image: "https://images.unsplash.com/photo-1604068549290-dea0e4a305ca?w=320&h=320&fit=crop&auto=format&q=80",
       category: "Main course", brand: "Kitchen", stock: 9999, tags: ["food", "restaurant"] },
     { id: "p25", sku: "FO-420", name: "Chicken Sandwich", price: 7, taxRate: 0.1,
-      image: "https://images.unsplash.com/photo-1606755962773-d324e2c4cea1?w=320&h=320&fit=crop&auto=format&q=80",
+      image: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=320&h=320&fit=crop&auto=format&q=80",
       category: "Main course", brand: "Kitchen", stock: 9999, tags: ["food", "restaurant"] },
 
     // Drinks
@@ -329,13 +329,13 @@ export function loadCatalog(mode: "retail" | "restaurant" | "services" | "auto" 
 
     // Auto Parts
     { id: "p30", sku: "APRT-9000", name: "Engine Oil 5L", price: 35, taxRate: commonTax,
-      image: "https://images.unsplash.com/photo-1635770310500-aae87cba6fda?w=320&h=320&fit=crop&auto=format&q=80",
+      image: "https://images.unsplash.com/photo-1623874514711-0f321325f318?w=320&h=320&fit=crop&auto=format&q=80",
       category: "Auto Parts", brand: "AutoMax", stock: 44, tags: ["auto", "mechanic"] },
     { id: "p31", sku: "APRT-9120", name: "Spark Plug · 4 pack", price: 22, taxRate: commonTax,
-      image: "https://images.unsplash.com/photo-1635775017492-1eb935a082a8?w=320&h=320&fit=crop&auto=format&q=80",
+      image: "https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=320&h=320&fit=crop&auto=format&q=80",
       category: "Auto Parts", brand: "AutoMax", stock: 36, tags: ["auto", "mechanic"] },
     { id: "p32", sku: "APRT-9230", name: "Cabin Air Filter", price: 18, taxRate: commonTax,
-      image: "https://images.unsplash.com/photo-1597007030739-6d2e7172ee6c?w=320&h=320&fit=crop&auto=format&q=80",
+      image: "https://images.unsplash.com/photo-1486006920555-c77dcf18193c?w=320&h=320&fit=crop&auto=format&q=80",
       category: "Auto Parts", brand: "AutoMax", stock: 50, tags: ["auto", "mechanic"] },
 
     // Services
@@ -343,7 +343,7 @@ export function loadCatalog(mode: "retail" | "restaurant" | "services" | "auto" 
       image: "https://images.unsplash.com/photo-1604654894610-df63bc536371?w=320&h=320&fit=crop&auto=format&q=80",
       category: "Services", brand: "Salon", stock: 9999, tags: ["salon", "services"] },
     { id: "p34", sku: "HS-410", name: "Pedicure", price: 22, taxRate: commonTax,
-      image: "https://images.unsplash.com/photo-1610992015734-1a920c2c0e25?w=320&h=320&fit=crop&auto=format&q=80",
+      image: "https://images.unsplash.com/photo-1601412436009-d964bd02edbc?w=320&h=320&fit=crop&auto=format&q=80",
       category: "Services", brand: "Salon", stock: 9999, tags: ["salon", "services"] },
     { id: "p35", sku: "HS-520", name: "Men's Haircut", price: 15, taxRate: commonTax,
       image: "https://images.unsplash.com/photo-1599351431202-1e0f0137899a?w=320&h=320&fit=crop&auto=format&q=80",
@@ -351,7 +351,7 @@ export function loadCatalog(mode: "retail" | "restaurant" | "services" | "auto" 
 
     // Gifts / Home
     { id: "p36", sku: "HM-2310", name: "Scented Candle", price: 18, taxRate: commonTax,
-      image: "https://images.unsplash.com/photo-1602874801007-aa4d4b8d2fb6?w=320&h=320&fit=crop&auto=format&q=80",
+      image: "https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=320&h=320&fit=crop&auto=format&q=80",
       category: "Gifts", brand: "Homey", stock: 64, tags: ["gifts", "retail"] },
     { id: "p37", sku: "HM-2412", name: "Notebook A5", price: 9, taxRate: commonTax,
       image: "https://images.unsplash.com/photo-1531346878377-a5be20888e57?w=320&h=320&fit=crop&auto=format&q=80",

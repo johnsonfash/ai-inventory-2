@@ -1,3 +1,5 @@
+import * as React from "react"
+import { createPortal } from "react-dom"
 import { AnimatePresence, motion } from "framer-motion"
 import { ChevronRight, ShoppingCart } from "lucide-react"
 import { useCurrency } from "@/contexts/currency"
@@ -20,10 +22,17 @@ type Props = {
 //     primary action.
 //
 // Tap either state → opens the full CartSheet.
+//
+// Portalled to document.body so its `position: fixed` resolves
+// against the viewport. Otherwise an ancestor with a non-`none`
+// transform (the AppFrame's <main> always has `translateY(0)` even
+// when no pull-to-refresh is happening) would become the containing
+// block and the bar would scroll with the catalog content.
 export function FloatingCart({ itemCount, total, onOpen }: Props) {
   const { formatPrice } = useCurrency()
   const filled = itemCount > 0
-  return (
+  if (typeof document === "undefined") return null
+  return createPortal(
     <div className="pointer-events-none fixed inset-x-0 bottom-0 z-30 px-3 pb-[calc(env(safe-area-inset-bottom)+4.5rem)] md:hidden">
       <AnimatePresence mode="wait">
         <motion.button
@@ -90,6 +99,7 @@ export function FloatingCart({ itemCount, total, onOpen }: Props) {
           )}
         </motion.button>
       </AnimatePresence>
-    </div>
+    </div>,
+    document.body,
   )
 }
