@@ -34,7 +34,7 @@ tauri-plugin-process            = "2"
 tauri-plugin-opener             = "2"
 
 # Community plugin (share to other apps via OS share sheet)
-tauri-plugin-sharesheet = "0.4"
+tauri-plugin-sharesheet = "0.0"
 
 # POS-critical hardware integrations
 # - barcode-scanner: official, uses device camera on iOS/Android.
@@ -46,7 +46,7 @@ tauri-plugin-sharesheet = "0.4"
 # - keep-screen-on: community, prevents the till from sleeping.
 tauri-plugin-barcode-scanner = "2"
 tauri-plugin-biometric        = "2"
-tauri-plugin-thermal-printer  = "0"
+tauri-plugin-thermal-printer  = "2"
 tauri-plugin-serialplugin     = "2"
 tauri-plugin-keep-screen-on   = "0"
 

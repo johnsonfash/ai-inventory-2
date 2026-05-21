@@ -17,17 +17,19 @@ pub fn run() {
         .plugin(tauri_plugin_clipboard_manager::init())
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_opener::init())
-        .plugin(tauri_plugin_deep_link::init())
-        .plugin(tauri_plugin_sharesheet::init());
+        .plugin(tauri_plugin_deep_link::init());
 
-    // ----- Mobile-only plugins -----
+    // ----- Mobile-only plugins (sharesheet is itself cfg-gated to
+    // mobile inside its crate, so it isn't even resolvable on
+    // desktop builds — wrap the call site accordingly). -----
     #[cfg(mobile)]
     {
         builder = builder
             .plugin(tauri_plugin_haptics::init())
             .plugin(tauri_plugin_barcode_scanner::init())
             .plugin(tauri_plugin_biometric::init())
-            .plugin(tauri_plugin_keep_screen_on::init());
+            .plugin(tauri_plugin_keep_screen_on::init())
+            .plugin(tauri_plugin_sharesheet::init());
     }
 
     // ----- POS hardware (thermal printer + serial) — cross-platform
