@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { StatusBadge, type StatusTone } from "@/components/lists/status-badge"
 import { SummaryStrip } from "@/components/lists/summary-strip"
+import { OnboardingNudge } from "@/components/onboarding/onboarding-nudge"
 import { TemplateShowcase } from "@/components/storefront/template-showcase"
 import { useRegisterPageRefresh } from "@/hooks/use-pull-to-refresh"
 import { TEMPLATES, getStorefrontState } from "@/lib/storefront/data"
@@ -128,6 +129,8 @@ export default function StorefrontTemplates() {
             </ul>
           </div>
         </section>
+
+        <OnboardingNudge stepKey="launch-storefront" cta="Pick a template" />
 
         <SummaryStrip
           tiles={[

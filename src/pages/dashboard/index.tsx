@@ -20,6 +20,7 @@ import { InfoTooltip } from "@/components/info-tooltip"
 import { useRegisterPageRefresh } from "@/hooks/use-pull-to-refresh"
 import { generateInsights } from "@/lib/insights/engine"
 import { GettingStarted } from "@/components/onboarding/getting-started"
+import { FirstRunModal } from "@/components/onboarding/first-run-modal"
 import { useCurrency } from "@/contexts/currency"
 
 // Spark series — tiny mock data per KPI. Replace with real series
@@ -68,6 +69,10 @@ export default function Dashboard() {
       }
     >
       <div className="flex flex-col gap-6">
+        {/* First-run welcome — shows once for brand-new accounts.
+            Self-dismisses after the user clicks through or skips. */}
+        <FirstRunModal />
+
         {/* Getting Started — milestone checklist. Hides itself once
             every step is done OR the user clicks "Hide this".
             Survives reinstalls on native via the kv mirror. */}

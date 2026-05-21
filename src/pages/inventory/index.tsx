@@ -25,6 +25,7 @@ import {
   FilterSheet,
 } from "@/components/lists/filter-sheet"
 import { SwipeableRow } from "@/components/mobile/swipeable-row"
+import { OnboardingNudge } from "@/components/onboarding/onboarding-nudge"
 import { cn } from "@/lib/utils"
 import { useCurrency } from "@/contexts/currency"
 
@@ -190,6 +191,7 @@ export default function InventoryItems() {
       }
     >
       <div className="flex flex-col gap-4">
+        <OnboardingNudge stepKey="first-item" cta="Add first item" />
         <SummaryStrip total={total} lowCount={lowCount} oosCount={oosCount} totalValue={totalValue} />
 
         <div className="flex flex-wrap items-center gap-2">

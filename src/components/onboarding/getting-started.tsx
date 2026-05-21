@@ -4,6 +4,7 @@ import { ArrowRight, Check, ChevronDown, ChevronUp, Sparkles, X } from "lucide-r
 import { Button } from "@/components/ui/button"
 import { kv, kvJson } from "@/lib/storage/kv"
 import { ORG_STEPS, PERSONAL_STEPS, type StepDefinition } from "./step-definitions"
+import { CelebrationModal, hasCelebrated } from "./celebration"
 import { cn } from "@/lib/utils"
 
 // jax/Zoho-style getting-started milestone card. Lives at the top of
@@ -77,8 +78,20 @@ export function GettingStarted({ className }: { className?: string }) {
   const pct = Math.round((completedCount / totalSteps) * 100)
   const nextStep = allSteps.find((s) => !progress[s.key])
 
-  // Nothing to render if dismissed OR everything done.
-  if (dismissed || completedCount === totalSteps) return null
+  // Fire celebration once the final step completes.
+  const [celebrationOpen, setCelebrationOpen] = React.useState(false)
+  React.useEffect(() => {
+    if (completedCount === totalSteps && !hasCelebrated() && !dismissed) {
+      setCelebrationOpen(true)
+    }
+  }, [completedCount, totalSteps, dismissed])
+
+  // Render the celebration on completion; the milestone card itself
+  // hides immediately so the modal owns the moment.
+  if (completedCount === totalSteps) {
+    return <CelebrationModal open={celebrationOpen} onClose={() => setCelebrationOpen(false)} />
+  }
+  if (dismissed) return null
 
   const markStep = (key: string) => {
     const next = { ...progress, [key]: true }
