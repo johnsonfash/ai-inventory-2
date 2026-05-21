@@ -1,11 +1,11 @@
 
 import * as React from "react"
-import { useParams, useSearchParams } from "react-router-dom"
+import { Link, useParams, useSearchParams } from "react-router-dom"
 import { PageShell } from "@/components/page-shell"
 import { getReturnById } from "@/lib/pos/storage"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Printer } from "lucide-react"
+import { ArrowLeft, ChevronRight, FileText, Printer, RotateCcw } from "lucide-react"
 import { useCurrency } from "@/contexts/currency"
 
 export default function ReturnDetailPage() {
@@ -71,6 +71,16 @@ ${ref.current.outerHTML}
         </>
       }
     >
+      {/* Back nav + cross-link */}
+      <div className="mb-3 flex items-center justify-between gap-2 text-xs">
+        <Link to="/pos/returns" className="inline-flex items-center gap-1 font-semibold text-muted-foreground hover:text-foreground">
+          <ArrowLeft className="h-3.5 w-3.5" /> All returns
+        </Link>
+        <Link to={`/pos/invoices?q=${encodeURIComponent(rec.invoiceNumber)}`} className="inline-flex items-center gap-1 font-semibold text-brand hover:underline dark:text-primary">
+          Original invoice {rec.invoiceNumber} <ChevronRight className="h-3.5 w-3.5" />
+        </Link>
+      </div>
+
       <div ref={ref}>
         <Card>
           <CardHeader className="pb-2">
@@ -127,7 +137,17 @@ ${ref.current.outerHTML}
           </CardContent>
         </Card>
       </div>
-      <div className="mt-4 flex justify-end">
+      <div className="mt-4 flex flex-wrap items-center justify-end gap-2">
+        <Link to="/pos/returns/new">
+          <Button variant="outline">
+            <RotateCcw className="h-4 w-4" /> Start another return
+          </Button>
+        </Link>
+        <Link to={`/pos/invoices?q=${encodeURIComponent(rec.invoiceNumber)}`}>
+          <Button variant="outline">
+            <FileText className="h-4 w-4" /> View invoice
+          </Button>
+        </Link>
         <Button onClick={print}>
           <Printer className="h-4 w-4" /> Print
         </Button>

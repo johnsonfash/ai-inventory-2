@@ -1,197 +1,246 @@
-
 import * as React from "react"
-import { useNavigate } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
+import { ChevronRight, Plus, Printer, ReceiptText, RotateCcw, Search } from "lucide-react"
 import { PageShell } from "@/components/page-shell"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import {
-  getInvoiceByNumber,
-  genReturnNumber,
-  genId,
-  saveReturn,
-  type ReturnRecord,
-  type Invoice,
-} from "@/lib/pos/storage"
 import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
+import { EmptyState } from "@/components/lists/empty-state"
+import { StatusBadge, type StatusTone } from "@/components/lists/status-badge"
+import { SummaryStrip } from "@/components/lists/summary-strip"
+import { useIsMobile } from "@/hooks/use-mobile"
+import { useRegisterPageRefresh } from "@/hooks/use-pull-to-refresh"
+import { MobileFab } from "@/components/mobile/mobile-fab"
+import { listReturns, type ReturnRecord } from "@/lib/pos/storage"
 import { useCurrency } from "@/contexts/currency"
+import { cn } from "@/lib/utils"
 
-export default function CreateReturnPage() {
+type MethodKey = ReturnRecord["method"]
+
+const METHOD_TONE: Record<MethodKey | "—", StatusTone> = {
+  cash:   "warning",
+  card:   "info",
+  paypal: "brand",
+  stripe: "brand",
+  other:  "neutral",
+  "—":    "neutral",
+}
+
+function relTime(ms: number) {
+  const diff = Date.now() - ms
+  const m = Math.floor(diff / 60_000)
+  if (m < 1) return "just now"
+  if (m < 60) return `${m}m ago`
+  const h = Math.floor(m / 60)
+  if (h < 24) return `${h}h ago`
+  return `${Math.floor(h / 24)}d ago`
+}
+
+export default function POSReturnsPage() {
   const navigate = useNavigate()
-  const [number, setNumber] = React.useState("")
-  const [invoice, setInvoice] = React.useState<Invoice | null>(null)
-  const [qtys, setQtys] = React.useState<Record<string, number>>({})
-  const [method, setMethod] = React.useState<ReturnRecord["method"]>("cash")
-  const [reference, setReference] = React.useState("")
+  const isMobile = useIsMobile()
   const { formatPrice } = useCurrency()
+  const [query, setQuery] = React.useState("")
+  const [method, setMethod] = React.useState<"all" | MethodKey>("all")
+  const [returns, setReturns] = React.useState(() => listReturns())
 
-  const lookup = () => {
-    const inv = getInvoiceByNumber(number.trim())
-    setInvoice(inv || null)
-    setQtys({})
-  }
+  useRegisterPageRefresh(
+    React.useCallback(async () => {
+      setReturns(listReturns())
+      await new Promise((r) => setTimeout(r, 200))
+    }, []),
+  )
 
-  const subtotal = invoice ? invoice.items.reduce((s, it) => s + (qtys[it.sku] || 0) * it.price, 0) : 0
-  const tax = invoice ? Math.min(invoice.itemTax + (invoice.orderTax || 0), subtotal * 0.2) : 0 // cap sample
-  const total = Math.max(0, Math.round((subtotal + tax) * 100) / 100)
+  const filtered = React.useMemo(() => {
+    const q = query.trim().toLowerCase()
+    return returns
+      .filter((r) => {
+        if (method !== "all" && r.method !== method) return false
+        if (!q) return true
+        return (
+          r.number.toLowerCase().includes(q) ||
+          r.invoiceNumber.toLowerCase().includes(q) ||
+          (r.customer?.name || "").toLowerCase().includes(q)
+        )
+      })
+      .sort((a, b) => b.createdAt - a.createdAt)
+  }, [returns, query, method])
 
-  const submit = () => {
-    if (!invoice) return
-    const items = invoice.items
-      .map((it) => ({ ...it, qty: qtys[it.sku] || 0 }))
-      .filter((it) => it.qty > 0)
-      .map((it) => ({ sku: it.sku, name: it.name, price: it.price, qty: it.qty }))
-    if (items.length === 0) return
-    const rec: ReturnRecord = {
-      id: genId("ret"),
-      number: genReturnNumber(),
-      createdAt: Date.now(),
-      invoiceId: invoice.id,
-      invoiceNumber: invoice.number,
-      customer: invoice.customer,
-      items,
-      subtotal,
-      tax,
-      totalRefund: total,
-      method,
-      reference: reference || undefined,
-    }
-    saveReturn(rec)
-    navigate(`/pos/returns/${rec.id}`)
+  const today = new Date().setHours(0, 0, 0, 0)
+  const todayList  = returns.filter((r) => r.createdAt >= today)
+  const todayValue = todayList.reduce((s, r) => s + r.totalRefund, 0)
+  const totalValue = returns.reduce((s, r) => s + r.totalRefund, 0)
+  const avgValue   = returns.length === 0 ? 0 : Math.round((totalValue / returns.length) * 100) / 100
+
+  const counts: Record<"all" | MethodKey, number> = {
+    all:    returns.length,
+    cash:   returns.filter((r) => r.method === "cash").length,
+    card:   returns.filter((r) => r.method === "card").length,
+    paypal: returns.filter((r) => r.method === "paypal").length,
+    stripe: returns.filter((r) => r.method === "stripe").length,
+    other:  returns.filter((r) => r.method === "other").length,
   }
 
   return (
     <PageShell
-      title="Sell Return"
+      title="POS Returns"
       titleTooltip={
         <>
-          Returns rung up at the till. Walk-in customer hands back an
-          item — you scan the original receipt, pick the refund method
-          (cash, original card, store credit, transfer), and decide
-          whether to restock or write off the item.
+          Refunds and exchanges processed at the till — searchable by
+          return number, original invoice, or customer. Start a new
+          return with the <strong>+ New return</strong> button or
+          from any past invoice's detail view.
         </>
       }
     >
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle>Create Return</CardTitle>
-          <CardDescription>Enter an invoice number to begin</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex flex-wrap items-center gap-2">
+      <div className="flex flex-col gap-4">
+        <SummaryStrip
+          tiles={[
+            { label: "Returns",       value: String(returns.length), tone: "brand",   hint: "all time" },
+            { label: "Today",         value: String(todayList.length), tone: "info",  hint: formatPrice(todayValue) },
+            { label: "Avg refund",    value: formatPrice(avgValue),   tone: "warning", hint: "per return" },
+            { label: "Total refunded", value: formatPrice(totalValue), tone: "danger", hint: "POS only" },
+          ]}
+        />
+
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="relative min-w-[200px] flex-1">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
-              placeholder="Invoice number (e.g. INV-...)"
-              className="w-72"
-              value={number}
-              onChange={(e) => setNumber(e.target.value)}
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search return #, invoice #, or customer…"
+              className="pl-9"
             />
-            <Button onClick={lookup}>Find</Button>
           </div>
+          <Link to="/pos/returns/new" className="hidden md:inline-flex">
+            <Button><Plus className="h-4 w-4" /> New return</Button>
+          </Link>
+        </div>
 
-          {!invoice ? (
-            <div className="text-sm text-muted-foreground">Search for an invoice to select items to return.</div>
-          ) : (
-            <>
-              <div className="rounded-md border p-3 text-sm">
-                <div>
-                  <span className="font-medium">Invoice:</span> {invoice.number}
-                </div>
-                <div>
-                  <span className="font-medium">Customer:</span> {invoice.customer?.name || "Walk-in"}
-                </div>
-                <div>
-                  <span className="font-medium">Date:</span> {new Date(invoice.createdAt).toLocaleString()}
-                </div>
-              </div>
+        <div className="-mx-4 flex gap-1.5 overflow-x-auto px-4 pb-1 scrollbar-hide sm:mx-0 sm:px-0">
+          {(["all", "cash", "card", "paypal", "stripe", "other"] as const).map((m) => (
+            <button
+              key={m}
+              type="button"
+              onClick={() => setMethod(m)}
+              className={cn(
+                "inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold capitalize transition-colors",
+                method === m
+                  ? "border-transparent bg-brand text-brand-foreground dark:bg-primary dark:text-primary-foreground"
+                  : "border-border bg-card text-muted-foreground hover:bg-accent hover:text-foreground",
+              )}
+            >
+              {m}
+              <span className={cn("rounded-full px-1.5 py-0.5 text-[10px] tabular-nums", method === m ? "bg-white/20" : "bg-muted")}>
+                {counts[m]}
+              </span>
+            </button>
+          ))}
+        </div>
 
-              <div className="overflow-auto rounded-lg border">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Item</TableHead>
-                      <TableHead className="text-right">Qty Purchased</TableHead>
-                      <TableHead className="text-right">Qty Return</TableHead>
-                      <TableHead className="text-right">Unit</TableHead>
-                      <TableHead className="text-right">Line</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {invoice.items.map((it) => {
-                      const max = it.qty
-                      const q = Math.min(qtys[it.sku] || 0, max)
-                      const line = q * it.price
-                      return (
-                        <TableRow key={it.sku}>
-                          <TableCell>
-                            <div className="font-medium">{it.name}</div>
-                            <div className="font-mono text-xs text-muted-foreground">{it.sku}</div>
-                          </TableCell>
-                          <TableCell className="text-right tabular-nums">{max}</TableCell>
-                          <TableCell className="text-right">
-                            <Input
-                              type="number"
-                              placeholder="0"
-                              className="w-20 text-right"
-                              value={q === 0 ? "" : q}
-                              min={0}
-                              max={max}
-                              onChange={(e) =>
-                                setQtys((prev) => ({
-                                  ...prev,
-                                  [it.sku]: e.target.value === "" ? 0 : Math.max(0, Math.min(Number(e.target.value) || 0, max)),
-                                }))
-                              }
-                            />
-                          </TableCell>
-                          <TableCell className="text-right tabular-nums">{formatPrice(it.price)}</TableCell>
-                          <TableCell className="text-right tabular-nums">{formatPrice(line)}</TableCell>
-                        </TableRow>
-                      )
-                    })}
-                    <TableRow>
-                      <TableCell colSpan={3} />
-                      <TableCell className="text-right font-medium">Subtotal</TableCell>
-                      <TableCell className="text-right tabular-nums">{formatPrice(subtotal)}</TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell colSpan={3} />
-                      <TableCell className="text-right font-medium">Tax</TableCell>
-                      <TableCell className="text-right tabular-nums">{formatPrice(tax)}</TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell colSpan={3} />
-                      <TableCell className="text-right font-semibold">Refund Total</TableCell>
-                      <TableCell className="text-right font-semibold tabular-nums">{formatPrice(total)}</TableCell>
-                    </TableRow>
-                  </TableBody>
-                </Table>
-              </div>
-
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-                <select
-                  className="h-9 rounded-md border bg-background px-3 text-sm"
-                  value={method}
-                  onChange={(e) => setMethod(e.target.value as any)}
+        {filtered.length === 0 ? (
+          <EmptyState
+            Icon={RotateCcw}
+            title={returns.length === 0 ? "No returns yet" : "No returns match"}
+            description={returns.length === 0
+              ? "Start a return from any past invoice to issue a refund or exchange."
+              : "Adjust filters or clear the search to broaden the view."}
+            action={
+              returns.length === 0 ? (
+                <Link to="/pos/returns/new">
+                  <Button><Plus className="h-4 w-4" /> Start a return</Button>
+                </Link>
+              ) : null
+            }
+          />
+        ) : isMobile ? (
+          <ul className="space-y-2">
+            {filtered.map((r) => (
+              <li key={r.id}>
+                <Link
+                  to={`/pos/returns/${r.id}`}
+                  className="flex items-center gap-3 rounded-2xl border border-border bg-card p-3 transition-colors hover:border-brand/40"
                 >
-                  <option value="cash">Cash</option>
-                  <option value="card">Card</option>
-                  <option value="paypal">PayPal</option>
-                  <option value="stripe">Stripe</option>
-                  <option value="other">Other</option>
-                </select>
-                <Input
-                  placeholder="Reference (last 4, txn id...)"
-                  value={reference}
-                  onChange={(e) => setReference(e.target.value)}
-                />
-                <Button onClick={submit} disabled={total <= 0}>
-                  Create Return
-                </Button>
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-rose-50 text-rose-600 dark:bg-rose-500/10 dark:text-rose-300">
+                    <RotateCcw className="h-4 w-4" />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-baseline justify-between gap-2">
+                      <p className="truncate text-sm font-semibold">{r.customer?.name || "Walk-in"}</p>
+                      <p className="shrink-0 text-sm font-bold tabular-nums text-rose-600 dark:text-rose-400">
+                        −{formatPrice(r.totalRefund)}
+                      </p>
+                    </div>
+                    <div className="mt-0.5 flex items-center justify-between gap-2 text-[11px] text-muted-foreground">
+                      <span className="truncate">
+                        <span className="font-mono">{r.number}</span> · for{" "}
+                        <span className="font-mono">{r.invoiceNumber}</span> · {relTime(r.createdAt)}
+                      </span>
+                      <StatusBadge tone={METHOD_TONE[r.method]}>{r.method}</StatusBadge>
+                    </div>
+                  </div>
+                  <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+                </Link>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <Card>
+            <CardContent className="p-0">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="bg-muted/40 text-left text-[10px] uppercase tracking-wider text-muted-foreground">
+                    <tr>
+                      <th className="px-3 py-2.5 font-medium">Return</th>
+                      <th className="px-3 py-2.5 font-medium">Original invoice</th>
+                      <th className="px-3 py-2.5 font-medium">Date</th>
+                      <th className="px-3 py-2.5 font-medium">Customer</th>
+                      <th className="px-3 py-2.5 font-medium">Method</th>
+                      <th className="px-3 py-2.5 text-right font-medium">Refund</th>
+                      <th className="px-3 py-2.5 text-right font-medium" />
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {filtered.map((r) => (
+                      <tr key={r.id} className="transition-colors hover:bg-accent/30">
+                        <td className="px-3 py-2.5">
+                          <Link to={`/pos/returns/${r.id}`} className="font-mono text-xs font-bold text-brand hover:underline dark:text-primary">
+                            {r.number}
+                          </Link>
+                        </td>
+                        <td className="px-3 py-2.5">
+                          <Link to={`/pos/invoices?q=${encodeURIComponent(r.invoiceNumber)}`} className="font-mono text-xs text-muted-foreground hover:underline">
+                            {r.invoiceNumber}
+                          </Link>
+                        </td>
+                        <td className="px-3 py-2.5 text-xs text-muted-foreground">{new Date(r.createdAt).toLocaleString()}</td>
+                        <td className="px-3 py-2.5 text-xs">{r.customer?.name || "Walk-in"}</td>
+                        <td className="px-3 py-2.5"><StatusBadge tone={METHOD_TONE[r.method]}>{r.method}</StatusBadge></td>
+                        <td className="px-3 py-2.5 text-right text-xs font-bold tabular-nums text-rose-600 dark:text-rose-400">
+                          −{formatPrice(r.totalRefund)}
+                        </td>
+                        <td className="px-3 py-2.5 text-right">
+                          <div className="flex justify-end gap-1.5">
+                            <Button size="sm" variant="ghost" onClick={() => navigate(`/pos/returns/${r.id}`)}>
+                              <ReceiptText className="h-3.5 w-3.5" />
+                            </Button>
+                            <Button size="sm" variant="ghost" onClick={() => navigate(`/pos/returns/${r.id}?print=1`)}>
+                              <Printer className="h-3.5 w-3.5" />
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
-            </>
-          )}
-        </CardContent>
-      </Card>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+
+      <MobileFab href="/pos/returns/new" label="New return" />
     </PageShell>
   )
 }
