@@ -52,12 +52,12 @@ export function CatalogGrid({ catalog, onAdd, cart, onScanRequest, onOverflowReq
           catalog so search + category filters are always reachable.
           - Mobile: top-0 (right under the mobile top bar; <main> is
             already below the top bar so top-0 is correct).
-          - Desktop: top-64 (256px) so it stacks BELOW the sticky
-            chips (top-20 ≈ 80px, ~52px tall = 132px) AND the sticky
-            scan card (top-36 = 144px, ~104px tall = 248px). The
-            whole top region is now a layered sticky stack: chips
-            → scan card → search + filters → cart on the right. */}
-      <div className="sticky top-0 z-10 -mx-4 border-b border-border bg-background px-4 pt-2 pb-2 md:top-64 md:mx-0 md:px-0 md:pt-1 md:pb-3">
+          - Desktop: top-[200px] = natural Y of this element in the
+            catalog column (chip row 44px at y=20, scan card 104px
+            with gaps = ends at y=200). Matching the natural Y means
+            no push-down when sticky engages — element stays at its
+            natural spot until scroll triggers stickiness. */}
+      <div className="sticky top-0 z-10 -mx-4 border-b border-border bg-background px-4 pt-2 pb-2 md:top-[200px] md:mx-0 md:px-0 md:pt-1 md:pb-3">
         <div className="flex items-stretch gap-1.5">
           {/* Mobile scan launcher — only renders when parent provides
               the callback (mobile POS does). Brand-filled to read as

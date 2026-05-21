@@ -56,7 +56,7 @@ export function CartPanel({
   const { formatPrice } = useCurrency()
 
   return (
-    <div className="sticky top-20 flex flex-col gap-3">
+    <div className="sticky top-5 flex flex-col gap-3">
       <Card>
         <CardHeader className="pb-3">
           <div className="flex items-start justify-between gap-2">
