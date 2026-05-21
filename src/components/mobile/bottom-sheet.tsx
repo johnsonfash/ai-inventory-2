@@ -169,10 +169,20 @@ export function BottomSheet({
             <div
               className={cn(
                 "flex-1 overflow-y-auto px-5",
-                footer ? "pb-8" : "pb-16 pwa-bottom",
+                footer ? "pb-2" : "pb-2 pwa-bottom",
               )}
             >
               {children}
+              {/* Hard spacer at the bottom of every BottomSheet body.
+                  Padding alone wasn't reliably visible (HMR / cache
+                  edge cases), so we render an actual element with
+                  height — it occupies space in the scroll flow no
+                  matter what. h-16 (64px) for no-footer sheets gives
+                  the last item generous room before the sheet edge;
+                  footer sheets only need h-4 (16px) between content
+                  and the footer bar. aria-hidden so screen readers
+                  skip it. */}
+              <div className={cn(footer ? "h-4" : "h-16")} aria-hidden />
             </div>
 
             {/* Footer (sticky, safe-area aware). pt-3 keeps a tight
