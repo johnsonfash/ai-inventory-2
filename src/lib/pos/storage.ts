@@ -92,7 +92,7 @@ const RETURNS_KEY = "pos:returns"
 // /placeholder.svg to real Unsplash photos. The key suffix forces a
 // re-seed for users whose localStorage still holds the placeholder
 // catalog from a previous session.
-const CATALOG_KEY = "pos:catalog:mode:v2"
+const CATALOG_KEY = "pos:catalog:mode:v3"
 
 // -------------- KV Helpers --------------
 // Backed by src/lib/storage/kv.ts — reads are sync (localStorage),
@@ -255,6 +255,110 @@ export function loadCatalog(mode: "retail" | "restaurant" | "services" | "auto" 
       stock: 48,
       tags: ["electronics", "retail"],
     },
+
+    // ---- Extended catalog (added in v3) ----
+    // Apparel
+    { id: "p10", sku: "AP-4115", name: "Linen Shirt", price: 28, taxRate: commonTax,
+      image: "https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?w=320&h=320&fit=crop&auto=format&q=80",
+      category: "Apparel", brand: "BasicCo", stock: 48, tags: ["clothing", "retail"] },
+    { id: "p11", sku: "AP-4220", name: "Denim Jacket", price: 55, taxRate: commonTax,
+      image: "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=320&h=320&fit=crop&auto=format&q=80",
+      category: "Apparel", brand: "BasicCo", stock: 26, tags: ["clothing", "retail"] },
+    { id: "p12", sku: "AP-5001", name: "Sneakers · White", price: 65, taxRate: commonTax,
+      image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=320&h=320&fit=crop&auto=format&q=80",
+      category: "Apparel", brand: "Stride", stock: 32, tags: ["clothing", "retail"] },
+    { id: "p13", sku: "AP-5012", name: "Baseball Cap", price: 14, taxRate: commonTax,
+      image: "https://images.unsplash.com/photo-1588850561407-ed78c282e89b?w=320&h=320&fit=crop&auto=format&q=80",
+      category: "Apparel", brand: "BasicCo", stock: 78, tags: ["clothing", "retail"] },
+
+    // Electronics
+    { id: "p14", sku: "EL-1102", name: "Bluetooth Speaker", price: 42, taxRate: commonTax,
+      image: "https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=320&h=320&fit=crop&auto=format&q=80",
+      category: "Electronics", brand: "Gizmo", stock: 38, tags: ["electronics", "retail"] },
+    { id: "p15", sku: "EL-1305", name: "Phone Charger 20W", price: 18, taxRate: commonTax,
+      image: "https://images.unsplash.com/photo-1583863788434-e58a36330cf0?w=320&h=320&fit=crop&auto=format&q=80",
+      category: "Electronics", brand: "Volt", stock: 102, tags: ["electronics", "retail"] },
+    { id: "p16", sku: "EL-2402", name: "Laptop Stand", price: 35, taxRate: commonTax,
+      image: "https://images.unsplash.com/photo-1593642632559-0c6d3fc62b89?w=320&h=320&fit=crop&auto=format&q=80",
+      category: "Electronics", brand: "Gizmo", stock: 24, tags: ["electronics", "retail"] },
+    { id: "p17", sku: "EL-2500", name: "Power Bank 20k", price: 32, taxRate: commonTax,
+      image: "https://images.unsplash.com/photo-1609091839311-d5365f9ff1c5?w=320&h=320&fit=crop&auto=format&q=80",
+      category: "Electronics", brand: "Volt", stock: 60, tags: ["electronics", "retail"] },
+    { id: "p18", sku: "EL-2811", name: "HDMI Cable 2m", price: 9, taxRate: commonTax,
+      image: "https://images.unsplash.com/photo-1602526211511-a23a40dd0ba8?w=320&h=320&fit=crop&auto=format&q=80",
+      category: "Electronics", brand: "Volt", stock: 140, tags: ["electronics", "retail"] },
+
+    // Beauty
+    { id: "p19", sku: "BT-9205", name: "Lip Balm Trio", price: 12, taxRate: commonTax,
+      image: "https://images.unsplash.com/photo-1631214540242-3cd8c4b0b3b8?w=320&h=320&fit=crop&auto=format&q=80",
+      category: "Beauty", brand: "Glow", stock: 88, tags: ["beauty", "retail"] },
+    { id: "p20", sku: "BT-9410", name: "Body Lotion 250ml", price: 16, taxRate: commonTax,
+      image: "https://images.unsplash.com/photo-1556228453-efd6c1ff04f6?w=320&h=320&fit=crop&auto=format&q=80",
+      category: "Beauty", brand: "Glow", stock: 52, tags: ["beauty", "retail"] },
+    { id: "p21", sku: "BT-9606", name: "Clay Face Mask", price: 14, taxRate: commonTax,
+      image: "https://images.unsplash.com/photo-1570194065650-d99fb4bedf0a?w=320&h=320&fit=crop&auto=format&q=80",
+      category: "Beauty", brand: "Glow", stock: 41, tags: ["beauty", "retail"] },
+
+    // Main course / restaurant
+    { id: "p22", sku: "FO-201", name: "Jollof Rice Plate", price: 6, taxRate: 0.1,
+      image: "https://images.unsplash.com/photo-1604329760661-e71dc83f8f26?w=320&h=320&fit=crop&auto=format&q=80",
+      category: "Main course", brand: "Kitchen", stock: 9999, tags: ["food", "restaurant"] },
+    { id: "p23", sku: "FO-220", name: "Suya Plate", price: 8.5, taxRate: 0.1,
+      image: "https://images.unsplash.com/photo-1633237308525-cd587cf71926?w=320&h=320&fit=crop&auto=format&q=80",
+      category: "Main course", brand: "Kitchen", stock: 9999, tags: ["food", "restaurant"] },
+    { id: "p24", sku: "FO-310", name: "Pizza Margherita", price: 11, taxRate: 0.1,
+      image: "https://images.unsplash.com/photo-1604068549290-dea0e4a305ca?w=320&h=320&fit=crop&auto=format&q=80",
+      category: "Main course", brand: "Kitchen", stock: 9999, tags: ["food", "restaurant"] },
+    { id: "p25", sku: "FO-420", name: "Chicken Sandwich", price: 7, taxRate: 0.1,
+      image: "https://images.unsplash.com/photo-1606755962773-d324e2c4cea1?w=320&h=320&fit=crop&auto=format&q=80",
+      category: "Main course", brand: "Kitchen", stock: 9999, tags: ["food", "restaurant"] },
+
+    // Drinks
+    { id: "p26", sku: "DR-308", name: "Mango Smoothie", price: 5, taxRate: 0.1,
+      image: "https://images.unsplash.com/photo-1623065422902-30a2d299bbe4?w=320&h=320&fit=crop&auto=format&q=80",
+      category: "Drinks", brand: "Kitchen", stock: 9999, tags: ["food", "restaurant"] },
+    { id: "p27", sku: "DR-412", name: "Cappuccino", price: 3.8, taxRate: 0.1,
+      image: "https://images.unsplash.com/photo-1572442388796-11668a67e53d?w=320&h=320&fit=crop&auto=format&q=80",
+      category: "Drinks", brand: "Kitchen", stock: 9999, tags: ["food", "restaurant"] },
+    { id: "p28", sku: "DR-520", name: "Bottled Water 500ml", price: 1.5, taxRate: 0.1,
+      image: "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=320&h=320&fit=crop&auto=format&q=80",
+      category: "Drinks", brand: "Kitchen", stock: 9999, tags: ["food", "restaurant"] },
+    { id: "p29", sku: "DR-611", name: "Fresh Orange Juice", price: 4.5, taxRate: 0.1,
+      image: "https://images.unsplash.com/photo-1600271886742-f049cd451bba?w=320&h=320&fit=crop&auto=format&q=80",
+      category: "Drinks", brand: "Kitchen", stock: 9999, tags: ["food", "restaurant"] },
+
+    // Auto Parts
+    { id: "p30", sku: "APRT-9000", name: "Engine Oil 5L", price: 35, taxRate: commonTax,
+      image: "https://images.unsplash.com/photo-1635770310500-aae87cba6fda?w=320&h=320&fit=crop&auto=format&q=80",
+      category: "Auto Parts", brand: "AutoMax", stock: 44, tags: ["auto", "mechanic"] },
+    { id: "p31", sku: "APRT-9120", name: "Spark Plug · 4 pack", price: 22, taxRate: commonTax,
+      image: "https://images.unsplash.com/photo-1635775017492-1eb935a082a8?w=320&h=320&fit=crop&auto=format&q=80",
+      category: "Auto Parts", brand: "AutoMax", stock: 36, tags: ["auto", "mechanic"] },
+    { id: "p32", sku: "APRT-9230", name: "Cabin Air Filter", price: 18, taxRate: commonTax,
+      image: "https://images.unsplash.com/photo-1597007030739-6d2e7172ee6c?w=320&h=320&fit=crop&auto=format&q=80",
+      category: "Auto Parts", brand: "AutoMax", stock: 50, tags: ["auto", "mechanic"] },
+
+    // Services
+    { id: "p33", sku: "HS-305", name: "Manicure", price: 18, taxRate: commonTax,
+      image: "https://images.unsplash.com/photo-1604654894610-df63bc536371?w=320&h=320&fit=crop&auto=format&q=80",
+      category: "Services", brand: "Salon", stock: 9999, tags: ["salon", "services"] },
+    { id: "p34", sku: "HS-410", name: "Pedicure", price: 22, taxRate: commonTax,
+      image: "https://images.unsplash.com/photo-1610992015734-1a920c2c0e25?w=320&h=320&fit=crop&auto=format&q=80",
+      category: "Services", brand: "Salon", stock: 9999, tags: ["salon", "services"] },
+    { id: "p35", sku: "HS-520", name: "Men's Haircut", price: 15, taxRate: commonTax,
+      image: "https://images.unsplash.com/photo-1599351431202-1e0f0137899a?w=320&h=320&fit=crop&auto=format&q=80",
+      category: "Services", brand: "Salon", stock: 9999, tags: ["salon", "services"] },
+
+    // Gifts / Home
+    { id: "p36", sku: "HM-2310", name: "Scented Candle", price: 18, taxRate: commonTax,
+      image: "https://images.unsplash.com/photo-1602874801007-aa4d4b8d2fb6?w=320&h=320&fit=crop&auto=format&q=80",
+      category: "Gifts", brand: "Homey", stock: 64, tags: ["gifts", "retail"] },
+    { id: "p37", sku: "HM-2412", name: "Notebook A5", price: 9, taxRate: commonTax,
+      image: "https://images.unsplash.com/photo-1531346878377-a5be20888e57?w=320&h=320&fit=crop&auto=format&q=80",
+      category: "Gifts", brand: "Homey", stock: 120, tags: ["gifts", "retail"] },
+    { id: "p38", sku: "HM-2511", name: "Canvas Tote Bag", price: 12, taxRate: commonTax,
+      image: "https://images.unsplash.com/photo-1597481499750-3e6b22637e12?w=320&h=320&fit=crop&auto=format&q=80",
+      category: "Gifts", brand: "Homey", stock: 88, tags: ["gifts", "retail"] },
   ]
   const key = `${CATALOG_KEY}:${mode}`
   const ls = getLS<CatalogItem[] | null>(key, null)
