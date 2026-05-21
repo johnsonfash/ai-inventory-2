@@ -102,6 +102,7 @@ export function MobileMoreDrawer({ open, onClose }: Props) {
       title={activeGroup ?? "All sections"}
       description={activeGroup ? `Inside ${activeGroup}` : "Tap a section to drill in · search to jump"}
       maxHeightVh={88}
+      minHeightVh={75}
     >
       {/* Sticky header: back button (when drilled in) + search */}
       <div className="sticky top-0 z-10 -mx-5 -mt-1 mb-3 bg-card px-5 pt-1 pb-2">
