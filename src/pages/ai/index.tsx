@@ -406,7 +406,7 @@ export default function AIChat() {
         title="Context"
         description="Scope what Pallio AI can see when answering."
       >
-        {renderSettings}
+        <div className="pb-3">{renderSettings}</div>
       </BottomSheet>
 
       {/* eslint-disable-next-line @typescript-eslint/no-unused-vars */}

@@ -50,7 +50,7 @@ export function PosSettingsSheet({
       title="POS settings"
       description="Mode, location, and cashier for this session"
     >
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-3 pb-3">
         <FieldRow label="Business mode">
           <Select value={mode} onValueChange={(v) => v && onModeChange(v as Mode)}>
             <SelectTrigger><SelectValue /></SelectTrigger>

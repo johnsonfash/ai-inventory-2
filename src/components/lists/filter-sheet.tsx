@@ -35,7 +35,7 @@ export function FilterSheet({
       title={title}
       description={description}
       footer={
-        <div className="flex gap-2">
+        <div className="flex gap-2 pb-3">
           {onReset && (
             <Button variant="outline" className="flex-1" onClick={onReset}>
               Reset

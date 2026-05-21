@@ -184,7 +184,7 @@ export function NotificationBell() {
 
       {isMobile ? (
         <BottomSheet open={open} onClose={() => setOpen(false)} title="Notifications">
-          {body}
+          <div className="pb-3">{body}</div>
         </BottomSheet>
       ) : (
         typeof document !== "undefined" && createPortal(

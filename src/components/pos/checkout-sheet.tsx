@@ -81,7 +81,7 @@ export function CheckoutSheet({
       description={`Total ${formatPrice(total)}`}
       maxHeightVh={92}
       footer={
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-2 pb-3">
           <div className="flex items-center justify-between text-sm">
             <span className="text-muted-foreground">
               {remaining > 0 ? "Remaining" : change > 0 ? "Change due" : "Settled"}

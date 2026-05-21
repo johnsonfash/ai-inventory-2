@@ -78,7 +78,7 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
 
   if (isMobile) {
     return (
-      <div className="flex h-[100dvh] min-h-0 flex-col overflow-hidden bg-background">
+      <div className="flex h-dvh min-h-0 flex-col overflow-hidden bg-background">
         <MobileTopBar title={meta.title} titleTooltip={meta.titleTooltip} trailing={meta.mobileTrailing ?? defaultMobileTrailing} />
 
         {/* Pull-to-refresh indicator. Anchored to the top of the
@@ -124,7 +124,7 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
 
   // Desktop / tablet shell.
   return (
-    <div className="flex h-[100dvh] overflow-hidden">
+    <div className="flex h-dvh overflow-hidden">
       <AppSidebar />
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="sticky top-0 z-30 flex h-16 items-center gap-2 border-b border-border bg-background/80 px-4 backdrop-blur md:gap-3 md:px-5">
@@ -159,7 +159,7 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
           <div
             className={cn(
               "border-b border-border px-4 py-2.5 md:px-5 md:py-3",
-              "bg-gradient-to-r from-brand-soft/60 via-background to-emerald-50/40",
+              "bg-linear-to-r from-brand-soft/60 via-background to-emerald-50/40",
               "dark:from-primary/10 dark:via-background dark:to-emerald-950/15",
             )}
           >

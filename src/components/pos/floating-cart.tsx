@@ -33,7 +33,7 @@ export function FloatingCart({ itemCount, total, onOpen }: Props) {
   const filled = itemCount > 0
   if (typeof document === "undefined") return null
   return createPortal(
-    <div className="pointer-events-none fixed inset-x-0 bottom-0 z-30 px-3 pb-[calc(env(safe-area-inset-bottom)+4.5rem)] md:hidden">
+    <div className="pointer-events-none fixed inset-x-0 bottom-0 z-30 px-3 pb-[calc(env(safe-area-inset-bottom)+4.5rem)] lg:hidden">
       <AnimatePresence mode="wait">
         <motion.button
           key={filled ? "filled" : "empty"}
@@ -44,9 +44,9 @@ export function FloatingCart({ itemCount, total, onOpen }: Props) {
           exit={{ opacity: 0, y: 16 }}
           transition={{ duration: 0.16, ease: [0.32, 0.72, 0, 1] }}
           className={cn(
-            "pointer-events-auto group relative mx-auto flex w-full max-w-md items-center gap-3 overflow-hidden rounded-2xl px-3 py-2.5 text-left transition-transform active:scale-[0.98]",
+            "pointer-events-auto group relative mx-auto md:ml-[calc(120px+20%)] md:mr-auto flex w-full max-w-md items-center gap-3 overflow-hidden rounded-2xl px-3 py-2.5 text-left transition-transform active:scale-[0.98]",
             filled
-              ? "bg-gradient-to-r from-brand via-brand to-fuchsia-600 text-brand-foreground shadow-2xl shadow-brand/40 dark:from-primary dark:via-primary dark:to-fuchsia-600 dark:text-primary-foreground"
+              ? "bg-linear-to-r from-brand via-brand to-fuchsia-600 text-brand-foreground shadow-2xl shadow-brand/40 dark:from-primary dark:via-primary dark:to-fuchsia-600 dark:text-primary-foreground"
               : "border border-border bg-card/95 text-foreground backdrop-blur-md shadow-lg",
           )}
         >

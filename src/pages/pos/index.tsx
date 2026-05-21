@@ -54,7 +54,7 @@ export default function PointOfSale() {
   const navigate = useNavigate()
   const [search] = useSearchParams()
   const draftIdFromUrl = search.get("draftId")
-  const isMobile = useIsMobile()
+  const isMobile = useIsMobile(1024);
   const { formatPrice } = useCurrency()
 
   React.useEffect(() => {
@@ -262,7 +262,7 @@ export default function PointOfSale() {
         </button>
       }
     >
-      <div className="flex flex-col gap-3 md:gap-4">
+      <div className="flex flex-col md:gap-4">
         {/* Layout: the catalog column (chips + scan card on desktop +
             catalog grid) and the cart panel share the SAME row, so
             both shrink with `1fr` as the viewport narrows.  The chips
@@ -270,7 +270,7 @@ export default function PointOfSale() {
             spanning the whole page width — this way the scan card,
             search input, and catalog all line up at the same width
             and resize in lockstep. */}
-        <div className="grid gap-4 xl:grid-cols-[1fr_clamp(320px,28%,420px)]">
+        <div className="grid gap-4 lg:grid-cols-[1fr_clamp(320px,28%,420px)]">
           {/* Catalog column.
               Mobile: gap-3 between children (just CatalogGrid is
                 visible since chips + scan card are hidden).
@@ -297,7 +297,7 @@ export default function PointOfSale() {
             {/* Sticky chips + scan card. bg-background covers the
                 wrapper's box (chips row + gap + scan card) so the
                 inter-element gaps don't leak product images either. */}
-            <div className="hidden md:sticky md:top-0 md:z-30 md:flex md:flex-col md:gap-4 md:bg-background md:pb-3">
+            <div className="hidden md:sticky md:-top-5 md:z-30 md:flex md:flex-col md:gap-4 md:bg-background md:pb-3">
               <div className="flex gap-2 overflow-x-auto py-2 scrollbar-hide">
                 <PosQuickChip Icon={Layers} label="Drafts" onClick={() => navigate("/pos/drafts")} />
                 <PosQuickChip Icon={ClipboardList} label="Invoices" onClick={() => navigate("/pos/invoices")} />
@@ -322,7 +322,7 @@ export default function PointOfSale() {
                       const v = (e.target as HTMLInputElement).value.trim()
                       if (v) {
                         addByBarcode(v)
-                        ;(e.target as HTMLInputElement).value = ""
+                          ; (e.target as HTMLInputElement).value = ""
                       }
                     }
                   }}
@@ -340,7 +340,7 @@ export default function PointOfSale() {
             />
           </div>
 
-          <aside className="hidden min-w-0 xl:block">
+          <aside className="hidden min-w-0 lg:block">
             <CartPanel
               cart={cart}
               customer={customer}
@@ -392,7 +392,7 @@ export default function PointOfSale() {
         description="Point your camera at a barcode or type a SKU."
         maxHeightVh={60}
       >
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-3 pb-3">
           <div className="flex items-center gap-2 rounded-2xl border border-border bg-card p-3">
             <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-soft text-brand dark:bg-primary/15 dark:text-primary">
               <Barcode className="h-4 w-4" />
@@ -434,13 +434,13 @@ export default function PointOfSale() {
         description={`Mode: ${mode} · ${location}`}
         maxHeightVh={60}
       >
-        <ul className="mb-6 divide-y divide-border rounded-xl border border-border bg-card">
+        <ul className="mb-3 divide-y divide-border rounded-xl border border-border bg-card">
           {[
-            { Icon: Layers,         label: "Drafts",        hint: "Held carts you can resume.",  onClick: () => { setMobileOverflowOpen(false); navigate("/pos/drafts") } },
-            { Icon: ClipboardList,  label: "Invoices",      hint: "Past sales + receipts.",       onClick: () => { setMobileOverflowOpen(false); navigate("/pos/invoices") } },
-            { Icon: RotateCcw,      label: "Returns",       hint: "Process refunds + exchanges.", onClick: () => { setMobileOverflowOpen(false); navigate("/pos/returns") } },
-            { Icon: Settings2,      label: `Settings · ${mode}`, hint: location,                  onClick: () => { setMobileOverflowOpen(false); setSettingsOpen(true) } },
-            { Icon: FileText,       label: "Invoice preview", hint: cart.length === 0 ? "Add items first." : "Preview before charging.", onClick: () => { if (cart.length > 0) { setMobileOverflowOpen(false); setPreviewOpen(true) } } },
+            { Icon: Layers, label: "Drafts", hint: "Held carts you can resume.", onClick: () => { setMobileOverflowOpen(false); navigate("/pos/drafts") } },
+            { Icon: ClipboardList, label: "Invoices", hint: "Past sales + receipts.", onClick: () => { setMobileOverflowOpen(false); navigate("/pos/invoices") } },
+            { Icon: RotateCcw, label: "Returns", hint: "Process refunds + exchanges.", onClick: () => { setMobileOverflowOpen(false); navigate("/pos/returns") } },
+            { Icon: Settings2, label: `Settings · ${mode}`, hint: location, onClick: () => { setMobileOverflowOpen(false); setSettingsOpen(true) } },
+            { Icon: FileText, label: "Invoice preview", hint: cart.length === 0 ? "Add items first." : "Preview before charging.", onClick: () => { if (cart.length > 0) { setMobileOverflowOpen(false); setPreviewOpen(true) } } },
           ].map((a) => (
             <li key={a.label}>
               <button
