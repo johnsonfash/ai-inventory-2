@@ -263,7 +263,10 @@ export default function PointOfSale() {
         </button>
       }
     >
-      <div className="flex flex-col gap-4">
+      {/* -mt-3 on mobile pulls the catalog up to butt right against the
+          mobile top bar — eliminates the dead space the global AppFrame
+          pt-3 adds for other pages. Desktop keeps the normal spacing. */}
+      <div className="-mt-3 flex flex-col gap-3 md:mt-0 md:gap-4">
         {/* Desktop: quick action strip + full scan bar.
             Mobile: compact unified search/scan/menu row — see below. */}
         <div className="hidden md:flex md:flex-col md:gap-4">
@@ -305,8 +308,12 @@ export default function PointOfSale() {
             to a single sticky bar instead of two near-identical
             search inputs. */}
 
-        {/* Catalog + (desktop) cart panel */}
-        <div className="grid gap-4 lg:grid-cols-[1fr_360px]">
+        {/* Catalog + cart panel. The 360px cart panel only renders at
+            xl+ (1280px) — below that the screen isn't wide enough to
+            host both comfortably without clipping, so we fall back to
+            the persistent mobile-style cart bar at the bottom. This
+            covers smaller laptop screens cleanly. */}
+        <div className="grid gap-4 xl:grid-cols-[1fr_360px]">
           <CatalogGrid
             catalog={catalog}
             onAdd={addItem}
@@ -316,7 +323,7 @@ export default function PointOfSale() {
             onOverflowRequest={() => setMobileOverflowOpen(true)}
           />
 
-          <aside className="hidden lg:block">
+          <aside className="hidden xl:block">
             <CartPanel
               cart={cart}
               customer={customer}
