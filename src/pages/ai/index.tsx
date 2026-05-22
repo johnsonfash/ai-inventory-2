@@ -18,7 +18,6 @@ import { PageShell } from "@/components/page-shell"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { aiChat } from "@/lib/api-mocks/ai-chat"
-import { useIsMobile } from "@/hooks/use-mobile"
 import { useRegisterPageRefresh } from "@/hooks/use-pull-to-refresh"
 import { useChatKeyboard } from "@/hooks/use-chat-keyboard"
 import { BottomSheet } from "@/components/mobile/bottom-sheet"
@@ -47,7 +46,6 @@ const newId = () => `m-${++msgIdSeq}`
 
 export default function AIChat() {
   useAutoMarkStep("talk-to-ai")
-  const isMobile = useIsMobile()
   // Chat-aware keyboard handling on native. `scrollRef` is the same
   // ref the auto-scroll effect uses; the hook owns it so the
   // ResizeObserver auto-snap can read .scrollHeight + reattach when
@@ -408,9 +406,6 @@ export default function AIChat() {
       >
         <div className="pb-3">{renderSettings}</div>
       </BottomSheet>
-
-      {/* eslint-disable-next-line @typescript-eslint/no-unused-vars */}
-      {isMobile ? null : null}
     </PageShell>
   )
 }
