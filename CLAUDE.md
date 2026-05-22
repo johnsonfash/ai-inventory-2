@@ -536,6 +536,154 @@ The Explore-agent component sweep had at least one prop-shape error (`BiometricG
 - `charts/*` — three concrete charts: `StockLevelsChart, SalesVsPurchaseChart, CategoryBreakdownChart`
 - `team/CommissionCalculator` reused by both affiliate dashboard and sales-team commission UI
 
+## Verified extras (small-dense files round 2)
+
+A second sweep of the small dense files (hooks, asset scripts, FCM plugin internals, mock data bodies) — all directly read.
+
+### Storage key roundup (all `pallio:*` unless noted)
+
+- `pallio:auth-refresh` — refresh token (auth-token.ts)
+- `pallio:currency` — selected CurrencyCode (currency context)
+- `pallio:onboarding-progress` — `Record<stepKey, boolean>` (onboarding)
+- `pallio:biometric-lock` — `"1"`/unset (biometric-gate)
+- `pallio:biometric-login` — `"1"`/unset (login button visibility)
+- `pallio:passkey-login` — `"1"`/unset (login button visibility)
+- `pallio:chat-kb-height` — cached keyboard px (use-chat-keyboard, default 291)
+- `pallio:install-dismissed` — `"1"`/unset (PWAInstaller "Install" banner)
+- `pallio:chunk-reload-once` — sessionStorage (routes.ts deploy-recovery guard)
+- `pallio.webauthn.credentialId` / `pallio.webauthn.userHandle` (note: dot-separated, not colon — legacy from webauthn.ts)
+- **Legacy `iv:*` keys** — `iv:org` + `iv:loc` from the v0 scaffold era, still used by `useOrgLocation()`. Backend port could normalize on `pallio:org` / `pallio:loc` but don't break in-flight users.
+
+### Custom window events
+
+- `pallio:auth-cleared` — fires on `clearAuth()`; App.tsx redirects to `/login`
+- `pallio:onboarding-changed` — fires when a step is toggled or auto-marked
+- `pallio:biometric-lock-changed` — fires when Settings toggles the lock
+- `pallio:org-changed` / `pallio:loc-changed` — cross-instance sync of `useOrgLocation`
+- `pallio:back-exit-hint` — fires from `useBackButton` on first back press at root route; App.tsx shows the "press back again to exit" toast
+
+### useOrgLocation mock data (current state)
+
+3 orgs hardcoded: Funke Apparel (default), Eko Provisions, LagosMart. 3 locations: Lekki Phase 1 (default), Ikeja City Mall, Wuse 2. Cross-tab sync via `pallio:org-changed` / `pallio:loc-changed` custom events. **Backend will replace these with the signed-in user's org list + active org's locations** — keep the org-changed/loc-changed event names as the public API.
+
+### Pull-to-refresh thresholds (`use-pull-to-refresh.tsx`)
+
+`TRIGGER = 64px`, `MAX_PULL = 96px`. Asymptotic damping: `MAX_PULL * (1 - exp(-dy / (MAX_PULL * 1.4)))` — rubber-bands toward MAX_PULL. Refresh fires when pull crosses TRIGGER on release; pull holds at TRIGGER during the async refresh.
+
+Pattern: `PageRefreshProvider` holds a single `RefreshFn | null` ref. Each page calls `useRegisterPageRefresh(fn)` on mount; AppFrame's pull gesture calls `usePageRefreshHandler()` to invoke whatever's registered.
+
+### useChatKeyboard / useKeyboardHeightCapture
+
+`window.visualViewport` based — no Tauri keyboard plugin. Detects keyboard via `innerHeight - vv.height` delta (gated to 100-800px to filter noise). Persists to `pallio:chat-kb-height` (default 291, iPhone portrait + predictive bar). `useKeyboardHeightCapture()` is a passive cache-only listener mounted in App.tsx so first-focus on /ai or /sales/team/chat doesn't show a fallback-then-correct jump.
+
+Composer focus tracked via React synthetic events + class `pallio-composer-zone`. ResizeObserver re-snaps the scroll container to bottom only if user was already near bottom.
+
+### useBiometric platform branching
+
+Single API (`isAvailable`/`register`/`verify`/`unregister`/`isEnrolled`) routes:
+- **Tauri iOS/Android** → `@tauri-apps/plugin-biometric` (`checkStatus`, `authenticate`). Reads BiometryType (TouchID/FaceID/Iris) for the label.
+- **Tauri desktop** → WebAuthn (`registerPlatformCredential`, `assertPlatformCredential`). Label is platform-derived: macOS → "touch", Windows → "fingerprint", Linux → "fingerprint".
+- **Web** → returns `available: false`. Web uses `use-passkey.ts` (separate hook).
+
+### usePasskey (web only)
+
+Calls into the same `lib/webauthn.ts` ceremony. Adds `conditional: boolean` — true when `PublicKeyCredential.isConditionalMediationAvailable` is supported (lets us hint passkeys in the email input via `mediation: "conditional"`).
+
+### Sales mock dataset shape
+
+6 customers (CUSTOMERS object): nova, bright, acme, aisha, glow, delta. 6 orders SO-2401..SO-2406 demoing every state combo (fulfilled-closed, partial-overdue, sent-unpaid, accepted-not-invoiced, draft, refunded-after-pay). 4 invoices INV-2401/2402/2403/2406, 2 receipts RT-2401/RT-2406.
+
+`buildInvoice()` helper auto-computes paid/balance/status. **Payment amount `-1` is a sentinel for "full total"** (so seeds don't restate the number twice).
+
+Owner/issuer ids reference `lib/team/data.ts` member ids — `m-1` (Mia Chen) and `m-2` (Alex Larson) are the active sales-reps in mock. `m-1` Mia Chen is "current user" per `SESSIONS` mock (the only `current: true` session).
+
+### Team mock dataset
+
+8 members (m-1..m-8): manager, sales-rep, cashier, marketer, viewer, 2 affiliates, suspended cashier. 3 pending invites. 4 sessions. Members reference location ids from `LOCATIONS` (`wh-a`, `downtown`, `east-dc`, `west-hub`, `sxsw`). Affiliates have `affiliateCode` + `affiliateClicks` populated (Sara Quill `QUILL10`/1842, Lee Park `LEEPARK`/942).
+
+### Communications templates
+
+9 builtin templates: `tpl-invoice, tpl-receipt, tpl-refund, tpl-welcome, tpl-abandoned, tpl-restock, tpl-promo, tpl-commission, tpl-low-stock`. Token syntax: `{{snake_case}}`. `interpolate(template, values)` regex `/\{\{\s*([a-zA-Z0-9_]+)\s*\}\}/g` — falls back to rendering `{{key}}` literal for unknown tokens (useful in preview).
+
+6 mock messages across folders (inbox/sent/drafts).
+
+### Storefront templates
+
+6 hand-named templates: `lekki-luxe, ankara-bold, glow-minimal, naija-deli, vendor-grid, homestead` (plus more not surveyed — full set lives in storefront/data.ts). Each has sector + style + tier (free/pro/premium) + popularity score + Unsplash cover URL + color pair (primary + accent).
+
+**11 ESSENTIAL_PAGES baked into every template**: `/`, `/shop`, `/p/:slug`, `/cart`, `/checkout`, `/order/:id`, `/account`, `/about`, `/contact`, `/privacy`, `/terms`. Templates ADD sector-specific extras (lookbook for fashion, menu+reserve for food, compare+warranty for electronics, etc.).
+
+Privacy template page is "NDPR-compliant" — Nigerian Data Protection Regulation reference. Backend's privacy generator should follow NDPR shape.
+
+### Integrations — provider count + Nigerian focus
+
+40+ providers across 8 categories. Confirmed entries with brand hex colors:
+- Payments: Paystack #0FA958, Flutterwave #F5A623, Opay #1DBF73, PalmPay #7A4DFF, Stripe #635BFF
+- Commerce: Shopify #7AB55C, WooCommerce #7F54B3
+- Comms: WhatsApp Business #25D366, Twilio #F22F46, Mailgun #F06B66
+- Team: Slack #4A154B
+- Analytics: GA4 #F9AB00
+- Delivery: GIG Logistics #E2231A, Sendbox #0066FF, Kwik #FF6A00, DHL Express #FFCC00, Fez Delivery #1E40AF
+- Marketing: Mailchimp #FFE01B, Klaviyo #222222, Meta Pixel #1877F2
+- Accounting: QuickBooks #2CA01C, Xero #13B5EA
+
+### Backend API host convention
+
+The Paystack provider's webhook placeholder is `https://api.pallio.app/hooks/paystack`. **Backend API host expected at `api.pallio.app`.** Webhook routes follow `/hooks/{provider-id}` pattern.
+
+### Integration-specific behaviors worth knowing
+
+- **Shopify**: two-way sync on 60-second loop, last-write-wins conflict resolution
+- **GIG Logistics**: `codEnabled` switch — GIGL collects cash from buyer + remits weekly
+- **Sendbox**: `defaultMode` select (cheapest/fastest/balanced) — multi-carrier aggregator across West Africa
+- **Mailgun**: region select (us/eu) — depends on customer's Mailgun account region
+- **Klaviyo**: recommended upgrade from Mailchimp at ~5000+ list size
+- **Mailchimp**: `syncOnSale` switch — GDPR-safe opt-in only
+- **Meta Pixel**: required to compute Marketing ROAS view (CAPI events feed the dashboard)
+
+### Insights engine — sort + content
+
+Sort priority: `critical → warning → info → good` (then by recency). 11 hardcoded insights span all 8 categories. `generateForecast()` produces 7 days with day-of-week seasonal multiplier (`weekends 0.9, Wed/Thu 1.08, else 1.0`), trend `base * (1 + day * 0.012)`, confidence band `trend * (0.07 + day * 0.012)` (widens further out). Stable id pattern: `ins-{category}-{abs(hash(title))}`.
+
+### pallio-fcm — actually pretty close to ready
+
+Looking at the TODO files (which I had not read before), the iOS + Android sides are not from-scratch — they have **complete Swift + Kotlin skeletons** in the TODO.md files plus a working JS wrapper + Rust scaffold. The remaining gap is:
+
+1. Create Firebase project under bundle id `app.pallio`
+2. Drop `GoogleService-Info.plist` (iOS) + `google-services.json` (Android) into `src-tauri/gen/{apple,android}/` after `tauri:{ios,android}:init`
+3. Paste the Swift `PalliFcmPlugin.swift` (skeleton in `ios/TODO.md`) into the Xcode project
+4. Paste the Kotlin `PalliFcmPlugin.kt` + `PalliFcmService` (skeleton in `android/TODO.md`) into Android Studio
+5. Add `firebase-bom:33.7.0` + `firebase-messaging-ktx` to `gen/android/app/build.gradle.kts`
+6. Register `PalliFcmService` in AndroidManifest with `MESSAGING_EVENT` intent filter
+7. Add `aps-environment` + `UIBackgroundModes.remote-notification` to iOS Info.plist
+8. Add `.plugin(tauri_plugin_pallio_fcm::init())` to `src-tauri/src/lib.rs`
+9. Add `pallio-fcm:default` permission to `capabilities/mobile.json`
+
+JS side already invokes `plugin:pallio-fcm|register_for_push` + listens for `push-message` event. Rust today returns Err on all platforms (graceful for the consumer — `push.register()` resolves null with console warn).
+
+### Splash + icon build scripts (assets/)
+
+- **build-icon.mjs** — produces `assets/icon-{only,foreground,background}.png` (1024×1024, brand violet `#7c3aed`), 13 PNGs in `public/icons/*` (favicon-16/32, icon-{16..512}, apple-touch-icon, mark-256/384/512), and `maskable-512.png` with 60% inset for Android safe-zone. Mark scale 0.7 of canvas. NOTE: comments reference `npx capacitor-assets generate` — stale from pre-Tauri era.
+- **build-splash.mjs** — composes brand mark on `#0a0a0a` 2732×2732 canvas, logo at 32% (LOGO_RATIO). Writes `assets/splash.png` + `splash-dark.png` (identical).
+- **build-macos-icon.mjs** — generates `icon.icns` via `iconutil` (macOS only). Tile inset 76% (calibrated, not Apple's HIG 82.4%). Overwrites Tauri's auto-cropped PNG sources (`icon.png`, 32, 64, 128, 128@2x) to fix dev-mode dock icon — critical for parity with Finder/Chrome/Notes.
+- **build-android-splash-icon.mjs** — 432px source for Android 12+ Splash Screen API, scaled to 5 mipmap densities (`mipmap-{mdpi/hdpi/xhdpi/xxhdpi/xxxhdpi}/ic_splash.png`).
+- **build-ios-splash-logo.mjs** — 200pt natural × 1x/2x/3x densities, written to `src-tauri/gen/apple/Assets.xcassets/SplashLogo.imageset/splash-logo@{1,2,3}x.png`.
+- **build-pwa-splash.mjs** — generates 16 portrait iOS A2HS sizes in `public/splash/{w}x{h}.png`. Logo at 28% of shorter dimension. **Emits the `<link rel="apple-touch-startup-image" media=...>` tags as stdout** for manual paste into `index.html` — not written automatically (intentional, "fewer surprises").
+
+All scripts use `sharp` with `kernel: "lanczos3"`. Brand background `#7c3aed`, splash background `#0a0a0a`.
+
+### useIsMobile breakpoint
+
+768px (configurable as the first arg). Returns `false` during SSR / first render before media query resolves.
+
+### Direct file count update
+
+I have now personally read **~80 files of ~333** (24%). Remaining ~250 are mostly:
+- Marketing-site pages (~9) — design docs, low backend value
+- Per-section page implementations (~160) — pattern-replicated, will read on demand
+- shadcn `ui/*` primitives (~13) — autogenerated by the CLI, low value
+- Settings sub-pages and integration detail pages — many, mostly form-shaped, will read on demand
+
 ## Audit coverage statement
 
-Files I have personally read in this session (verified): ~50 of ~333. Files reported by Explore agents (one had a prop-shape error, one falsely claimed `src-tauri` didn't exist): the rest. **Treat agent-reported prop shapes as starting points to verify, not as truth.** The verified deep-dive section above is what I'm confident in.
+Files I have personally read in this session (verified): ~80 of ~333 (~24%). Files reported by Explore agents (one had a prop-shape error, one falsely claimed `src-tauri` didn't exist): the rest. **Treat agent-reported prop shapes as starting points to verify, not as truth.** Every fact in the "Verified deep-dive" and "Verified extras" sections has a direct file-read backing it.
