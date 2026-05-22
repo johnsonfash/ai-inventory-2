@@ -10,17 +10,9 @@ import { EmptyState } from "@/components/lists/empty-state"
 import { SummaryStrip } from "@/components/lists/summary-strip"
 import { cn } from "@/lib/utils"
 import { useCurrency } from "@/contexts/currency"
+import { loadCatalog, listInvoices, type CatalogItem } from "@/lib/pos/storage"
 
-type Row = { name: string; skus: number; revenue: number; tone: number }
-
-const rows: Row[] = [
-  { name: "Electronics", skus: 412, revenue: 84200, tone: 0 },
-  { name: "Apparel", skus: 286, revenue: 38400, tone: 1 },
-  { name: "Home", skus: 218, revenue: 21800, tone: 2 },
-  { name: "Beauty", skus: 142, revenue: 14820, tone: 3 },
-  { name: "Food & Bev", skus: 96, revenue: 6420, tone: 4 },
-  { name: "Other", skus: 32, revenue: 1260, tone: 5 },
-]
+type Row = { name: string; skus: number; value: number; revenue: number; tone: number }
 
 const TINTS = [
   "bg-brand/15 text-brand dark:bg-primary/20 dark:text-primary",
@@ -31,21 +23,75 @@ const TINTS = [
   "bg-fuchsia-500/15 text-fuchsia-700 dark:text-fuchsia-300",
 ]
 
+const UNLIMITED_STOCK = 9999  // catalog sentinel for non-tracked items
+                              // (services, menu dishes consumed via recipes)
+
+// Pull every catalog item across modes — Pallio supports running
+// shop + kitchen + workshop from a single account, so categories
+// must reflect every industry the operator stocks for.
+function loadAllItems(): CatalogItem[] {
+  const items = [
+    ...loadCatalog("retail"),
+    ...loadCatalog("restaurant"),
+    ...loadCatalog("services"),
+    ...loadCatalog("auto"),
+  ]
+  return items.filter((c, i, arr) => arr.findIndex((x) => x.sku === c.sku) === i)
+}
+
+function buildRows(): Row[] {
+  const items = loadAllItems()
+  const invoices = listInvoices()
+
+  // Map sku → category once so invoice attribution stays O(n).
+  const skuToCategory = new Map<string, string>()
+  for (const it of items) skuToCategory.set(it.sku, it.category ?? "Uncategorised")
+
+  const byCat = new Map<string, { skus: number; value: number; revenue: number }>()
+  for (const it of items) {
+    const cat = it.category ?? "Uncategorised"
+    const e = byCat.get(cat) ?? { skus: 0, value: 0, revenue: 0 }
+    e.skus += 1
+    // Stock value = on-hand × price. Skip unlimited-stock sentinel
+    // items (services / menu dishes) — they'd swamp the totals.
+    const stock = it.stock ?? 0
+    if (stock < UNLIMITED_STOCK) e.value += stock * it.price
+    byCat.set(cat, e)
+  }
+  for (const inv of invoices) {
+    for (const line of inv.items) {
+      const cat = skuToCategory.get(line.sku) ?? "Uncategorised"
+      const e = byCat.get(cat) ?? { skus: 0, value: 0, revenue: 0 }
+      e.revenue += line.price * line.qty
+      byCat.set(cat, e)
+    }
+  }
+
+  return Array.from(byCat.entries())
+    .map(([name, e], i) => ({ name, ...e, tone: i % TINTS.length }))
+    .sort((a, b) => b.skus - a.skus)
+}
+
 export default function Categories() {
   const [query, setQuery] = React.useState("")
   const { formatPrice } = useCurrency()
 
   useRegisterPageRefresh(React.useCallback(async () => { await new Promise((r) => setTimeout(r, 400)) }, []))
 
+  const rows = React.useMemo(buildRows, [])
+
   const filtered = React.useMemo(() => {
     const q = query.trim().toLowerCase()
     if (!q) return rows
     return rows.filter((r) => r.name.toLowerCase().includes(q))
-  }, [query])
+  }, [query, rows])
 
   const totalSkus = rows.reduce((s, r) => s + r.skus, 0)
-  const totalRevenue = rows.reduce((s, r) => s + r.revenue, 0)
-  const top = [...rows].sort((a, b) => b.revenue - a.revenue)[0]!
+  const totalValue = rows.reduce((s, r) => s + r.value, 0)
+  // "Top" by stock value — works even before any sales exist.
+  const top = rows.length > 0
+    ? [...rows].sort((a, b) => b.value - a.value)[0]!
+    : null
 
   return (
     <PageShell
@@ -65,8 +111,10 @@ export default function Categories() {
           tiles={[
             { label: "Categories", value: String(rows.length), tone: "brand", hint: "tracked" },
             { label: "Total SKUs", value: totalSkus.toLocaleString(), tone: "info", hint: "classified" },
-            { label: "Revenue", value: formatPrice(totalRevenue), tone: "success", hint: "all categories" },
-            { label: "Top", value: top.name, tone: "warning", hint: formatPrice(top.revenue) },
+            { label: "Stock value", value: formatPrice(totalValue), tone: "success", hint: "on-hand × price" },
+            top
+              ? { label: "Top", value: top.name, tone: "warning", hint: formatPrice(top.value) }
+              : { label: "Top", value: "—", tone: "warning", hint: "no categories yet" },
           ]}
         />
 
@@ -87,7 +135,9 @@ export default function Categories() {
         ) : (
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {filtered.map((r) => {
-              const pct = totalRevenue > 0 ? Math.round((r.revenue / totalRevenue) * 100) : 0
+              // Progress = this category's stock value share of total
+              // — always meaningful regardless of sales history.
+              const pct = totalValue > 0 ? Math.round((r.value / totalValue) * 100) : 0
               return (
                 <Link
                   key={r.name}
@@ -104,7 +154,12 @@ export default function Categories() {
                     </div>
                   </div>
                   <div className="mt-3">
-                    <p className="text-lg font-bold tabular-nums">{formatPrice(r.revenue)}</p>
+                    <p className="text-lg font-bold tabular-nums">{formatPrice(r.value)}</p>
+                    {r.revenue > 0 ? (
+                      <p className="text-[11px] text-muted-foreground">
+                        {formatPrice(r.revenue)} sold
+                      </p>
+                    ) : null}
                     <div className="mt-1.5 flex items-center gap-2">
                       <div className="h-1 flex-1 overflow-hidden rounded-full bg-muted">
                         <div

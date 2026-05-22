@@ -29,6 +29,7 @@ import { OnboardingNudge } from "@/components/onboarding/onboarding-nudge"
 import { MobileFab } from "@/components/mobile/mobile-fab"
 import { cn } from "@/lib/utils"
 import { useCurrency } from "@/contexts/currency"
+import { loadCatalog, type CatalogItem } from "@/lib/pos/storage"
 
 type Item = {
   sku: string
@@ -44,22 +45,104 @@ type Item = {
   price: number
 }
 
-const items: Item[] = [
-  { sku: "EL-2109", name: "USB‑C Hub 6‑in‑1", image: "/placeholder.svg", category: "Electronics", brand: "Cobalt", unit: "pcs", warranty: "12 mo", location: "WH-A", stock: 12, reorder: 25, price: 28.5 },
-  { sku: "AP-4012", name: "Cotton Tee — Black", image: "/placeholder.svg", category: "Apparel", brand: "Delta", unit: "pcs", warranty: "N/A", location: "WH-B", stock: 8, reorder: 20, price: 12.0 },
-  { sku: "HM-2205", name: "Ceramic Mug 12oz", image: "/placeholder.svg", category: "Home", brand: "Porcel", unit: "pcs", warranty: "6 mo", location: "WH-C", stock: 54, reorder: 40, price: 8.0 },
-  { sku: "BT-9091", name: "Hydrating Serum", image: "/placeholder.svg", category: "Beauty", brand: "Glow Co", unit: "btl", warranty: "N/A", location: "WH-A", stock: 5, reorder: 15, price: 18.95 },
-  { sku: "EL-1001", name: "Wireless Mouse", image: "/placeholder.svg", category: "Electronics", brand: "Acme", unit: "pcs", warranty: "24 mo", location: "WH-B", stock: 24, reorder: 30, price: 22.0 },
-  { sku: "AP-4015", name: "Linen Shirt — Stone", image: "/placeholder.svg", category: "Apparel", brand: "Delta", unit: "pcs", warranty: "N/A", location: "WH-B", stock: 0, reorder: 12, price: 38.0 },
-  { sku: "HM-2240", name: "Tea Towel Set", image: "/placeholder.svg", category: "Home", brand: "Porcel", unit: "set", warranty: "N/A", location: "WH-C", stock: 36, reorder: 25, price: 14.5 },
-]
+// Adapt a CatalogItem (POS source of truth) to the richer Item shape
+// the inventory list expects. The catalog doesn't track unit /
+// warranty / location / reorder — derive them from whatever signals
+// the catalog DOES carry (category, tags, sku) so the same SKU
+// always shows the same metadata, regardless of industry.
+//
+// Pallio inventory covers every kind of stocked good: clothing,
+// food, ingredients, perfume, auto parts, services, manufacturing
+// raw materials, books, electronics, anything. The derivation here
+// is deliberately broad — when in doubt, default to neutral values
+// ("pcs", "—") rather than guess.
+const LOCATIONS = ["WH-A", "WH-B", "WH-C"]
+const UNLIMITED_STOCK = 9999  // catalog sentinel for non-tracked items
+                              // (e.g. menu dishes that don't pull from a SKU)
 
-const CATEGORY_OPTIONS = [
-  { value: "Electronics", label: "Electronics" },
-  { value: "Apparel", label: "Apparel" },
-  { value: "Home", label: "Home" },
-  { value: "Beauty", label: "Beauty" },
-] as const
+// Cue-based unit derivation. Matches against category and tags
+// (lowercased) so the rules cover any spelling variation. Order
+// matters — most specific first.
+function deriveUnit(c: CatalogItem): string {
+  const sig = `${c.category ?? ""} ${(c.tags ?? []).join(" ")}`.toLowerCase()
+  if (/\b(serv|service|consult|hour|hr)\b/.test(sig))                       return "hr"
+  if (/\b(food|meal|dish|course|side|dessert|menu)\b/.test(sig))            return "serv"
+  if (/\b(drink|beverage|coffee|tea|juice|wine|spirit)\b/.test(sig))        return "btl"
+  if (/\b(perfume|fragrance|cologne|oil|serum|tonic|lotion)\b/.test(sig))   return "btl"
+  if (/\b(flour|sugar|salt|rice|grain|powder|spice|seasoning)\b/.test(sig)) return "kg"
+  if (/\b(fabric|textile|cloth|leather|yarn|rope|cable|wire|hose)\b/.test(sig)) return "m"
+  if (/\b(paint|fuel|oil|coolant|liquid)\b/.test(sig))                      return "l"
+  if (/\b(grocer|bag|sack|pack|carton)\b/.test(sig))                        return "pkg"
+  if (/\b(set|kit|bundle)\b/.test(sig))                                     return "set"
+  if (/\b(dozen)\b/.test(sig))                                              return "dz"
+  return "pcs"  // safe universal default — works for clothing,
+                // electronics, auto parts, toys, books, anything
+                // sold one-at-a-time.
+}
+
+// Warranty derivation. Most items don't have warranties (food,
+// services, ingredients, perfume etc.) — those return "—" so the
+// column never lies. Items that typically DO carry warranty get a
+// sensible default based on industry norms.
+function deriveWarranty(c: CatalogItem): string {
+  const sig = `${c.category ?? ""} ${(c.tags ?? []).join(" ")}`.toLowerCase()
+  if (/\b(electronic|appliance|gadget|computer|phone)\b/.test(sig)) return "24 mo"
+  if (/\b(auto|car|vehicle|motorcycle|tyre)\b/.test(sig))           return "12 mo"
+  if (/\b(home|furniture|kitchen)\b/.test(sig))                     return "6 mo"
+  if (/\b(sport|fitness|outdoor)\b/.test(sig))                      return "6 mo"
+  if (/\b(machinery|equipment|tool|power-tool)\b/.test(sig))        return "12 mo"
+  return "—"
+}
+
+function deriveLocation(sku: string): string {
+  // Deterministic hash so the same SKU always lives at the same warehouse.
+  let h = 0
+  for (let i = 0; i < sku.length; i++) h = (h * 31 + sku.charCodeAt(i)) | 0
+  return LOCATIONS[Math.abs(h) % LOCATIONS.length]
+}
+
+function deriveReorder(stock: number): number {
+  // Items with the unlimited-stock sentinel (menu dishes, services)
+  // don't need a reorder point — they're not stock-tracked.
+  if (stock >= UNLIMITED_STOCK) return 0
+  // Otherwise: 30% of current stock with a floor of 5. Gives a
+  // sensible reorder threshold without the catalog having to
+  // track one. Real backend overrides this per-SKU.
+  return Math.max(5, Math.round(stock * 0.3))
+}
+
+// Pulls every catalog item across modes (retail + restaurant +
+// services + auto). Inventory covers all of them — a single
+// operator may run a shop, a kitchen, and a service workshop from
+// the same Pallio account.
+const items: Item[] = [
+  ...loadCatalog("retail"),
+  ...loadCatalog("restaurant"),
+  ...loadCatalog("services"),
+  ...loadCatalog("auto"),
+]
+  // Dedupe by SKU in case the modes overlap.
+  .filter((c, i, arr) => arr.findIndex((x) => x.sku === c.sku) === i)
+  .map((c) => ({
+    sku: c.sku,
+    name: c.name,
+    image: c.image ?? "/placeholder.svg",
+    category: c.category ?? "Uncategorised",
+    brand: c.brand ?? "—",
+    unit: deriveUnit(c),
+    warranty: deriveWarranty(c),
+    location: deriveLocation(c.sku),
+    stock: c.stock ?? 0,
+    reorder: deriveReorder(c.stock ?? 0),
+    price: c.price,
+  }))
+
+// Derive the filter options from the actual catalog so the chips
+// always match what's on the page. Avoids the "filter has Home but
+// no Home items exist" mismatch after switching POS catalog mode.
+const CATEGORY_OPTIONS = Array.from(new Set(items.map((it) => it.category)))
+  .sort()
+  .map((c) => ({ value: c, label: c }))
 const STOCK_OPTIONS = [
   { value: "all", label: "All" },
   { value: "in", label: "In stock" },
@@ -82,12 +165,25 @@ type SortKey = (typeof SORT_OPTIONS)[number]["value"]
 // typically reorder when stock dips below the reorder point, so
 // >2.5× sitting around suggests slow-mover / over-ordered cash
 // tied up. Tighten later once the data model adds a `max_qty`.
+function isUnlimited(it: Item): boolean {
+  // Items flagged with the catalog's unlimited sentinel — typically
+  // menu dishes (consumed via recipes, not SKU), services, or
+  // anything else that isn't stock-tracked.
+  return it.stock >= UNLIMITED_STOCK
+}
+
 function stockStatus(it: Item): { tone: StatusTone; label: string } {
-  if (it.stock === 0) return { tone: "danger", label: "Out" }
-  if (it.stock <= it.reorder * 0.4) return { tone: "danger", label: "Critical" }
-  if (it.stock < it.reorder) return { tone: "warning", label: "Low" }
-  if (it.stock > it.reorder * 2.5) return { tone: "info", label: "Overstock" }
+  if (isUnlimited(it))                       return { tone: "info",    label: "Unlimited" }
+  if (it.stock === 0)                        return { tone: "danger",  label: "Out" }
+  if (it.stock <= it.reorder * 0.4)          return { tone: "danger",  label: "Critical" }
+  if (it.stock < it.reorder)                 return { tone: "warning", label: "Low" }
+  if (it.stock > it.reorder * 2.5)           return { tone: "info",    label: "Overstock" }
   return { tone: "success", label: "OK" }
+}
+
+// Display helper — show "∞" instead of the raw 9999 sentinel.
+function formatStock(stock: number): string {
+  return stock >= UNLIMITED_STOCK ? "∞" : stock.toLocaleString()
 }
 
 export default function InventoryItems() {
@@ -143,10 +239,10 @@ export default function InventoryItems() {
     if (categories.length > 0) list = list.filter((it) => categories.includes(it.category))
     if (stock !== "all") {
       list = list.filter((it) => {
-        if (stock === "out") return it.stock === 0
-        if (stock === "low") return it.stock > 0 && it.stock < it.reorder
-        if (stock === "in") return it.stock >= it.reorder && it.stock <= it.reorder * 2.5
-        if (stock === "over") return it.stock > it.reorder * 2.5
+        if (stock === "out")  return it.stock === 0
+        if (stock === "low")  return it.stock > 0 && it.stock < it.reorder
+        if (stock === "in")   return isUnlimited(it) || (it.stock >= it.reorder && it.stock <= it.reorder * 2.5)
+        if (stock === "over") return !isUnlimited(it) && it.stock > it.reorder * 2.5
         return true
       })
     }
@@ -180,9 +276,11 @@ export default function InventoryItems() {
   const appliedCount = chips.length
 
   const total = items.length
-  const lowCount = items.filter((it) => it.stock > 0 && it.stock < it.reorder).length
+  const lowCount = items.filter((it) => !isUnlimited(it) && it.stock > 0 && it.stock < it.reorder).length
   const oosCount = items.filter((it) => it.stock === 0).length
-  const totalValue = items.reduce((s, it) => s + it.stock * it.price, 0)
+  // Skip unlimited items from total valuation — they're not
+  // physical stock you can liquidate.
+  const totalValue = items.reduce((s, it) => s + (isUnlimited(it) ? 0 : it.stock * it.price), 0)
 
   return (
     <PageShell
