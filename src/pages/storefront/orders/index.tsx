@@ -361,6 +361,7 @@ export default function StorefrontOrders() {
                                 src={it.image}
                                 alt={it.name}
                                 loading="lazy"
+                                crossOrigin="anonymous"
                                 referrerPolicy="no-referrer"
                                 className="h-7 w-7 rounded-md object-cover ring-1 ring-border"
                                 title={`${it.name} × ${it.qty}`}
@@ -447,6 +448,7 @@ function OrderCard({ order: o, formatPrice }: { order: StorefrontOrder; formatPr
                   src={it.image}
                   alt={it.name}
                   loading="lazy"
+                  crossOrigin="anonymous"
                   referrerPolicy="no-referrer"
                   className="h-8 w-8 rounded-md object-cover ring-1 ring-border"
                   title={`${it.name} × ${it.qty}`}

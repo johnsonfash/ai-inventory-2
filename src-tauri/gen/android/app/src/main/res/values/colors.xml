@@ -7,4 +7,8 @@
     <color name="teal_700">#FF018786</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <!-- Pallio brand dark background. Matches manifest.json
+         background_color and the desktop splash. Dark-first; the
+         same colour applies in light + dark system themes. -->
+    <color name="splashBackground">#FF0A0A0A</color>
 </resources>

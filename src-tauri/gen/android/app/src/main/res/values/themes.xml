@@ -1,6 +1,19 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
-    <style name="Theme.pallio" parent="Theme.MaterialComponents.DayNight.NoActionBar">
-        <!-- Customize your theme here. -->
+    <style name="Theme.pallio" parent="Theme.SplashScreen">
+        <!-- Android 12+ Splash Screen API. The system shows this
+             theme briefly between Activity launch and the first
+             frame of our WebView. -->
+        <item name="windowSplashScreenBackground">@color/splashBackground</item>
+        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_splash</item>
+        <!-- Hand control to the real app theme once the splash
+             dismisses. Tauri's WebView lives in this theme. -->
+        <item name="postSplashScreenTheme">@style/Theme.pallio.NoActionBar</item>
+    </style>
+
+    <!-- Theme the actual Activity uses after the splash exits.
+         Identical visual to what Tauri's scaffold expected. -->
+    <style name="Theme.pallio.NoActionBar" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="android:windowBackground">@color/splashBackground</item>
     </style>
 </resources>

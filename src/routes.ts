@@ -14,6 +14,7 @@ export const routes: RouteObject[] = [
   { path: "/privacy", Component: page(() => import("./pages/marketing-site/privacy")) },
   { path: "/terms", Component: page(() => import("./pages/marketing-site/terms")) },
   { path: "/login", Component: page(() => import("./pages/marketing-site/login")) },
+  { path: "/register", Component: page(() => import("./pages/marketing-site/register")) },
 
   // --- App routes (everything under the AppFrame shell) ---
   { path: "/dashboard", Component: page(() => import("./pages/dashboard")) },

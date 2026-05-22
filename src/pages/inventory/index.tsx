@@ -353,6 +353,7 @@ function MobileItemList({ items, formatPrice }: { items: Item[]; formatPrice: (n
                   src={it.image}
                   alt=""
                   loading="lazy"
+                  crossOrigin="anonymous"
                   className="h-12 w-12 shrink-0 rounded-lg border border-border bg-muted object-cover"
                 />
                 <div className="min-w-0 flex-1">
@@ -422,6 +423,7 @@ function DesktopItemTable({ items, formatPrice }: { items: Item[]; formatPrice: 
                       src={it.image}
                       alt=""
                       loading="lazy"
+                      crossOrigin="anonymous"
                       className="h-9 w-9 rounded-md border border-border bg-muted object-cover"
                     />
                     <div className="min-w-0">

@@ -151,6 +151,7 @@ export default function StorefrontManage() {
                     src="https://images.unsplash.com/photo-1483985988355-763728e1935b?w=600&h=800&fit=crop&auto=format&q=80"
                     alt="Storefront preview"
                     loading="lazy"
+                    crossOrigin="anonymous"
                     referrerPolicy="no-referrer"
                     className="absolute inset-0 h-full w-full object-cover"
                   />
@@ -454,7 +455,7 @@ export default function StorefrontManage() {
                 <div className="flex items-center gap-3">
                   <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg border border-border bg-muted text-muted-foreground">
                     {state.brand.logoUrl ? (
-                      <img src={state.brand.logoUrl} alt="Logo" className="h-full w-full rounded-lg object-cover" />
+                      <img src={state.brand.logoUrl} alt="Logo" crossOrigin="anonymous" className="h-full w-full rounded-lg object-cover" />
                     ) : (
                       <ImageIcon className="h-5 w-5" />
                     )}

@@ -27,6 +27,14 @@ const CANVAS = 1024
 // iOS where there's no cropping.
 const MARK_SCALE = 0.7
 
+// macOS app-icon template: the visible rounded "tile" should occupy
+// ~824×824 inside the 1024×1024 canvas, with ~100px transparent
+// margin on each side. macOS displays the icon 1:1 in the dock — no
+// re-padding — so when we fill the whole canvas, Pallio reads as
+// oversized next to every native app. Same template Apple ships in
+// the macOS Icon Composer + recommends in the HIG.
+const TILE_SCALE = 0.824
+
 const MARK_SRC = path.join(PUBLIC, "favicon.svg")
 
 // Brand violet, matches StatusBar/theme tokens.
@@ -76,10 +84,37 @@ const renderFullDesign = async (size) => {
     .toBuffer()
 }
 
-// 1) capacitor-assets sources at 1024×1024.
-//    - icon-only:       full design (iOS app icon, gets squircle clip)
-//    - icon-foreground: mark on transparent (Android adaptive top layer)
-//    - icon-background: solid brand violet (Android adaptive bottom layer)
+// macOS-style render — the tile inset inside a transparent canvas.
+// Feeds tauri:icon so the generated icon.icns matches the visual
+// scale of native macOS dock icons (Finder, Safari, etc.).
+const renderTilePadded = async (size) => {
+  const tileSize = Math.round(size * TILE_SCALE)
+  const tileBuf = await renderFullDesign(tileSize)
+  return sharp({
+    create: {
+      width: size,
+      height: size,
+      channels: 4,
+      background: { r: 0, g: 0, b: 0, alpha: 0 },
+    },
+  })
+    .composite([{ input: tileBuf, gravity: "center" }])
+    .png()
+    .toBuffer()
+}
+
+// 1) tauri:icon source at 1024×1024 — fills the canvas (no
+//    transparent margin). Reasoning:
+//    - iOS / Android / Windows / Linux all expect the icon to fill
+//      the canvas; their platforms apply their own masks.
+//    - macOS needs ~24% margin around the tile to look right in the
+//      dock, but that's handled in build-macos-icon.mjs which writes
+//      its own padded icon.png + icon.icns AFTER `tauri icon` runs.
+//    - The Tauri CLI auto-crops transparent padding from this source
+//      anyway, so adding margins here is wasted work.
+//
+//    icon-foreground: mark on transparent (Android adaptive top layer)
+//    icon-background: solid brand violet (Android adaptive bottom layer)
 const composedFull = await renderFullDesign(CANVAS)
 await sharp(composedFull).toFile(path.join(__dirname, "icon-only.png"))
 
@@ -121,6 +156,16 @@ await fs.mkdir(path.join(PUBLIC, "icons"), { recursive: true })
 for (const { name, size } of standalone) {
   const buf = await renderFullDesign(size)
   await sharp(buf).toFile(path.join(PUBLIC, "icons", name))
+}
+
+// 2b) Mark-only variants — the price-tag mark on transparent, no
+//     rounded-card background. Used by the splash screen + the auth
+//     page headers, where the card frame from icon-only competes
+//     with the surrounding canvas instead of integrating.
+const markOnlySizes = [256, 384, 512]
+for (const size of markOnlySizes) {
+  const buf = await renderIcon(size, { background: "transparent" })
+  await sharp(buf).toFile(path.join(PUBLIC, "icons", `mark-${size}.png`))
 }
 
 // 3) Maskable icon — single layer, mark inset to 60% so Android's

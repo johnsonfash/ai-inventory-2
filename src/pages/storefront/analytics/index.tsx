@@ -366,6 +366,7 @@ export default function StorefrontAnalytics() {
                       src={p.image}
                       alt={p.name}
                       loading="lazy"
+                      crossOrigin="anonymous"
                       referrerPolicy="no-referrer"
                       className="h-12 w-12 shrink-0 rounded-lg object-cover"
                     />

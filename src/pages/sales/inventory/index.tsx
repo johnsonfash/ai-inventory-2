@@ -122,6 +122,7 @@ export default function SalesInventoryPage() {
                       src={it.image || "/placeholder.svg"}
                       alt={it.name}
                       loading="lazy"
+                      crossOrigin="anonymous"
                       className="absolute inset-0 h-full w-full object-cover"
                     />
                     <span className="absolute right-2 top-2"><StatusBadge tone={s.tone} withDot>{s.label}</StatusBadge></span>

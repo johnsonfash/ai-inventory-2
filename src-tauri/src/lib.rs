@@ -32,12 +32,17 @@ pub fn run() {
             .plugin(tauri_plugin_sharesheet::init());
     }
 
-    // ----- POS hardware (thermal printer + serial) — cross-platform
-    // (works on desktop terminals AND Android USB-OTG / iOS via
-    // network printers). -----
-    builder = builder
-        .plugin(tauri_plugin_thermal_printer::init())
-        .plugin(tauri_plugin_serialplugin::init());
+    // ----- POS hardware (thermal printer + serial) — desktop +
+    // Android only. iOS is sandboxed (no USB host, no raw serial)
+    // and the thermal-printer crate ships no iOS Swift, so its
+    // build.rs panics on aarch64-apple-ios*. iOS users can still
+    // print over IP via the existing network code-path. -----
+    #[cfg(not(target_os = "ios"))]
+    {
+        builder = builder
+            .plugin(tauri_plugin_thermal_printer::init())
+            .plugin(tauri_plugin_serialplugin::init());
+    }
 
     // ----- Desktop-only plugins -----
     #[cfg(not(any(target_os = "android", target_os = "ios")))]

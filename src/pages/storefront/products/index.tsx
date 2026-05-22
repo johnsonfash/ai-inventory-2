@@ -228,7 +228,7 @@ export default function StorefrontProducts() {
                       <tr key={p.sku} className="transition-colors hover:bg-accent/30">
                         <td className="px-3 py-2.5">
                           <div className="flex items-center gap-2.5">
-                            <img src={p.image} alt={p.name} loading="lazy" referrerPolicy="no-referrer" className="h-10 w-10 rounded-lg object-cover" />
+                            <img src={p.image} alt={p.name} crossOrigin="anonymous" loading="lazy" referrerPolicy="no-referrer" className="h-10 w-10 rounded-lg object-cover" />
                             <div className="min-w-0">
                               <div className="flex items-center gap-1.5">
                                 <p className="truncate text-xs font-semibold">{p.name}</p>
@@ -301,7 +301,7 @@ function ProductCard({ product: p, formatPrice }: { product: StorefrontProduct; 
     <li>
       <Link to="/inventory" className="block overflow-hidden rounded-2xl border border-border bg-card transition-colors hover:border-brand/40">
         <div className="relative aspect-square overflow-hidden bg-muted">
-          <img src={p.image} alt={p.name} loading="lazy" referrerPolicy="no-referrer" className="absolute inset-0 h-full w-full object-cover" />
+          <img src={p.image} alt={p.name} crossOrigin="anonymous" loading="lazy" referrerPolicy="no-referrer" className="absolute inset-0 h-full w-full object-cover" />
           {p.featured && (
             <span className="absolute left-2 top-2 inline-flex items-center gap-1 rounded-full bg-amber-400/95 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-amber-950 shadow-sm">
               <Star className="h-2.5 w-2.5 fill-current" /> Featured

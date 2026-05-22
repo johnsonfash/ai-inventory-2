@@ -327,7 +327,7 @@ function HomeLuxe({ template, hero, products, desktop }: Ctx) {
           <ShoppingBag className="h-6 w-6 text-zinc-300" />
         </header>
         <div className="relative flex-1">
-          <img src={hero} alt="" loading="lazy" referrerPolicy="no-referrer" className="absolute inset-0 h-full w-full object-cover" />
+          <img src={hero} alt="" crossOrigin="anonymous" loading="lazy" referrerPolicy="no-referrer" className="absolute inset-0 h-full w-full object-cover" />
           <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-black/10" />
           <div className="absolute inset-0 flex flex-col justify-end p-8">
             <span className="font-serif text-xs uppercase tracking-[0.4em]" style={{ color: accent }}>The edit · spring 26</span>
@@ -338,7 +338,7 @@ function HomeLuxe({ template, hero, products, desktop }: Ctx) {
         <div className="grid grid-cols-2 gap-px bg-zinc-800 p-px">
           {products.slice(0, 2).map((p, i) => (
             <div key={i} className="relative aspect-[3/4] bg-zinc-950">
-              <img src={p.image} alt={p.name} loading="lazy" referrerPolicy="no-referrer" className="h-full w-full object-cover opacity-90" />
+              <img src={p.image} alt={p.name} crossOrigin="anonymous" loading="lazy" referrerPolicy="no-referrer" className="h-full w-full object-cover opacity-90" />
               <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 to-transparent p-3">
                 <p className="font-serif text-sm italic">{p.name}</p>
                 <p className="text-sm font-bold tabular-nums" style={{ color: accent }}>{p.price}</p>
@@ -363,7 +363,7 @@ function HomeLuxe({ template, hero, products, desktop }: Ctx) {
         </div>
       </header>
       <div className="relative flex-1">
-        <img src={hero} alt="" loading="lazy" referrerPolicy="no-referrer" className="absolute inset-0 h-full w-full object-cover" />
+        <img src={hero} alt="" crossOrigin="anonymous" loading="lazy" referrerPolicy="no-referrer" className="absolute inset-0 h-full w-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/30 to-transparent" />
         <div className="absolute inset-0 flex items-center px-20">
           <div className="max-w-[55%]">
@@ -386,7 +386,7 @@ function HomeLuxe({ template, hero, products, desktop }: Ctx) {
           {products.slice(0, 4).map((p, i) => (
             <div key={i} className="relative bg-zinc-950">
               <div className="aspect-[3/4] overflow-hidden">
-                <img src={p.image} alt={p.name} loading="lazy" referrerPolicy="no-referrer" className="h-full w-full object-cover opacity-95" />
+                <img src={p.image} alt={p.name} crossOrigin="anonymous" loading="lazy" referrerPolicy="no-referrer" className="h-full w-full object-cover opacity-95" />
               </div>
               <div className="p-4">
                 <p className="font-serif text-lg italic">{p.name}</p>
@@ -419,7 +419,7 @@ function HomeEditorial({ template, hero, products, desktop }: Ctx) {
           <h1 className="mt-3 font-serif text-5xl italic leading-[0.95]">{editorialHeadline(template.sector)}</h1>
         </div>
         <div className="relative aspect-[4/5] w-full">
-          <img src={hero} alt="" loading="lazy" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
+          <img src={hero} alt="" crossOrigin="anonymous" loading="lazy" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
         </div>
         <div className="flex-1 px-6 py-5">
           <p className="font-serif text-base leading-relaxed text-zinc-700">
@@ -441,7 +441,7 @@ function HomeEditorial({ template, hero, products, desktop }: Ctx) {
       </header>
       <div className="grid flex-1 grid-cols-[55%_45%]">
         <div className="relative">
-          <img src={hero} alt="" loading="lazy" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
+          <img src={hero} alt="" crossOrigin="anonymous" loading="lazy" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
         </div>
         <div className="flex flex-col justify-center px-16 py-12">
           <span className="font-serif text-sm uppercase tracking-[0.5em] text-zinc-600">The cover story</span>
@@ -459,7 +459,7 @@ function HomeEditorial({ template, hero, products, desktop }: Ctx) {
           {products.slice(0, 4).map((p, i) => (
             <div key={i}>
               <div className="aspect-[4/5] overflow-hidden">
-                <img src={p.image} alt={p.name} loading="lazy" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
+                <img src={p.image} alt={p.name} crossOrigin="anonymous" loading="lazy" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
               </div>
               <p className="mt-2 font-serif text-base italic">{p.name}</p>
               <p className="text-sm font-bold tabular-nums">{p.price}</p>
@@ -494,14 +494,14 @@ function HomeBold({ template, hero, products, desktop }: Ctx) {
           <button className="mt-6 inline-flex items-center gap-2 px-6 py-3 text-sm font-black uppercase tracking-widest text-black" style={{ background: accent }}>Shop drop 01 →</button>
         </div>
         <div className="relative aspect-square w-full" style={{ background: accent }}>
-          <img src={hero} alt="" loading="lazy" referrerPolicy="no-referrer" className="absolute inset-0 h-full w-full object-cover mix-blend-multiply" />
+          <img src={hero} alt="" crossOrigin="anonymous" loading="lazy" referrerPolicy="no-referrer" className="absolute inset-0 h-full w-full object-cover mix-blend-multiply" />
           <span className="absolute right-4 top-4 border-2 border-black bg-white px-2 py-1 text-xs font-black uppercase text-black">New</span>
         </div>
         <div className="grid grid-cols-2 border-t-4 border-black bg-white">
           {products.slice(0, 2).map((p, i) => (
             <div key={i} className="border-r-4 border-black last:border-r-0">
               <div className="aspect-square overflow-hidden">
-                <img src={p.image} alt={p.name} loading="lazy" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
+                <img src={p.image} alt={p.name} crossOrigin="anonymous" loading="lazy" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
               </div>
               <div className="px-3 py-2">
                 <p className="truncate text-sm font-black uppercase">{p.name}</p>
@@ -538,7 +538,7 @@ function HomeBold({ template, hero, products, desktop }: Ctx) {
           </div>
         </div>
         <div className="relative" style={{ background: accent }}>
-          <img src={hero} alt="" loading="lazy" referrerPolicy="no-referrer" className="absolute inset-0 h-full w-full object-cover mix-blend-multiply" />
+          <img src={hero} alt="" crossOrigin="anonymous" loading="lazy" referrerPolicy="no-referrer" className="absolute inset-0 h-full w-full object-cover mix-blend-multiply" />
           <span className="absolute right-8 top-8 border-4 border-black bg-white px-4 py-2 text-sm font-black uppercase text-black">New season</span>
         </div>
       </div>
@@ -546,7 +546,7 @@ function HomeBold({ template, hero, products, desktop }: Ctx) {
         {products.slice(0, 4).map((p, i) => (
           <div key={i} className="border-r-8 border-black last:border-r-0">
             <div className="aspect-square overflow-hidden">
-              <img src={p.image} alt={p.name} loading="lazy" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
+              <img src={p.image} alt={p.name} crossOrigin="anonymous" loading="lazy" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
             </div>
             <div className="px-5 py-4">
               <p className="text-lg font-black uppercase">{p.name}</p>
@@ -579,7 +579,7 @@ function HomeMinimal({ template, hero, products, desktop }: Ctx) {
           <p className="mt-4 max-w-xs text-center text-sm leading-relaxed text-zinc-500">Considered design. Honest pricing. Free returns within 30 days.</p>
         </div>
         <div className="relative aspect-square w-full px-12">
-          <img src={hero} alt="" loading="lazy" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
+          <img src={hero} alt="" crossOrigin="anonymous" loading="lazy" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
         </div>
         <div className="mt-6 flex justify-center">
           <button className="border-b text-xs uppercase tracking-[0.4em]" style={{ borderColor: primary, color: primary }}>Browse the edit →</button>
@@ -588,7 +588,7 @@ function HomeMinimal({ template, hero, products, desktop }: Ctx) {
           {products.slice(0, 2).map((p, i) => (
             <div key={i} className="text-center">
               <div className="aspect-square overflow-hidden bg-zinc-50">
-                <img src={p.image} alt={p.name} loading="lazy" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
+                <img src={p.image} alt={p.name} crossOrigin="anonymous" loading="lazy" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
               </div>
               <p className="mt-2 truncate text-sm text-zinc-700">{p.name}</p>
               <p className="text-sm tabular-nums" style={{ color: primary }}>{p.price}</p>
@@ -617,7 +617,7 @@ function HomeMinimal({ template, hero, products, desktop }: Ctx) {
           <button className="mt-10 border-b-2 pb-1 text-xs uppercase tracking-[0.4em]" style={{ borderColor: primary, color: primary }}>Browse the edit →</button>
         </div>
         <div className="relative">
-          <img src={hero} alt="" loading="lazy" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
+          <img src={hero} alt="" crossOrigin="anonymous" loading="lazy" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
         </div>
       </div>
       <section className="border-t border-zinc-100 px-16 py-10">
@@ -629,7 +629,7 @@ function HomeMinimal({ template, hero, products, desktop }: Ctx) {
           {products.slice(0, 4).map((p, i) => (
             <div key={i}>
               <div className="aspect-[4/5] overflow-hidden bg-zinc-50">
-                <img src={p.image} alt={p.name} loading="lazy" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
+                <img src={p.image} alt={p.name} crossOrigin="anonymous" loading="lazy" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
               </div>
               <p className="mt-3 text-base text-zinc-700">{p.name}</p>
               <p className="mt-0.5 text-base tabular-nums" style={{ color: primary }}>{p.price}</p>
@@ -659,7 +659,7 @@ function HomePlayful({ template, hero, products, desktop }: Ctx) {
           </span>
         </header>
         <div className="relative mx-4 mt-2 overflow-hidden rounded-3xl" style={{ background: accent }}>
-          <img src={hero} alt="" loading="lazy" referrerPolicy="no-referrer" className="aspect-[4/3] h-full w-full object-cover mix-blend-multiply" />
+          <img src={hero} alt="" crossOrigin="anonymous" loading="lazy" referrerPolicy="no-referrer" className="aspect-[4/3] h-full w-full object-cover mix-blend-multiply" />
           <div className="absolute inset-0 flex flex-col justify-end p-5 text-white">
             <span className="text-xs font-black uppercase tracking-widest text-white/80">Today's pick</span>
             <h1 className="text-4xl font-black leading-tight">{playfulHeadline(template.sector)}</h1>
@@ -697,7 +697,7 @@ function HomePlayful({ template, hero, products, desktop }: Ctx) {
           {products.slice(0, 4).map((p, i) => (
             <div key={i} className="overflow-hidden rounded-2xl bg-white shadow-sm">
               <div className="relative aspect-[5/4]">
-                <img src={p.image} alt={p.name} loading="lazy" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
+                <img src={p.image} alt={p.name} crossOrigin="anonymous" loading="lazy" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
                 <div className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-white/95 shadow-sm">
                   <Heart className="h-3 w-3" style={{ color: accent }} />
                 </div>
@@ -738,7 +738,7 @@ function HomePlayful({ template, hero, products, desktop }: Ctx) {
       {/* Hero + featured grid */}
       <div className="grid grid-cols-[1.3fr_1fr] gap-6 px-16 pb-5">
         <div className="relative overflow-hidden rounded-3xl" style={{ background: accent }}>
-          <img src={hero} alt="" loading="lazy" referrerPolicy="no-referrer" className="absolute inset-0 h-full w-full object-cover mix-blend-multiply" />
+          <img src={hero} alt="" crossOrigin="anonymous" loading="lazy" referrerPolicy="no-referrer" className="absolute inset-0 h-full w-full object-cover mix-blend-multiply" />
           <div className="absolute inset-0 flex flex-col justify-end p-10 text-white">
             <span className="inline-flex w-fit items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-xs font-black uppercase tracking-widest backdrop-blur-sm">
               <span className="h-2 w-2 rounded-full bg-white" /> Open · 30 min delivery
@@ -755,7 +755,7 @@ function HomePlayful({ template, hero, products, desktop }: Ctx) {
           {products.slice(0, 4).map((p, i) => (
             <div key={i} className="overflow-hidden rounded-2xl bg-white shadow-md">
               <div className="relative aspect-[5/4]">
-                <img src={p.image} alt={p.name} loading="lazy" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
+                <img src={p.image} alt={p.name} crossOrigin="anonymous" loading="lazy" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
                 <div className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-white/95 shadow-sm">
                   <Heart className="h-3.5 w-3.5" style={{ color: accent }} />
                 </div>
@@ -868,7 +868,7 @@ function ShopGeneric({ template, products, desktop }: Ctx) {
         {products.slice(0, desktop ? 8 : 4).map((p, i) => (
           <div key={i} className="flex flex-col">
             <div className={cn("aspect-[4/5] overflow-hidden", style === "playful" && "rounded-2xl", isLuxe ? "" : "bg-zinc-50")}>
-              <img src={p.image} alt={p.name} loading="lazy" referrerPolicy="no-referrer" className={cn("h-full w-full object-cover", isLuxe && "opacity-90")} />
+              <img src={p.image} alt={p.name} crossOrigin="anonymous" loading="lazy" referrerPolicy="no-referrer" className={cn("h-full w-full object-cover", isLuxe && "opacity-90")} />
             </div>
             <p className={cn("mt-2 truncate", isLuxe ? "font-serif text-base italic" : "text-sm font-medium")}>{p.name}</p>
             <div className="flex items-baseline justify-between">
@@ -915,7 +915,7 @@ function ProductGeneric({ template, products, desktop }: Ctx) {
       </header>
       <div className={cn("grid flex-1 overflow-hidden", desktop ? "grid-cols-[1.1fr_1fr] gap-12 px-16 py-10" : "grid-cols-1 gap-4 px-6 py-5")}>
         <div className={cn("relative overflow-hidden", style === "playful" && "rounded-2xl")}>
-          <img src={product.image} alt={product.name} loading="lazy" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
+          <img src={product.image} alt={product.name} crossOrigin="anonymous" loading="lazy" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
         </div>
         <div className="flex flex-col justify-center">
           <span className="text-xs uppercase tracking-[0.4em]" style={{ color: accent }}>{template.sector}</span>
@@ -1008,7 +1008,7 @@ function CartGeneric({ template, products, desktop }: Ctx) {
             {products.slice(0, 3).map((p, i) => (
               <li key={i} className={cn("flex items-center gap-4", desktop ? "py-5" : "py-3")}>
                 <div className={cn("shrink-0 overflow-hidden", style === "playful" ? "rounded-xl" : "rounded-none", desktop ? "h-24 w-24" : "h-16 w-16")}>
-                  <img src={p.image} alt={p.name} loading="lazy" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
+                  <img src={p.image} alt={p.name} crossOrigin="anonymous" loading="lazy" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className={cn("truncate", isLuxe ? "font-serif italic" : "font-semibold", desktop ? "text-lg" : "text-sm")}>{p.name}</p>
@@ -1129,7 +1129,7 @@ function CheckoutGeneric({ template, products, desktop }: Ctx) {
               {products.slice(0, 3).map((p, i) => (
                 <li key={i} className="flex items-center gap-3 py-2 text-sm">
                   <div className="relative">
-                    <img src={p.image} alt="" loading="lazy" referrerPolicy="no-referrer" className="h-12 w-12 rounded object-cover" />
+                    <img src={p.image} alt="" crossOrigin="anonymous" loading="lazy" referrerPolicy="no-referrer" className="h-12 w-12 rounded object-cover" />
                     <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full text-xs font-bold text-white" style={{ background: accent }}>{i + 1}</span>
                   </div>
                   <span className="min-w-0 flex-1 truncate">{p.name}</span>
@@ -1237,7 +1237,7 @@ function AboutGeneric({ template, hero, desktop }: Ctx) {
           </ul>
         </div>
         <div className={cn("relative overflow-hidden", template.style === "playful" && "rounded-2xl")}>
-          <img src={hero} alt="" loading="lazy" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
+          <img src={hero} alt="" crossOrigin="anonymous" loading="lazy" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
         </div>
       </div>
     </div>
@@ -1350,7 +1350,7 @@ function HomeLuxeB({ template, hero, products, desktop }: Ctx) {
           <ShoppingBag className="h-6 w-6 text-zinc-300" />
         </header>
         <div className="relative h-[55%] w-full">
-          <img src={hero} alt="" loading="lazy" referrerPolicy="no-referrer" className="absolute inset-0 h-full w-full object-cover" />
+          <img src={hero} alt="" crossOrigin="anonymous" loading="lazy" referrerPolicy="no-referrer" className="absolute inset-0 h-full w-full object-cover" />
           <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/40 to-black/80" />
           <div className="absolute inset-0 flex flex-col justify-end p-7">
             <span className="font-serif text-[10px] uppercase tracking-[0.4em]" style={{ color: accent }}>Sanctuary · since 2023</span>
@@ -1382,7 +1382,7 @@ function HomeLuxeB({ template, hero, products, desktop }: Ctx) {
         </div>
       </header>
       <div className="relative flex-1">
-        <img src={hero} alt="" loading="lazy" referrerPolicy="no-referrer" className="absolute inset-0 h-full w-full object-cover" />
+        <img src={hero} alt="" crossOrigin="anonymous" loading="lazy" referrerPolicy="no-referrer" className="absolute inset-0 h-full w-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-black/10" />
         <div className="absolute inset-0 grid grid-cols-2 items-center gap-12 px-20">
           <div>
@@ -1417,7 +1417,7 @@ function HomeLuxeB({ template, hero, products, desktop }: Ctx) {
         {products.slice(0, 3).map((p, i) => (
           <div key={i} className="flex items-center gap-4 border-r border-zinc-800 p-5 last:border-r-0">
             <div className="h-16 w-16 shrink-0 overflow-hidden">
-              <img src={p.image} alt={p.name} loading="lazy" referrerPolicy="no-referrer" className="h-full w-full object-cover opacity-90" />
+              <img src={p.image} alt={p.name} crossOrigin="anonymous" loading="lazy" referrerPolicy="no-referrer" className="h-full w-full object-cover opacity-90" />
             </div>
             <div className="min-w-0">
               <p className="font-serif text-lg italic">{p.name}</p>
@@ -1454,7 +1454,7 @@ function HomeEditorialB({ template, hero, products, desktop }: Ctx) {
           {products.slice(0, 4).map((p, i) => (
             <div key={i}>
               <div className="aspect-[3/4] overflow-hidden bg-zinc-200">
-                <img src={p.image} alt={p.name} loading="lazy" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
+                <img src={p.image} alt={p.name} crossOrigin="anonymous" loading="lazy" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
               </div>
               <p className="mt-1.5 font-serif text-sm italic">{p.name}</p>
               <p className="text-xs font-bold tabular-nums">{p.price}</p>
@@ -1489,7 +1489,7 @@ function HomeEditorialB({ template, hero, products, desktop }: Ctx) {
             {products.slice(0, 8).map((p, i) => (
               <div key={i}>
                 <div className="aspect-[3/4] overflow-hidden bg-zinc-200">
-                  <img src={p.image} alt={p.name} loading="lazy" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
+                  <img src={p.image} alt={p.name} crossOrigin="anonymous" loading="lazy" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
                 </div>
                 <p className="mt-2 line-clamp-1 font-serif text-sm italic">{p.name}</p>
                 <p className="text-xs font-bold tabular-nums">{p.price}</p>
@@ -1526,14 +1526,14 @@ function HomeBoldB({ template, hero, products, desktop }: Ctx) {
           </div>
         </div>
         <div className="relative aspect-[4/3] w-full" style={{ background: accent }}>
-          <img src={hero} alt="" loading="lazy" referrerPolicy="no-referrer" className="absolute inset-0 h-full w-full object-cover mix-blend-multiply" />
+          <img src={hero} alt="" crossOrigin="anonymous" loading="lazy" referrerPolicy="no-referrer" className="absolute inset-0 h-full w-full object-cover mix-blend-multiply" />
           <h1 className="absolute inset-0 flex flex-col items-center justify-center text-center text-5xl font-black uppercase leading-[0.85] tracking-tight text-white">SOLE<br />SEEKERS</h1>
         </div>
         <div className="grid grid-cols-2 border-t-4 border-black">
           {products.slice(0, 2).map((p, i) => (
             <div key={i} className="border-r-4 border-black last:border-r-0">
               <div className="aspect-square overflow-hidden">
-                <img src={p.image} alt={p.name} loading="lazy" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
+                <img src={p.image} alt={p.name} crossOrigin="anonymous" loading="lazy" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
               </div>
               <div className="px-3 py-2 text-black">
                 <p className="truncate text-sm font-black uppercase">{p.name}</p>
@@ -1574,7 +1574,7 @@ function HomeBoldB({ template, hero, products, desktop }: Ctx) {
           <div key={i} className="relative bg-white">
             <div className="absolute left-3 top-3 z-10 border-2 border-black bg-white px-2 py-0.5 text-[10px] font-black uppercase">#{i + 1}</div>
             <div className="aspect-square overflow-hidden">
-              <img src={p.image} alt={p.name} loading="lazy" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
+              <img src={p.image} alt={p.name} crossOrigin="anonymous" loading="lazy" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
             </div>
             <div className="border-t-4 border-black px-5 py-4">
               <p className="text-xl font-black uppercase">{p.name}</p>
@@ -1603,7 +1603,7 @@ function HomeMinimalB({ template, hero, products, desktop }: Ctx) {
           <ShoppingBag className="h-5 w-5 text-zinc-700" />
         </header>
         <div className="relative aspect-square w-full">
-          <img src={hero} alt="" loading="lazy" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
+          <img src={hero} alt="" crossOrigin="anonymous" loading="lazy" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
           <span className="absolute right-3 top-3 rounded-full bg-white/95 px-3 py-1 text-[9px] font-bold uppercase tracking-widest" style={{ color: primary }}>Single origin · Ethiopia</span>
         </div>
         <div className="px-6 py-5">
@@ -1616,7 +1616,7 @@ function HomeMinimalB({ template, hero, products, desktop }: Ctx) {
           {products.slice(0, 3).map((p, i) => (
             <div key={i}>
               <div className="aspect-square overflow-hidden bg-zinc-100">
-                <img src={p.image} alt={p.name} loading="lazy" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
+                <img src={p.image} alt={p.name} crossOrigin="anonymous" loading="lazy" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
               </div>
               <p className="mt-1 truncate text-[9px] text-zinc-600">{p.name}</p>
               <p className="text-[9px] tabular-nums" style={{ color: primary }}>{p.price}</p>
@@ -1637,7 +1637,7 @@ function HomeMinimalB({ template, hero, products, desktop }: Ctx) {
       </header>
       <div className="grid flex-1 grid-cols-[60%_40%]">
         <div className="relative">
-          <img src={hero} alt="" loading="lazy" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
+          <img src={hero} alt="" crossOrigin="anonymous" loading="lazy" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
           <div className="absolute left-10 top-10 inline-flex items-center gap-2 rounded-full bg-white/95 px-4 py-2 text-xs font-bold uppercase tracking-widest" style={{ color: primary }}>
             <span className="h-2 w-2 rounded-full" style={{ background: primary }} /> Single origin · Ethiopia
           </div>
@@ -1662,7 +1662,7 @@ function HomeMinimalB({ template, hero, products, desktop }: Ctx) {
           {products.slice(0, 5).map((p, i) => (
             <div key={i}>
               <div className="aspect-square overflow-hidden bg-zinc-100">
-                <img src={p.image} alt={p.name} loading="lazy" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
+                <img src={p.image} alt={p.name} crossOrigin="anonymous" loading="lazy" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
               </div>
               <p className="mt-3 truncate text-sm text-zinc-700">{p.name}</p>
               <p className="mt-0.5 text-sm tabular-nums" style={{ color: primary }}>{p.price}</p>
@@ -1693,7 +1693,7 @@ function HomePlayfulB({ template, hero, products, desktop }: Ctx) {
             <div key={label} className="flex shrink-0 flex-col items-center gap-1">
               <div className={cn("h-14 w-14 rounded-full p-0.5", i === 0 ? "bg-gradient-to-br from-fuchsia-500 via-amber-400 to-cyan-400" : "bg-white shadow-sm")}>
                 <div className="h-full w-full overflow-hidden rounded-full bg-white">
-                  <img src={products[i % products.length].image} alt={label} loading="lazy" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
+                  <img src={products[i % products.length].image} alt={label} crossOrigin="anonymous" loading="lazy" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
                 </div>
               </div>
               <span className="text-[9px] font-bold text-zinc-700">{label}</span>
@@ -1701,7 +1701,7 @@ function HomePlayfulB({ template, hero, products, desktop }: Ctx) {
           ))}
         </div>
         <div className="relative mx-4 overflow-hidden rounded-3xl" style={{ background: accent }}>
-          <img src={hero} alt="" loading="lazy" referrerPolicy="no-referrer" className="aspect-[4/3] h-full w-full object-cover mix-blend-multiply" />
+          <img src={hero} alt="" crossOrigin="anonymous" loading="lazy" referrerPolicy="no-referrer" className="aspect-[4/3] h-full w-full object-cover mix-blend-multiply" />
           <div className="absolute inset-0 flex flex-col justify-end p-5 text-white">
             <span className="text-xs font-black uppercase tracking-widest text-white/80">For Bella · age 3 · 12 kg</span>
             <h1 className="text-4xl font-black leading-tight">Bella's<br />favourites</h1>
@@ -1712,7 +1712,7 @@ function HomePlayfulB({ template, hero, products, desktop }: Ctx) {
           {products.slice(0, 4).map((p, i) => (
             <div key={i} className="overflow-hidden rounded-2xl bg-white shadow-sm">
               <div className="relative aspect-[5/4]">
-                <img src={p.image} alt={p.name} loading="lazy" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
+                <img src={p.image} alt={p.name} crossOrigin="anonymous" loading="lazy" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
                 <div className="absolute right-2 top-2 rounded-full bg-white/95 px-1.5 py-0.5 text-[9px] font-black shadow-sm" style={{ color: primary }}>★ 4.{8 + (i % 2)}</div>
               </div>
               <div className="px-2.5 py-1.5">
@@ -1751,7 +1751,7 @@ function HomePlayfulB({ template, hero, products, desktop }: Ctx) {
           <div key={s.label} className="flex shrink-0 flex-col items-center gap-2">
             <div className={cn("h-20 w-20 rounded-full p-1", s.featured ? "bg-gradient-to-br from-fuchsia-500 via-amber-400 to-cyan-400" : "bg-white shadow-sm")}>
               <div className="h-full w-full overflow-hidden rounded-full bg-white">
-                <img src={products[i % products.length].image} alt={s.label} loading="lazy" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
+                <img src={products[i % products.length].image} alt={s.label} crossOrigin="anonymous" loading="lazy" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
               </div>
             </div>
             <span className="text-xs font-bold text-zinc-700">{s.label}</span>
@@ -1760,7 +1760,7 @@ function HomePlayfulB({ template, hero, products, desktop }: Ctx) {
       </div>
       <div className="grid flex-1 grid-cols-[1.3fr_1fr] gap-6 px-16 pb-6">
         <div className="relative overflow-hidden rounded-3xl" style={{ background: accent }}>
-          <img src={hero} alt="" loading="lazy" referrerPolicy="no-referrer" className="absolute inset-0 h-full w-full object-cover mix-blend-multiply" />
+          <img src={hero} alt="" crossOrigin="anonymous" loading="lazy" referrerPolicy="no-referrer" className="absolute inset-0 h-full w-full object-cover mix-blend-multiply" />
           <div className="absolute inset-0 flex flex-col justify-end p-10 text-white">
             <span className="text-sm font-black uppercase tracking-widest text-white/80">For Bella · age 3 · 12 kg · sensitive stomach</span>
             <h1 className="mt-2 text-6xl font-black leading-tight">Bella's<br />favourites</h1>
@@ -1775,7 +1775,7 @@ function HomePlayfulB({ template, hero, products, desktop }: Ctx) {
           {products.slice(0, 4).map((p, i) => (
             <div key={i} className="relative overflow-hidden rounded-2xl bg-white shadow-md">
               <div className="aspect-square">
-                <img src={p.image} alt={p.name} loading="lazy" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
+                <img src={p.image} alt={p.name} crossOrigin="anonymous" loading="lazy" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
               </div>
               <div className="absolute right-3 top-3 rounded-full bg-white/95 px-2 py-0.5 text-[10px] font-black" style={{ color: primary }}>★ 4.{8 + (i % 2)}</div>
               <div className="px-4 py-3">
@@ -1809,7 +1809,7 @@ function HomeMinimalC({ template, hero, products, desktop }: Ctx) {
           <p className="mt-1 text-2xl font-light tabular-nums" style={{ color: primary }}>₦1,420,000</p>
         </div>
         <div className="relative aspect-[4/3]">
-          <img src={hero} alt="" loading="lazy" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
+          <img src={hero} alt="" crossOrigin="anonymous" loading="lazy" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
         </div>
         <div className="grid grid-cols-3 gap-px bg-zinc-200">
           {[
@@ -1833,7 +1833,7 @@ function HomeMinimalC({ template, hero, products, desktop }: Ctx) {
           {products.slice(0, 3).map((p, i) => (
             <div key={i}>
               <div className="aspect-square overflow-hidden bg-zinc-50">
-                <img src={p.image} alt={p.name} loading="lazy" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
+                <img src={p.image} alt={p.name} crossOrigin="anonymous" loading="lazy" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
               </div>
               <p className="mt-0.5 truncate text-[9px] text-zinc-700">{p.name}</p>
               <p className="text-[9px] tabular-nums" style={{ color: primary }}>{p.price}</p>
@@ -1866,7 +1866,7 @@ function HomeMinimalC({ template, hero, products, desktop }: Ctx) {
       <div className="grid flex-1 grid-cols-[1.2fr_1fr]">
         {/* Hero — big product photo with tech-spec callouts */}
         <div className="relative overflow-hidden bg-zinc-50">
-          <img src={hero} alt="" loading="lazy" referrerPolicy="no-referrer" className="absolute inset-0 h-full w-full object-cover" />
+          <img src={hero} alt="" crossOrigin="anonymous" loading="lazy" referrerPolicy="no-referrer" className="absolute inset-0 h-full w-full object-cover" />
           {/* Floating spec callouts */}
           {[
             { x: "12%", y: "20%", label: "M3 Max",  sub: "16-core CPU" },
@@ -1941,10 +1941,10 @@ function HomePlayfulC({ template, hero, products, desktop }: Ctx) {
           <h1 className="mt-1 text-4xl font-black leading-tight" style={{ color: primary }}>Aduke<br />weaves.</h1>
         </div>
         <div className="relative mx-4 my-3 overflow-hidden rounded-3xl">
-          <img src={hero} alt="" loading="lazy" referrerPolicy="no-referrer" className="aspect-[4/3] h-full w-full object-cover" />
+          <img src={hero} alt="" crossOrigin="anonymous" loading="lazy" referrerPolicy="no-referrer" className="aspect-[4/3] h-full w-full object-cover" />
           <div className="absolute bottom-3 left-3 right-3 flex items-center gap-3 rounded-2xl bg-white/95 px-3 py-2 backdrop-blur-sm">
             <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full ring-2" style={{ borderColor: accent }}>
-              <img src={products[0].image} alt="" className="h-full w-full object-cover" loading="lazy" referrerPolicy="no-referrer" />
+              <img src={products[0].image} alt="" className="h-full w-full object-cover" crossOrigin="anonymous" loading="lazy" referrerPolicy="no-referrer" />
             </div>
             <div className="min-w-0 flex-1">
               <p className="text-sm font-black">Aduke Bello</p>
@@ -1960,7 +1960,7 @@ function HomePlayfulC({ template, hero, products, desktop }: Ctx) {
           {products.slice(0, 4).map((p, i) => (
             <div key={i} className="relative overflow-hidden rounded-2xl bg-white shadow-sm">
               <div className="aspect-square">
-                <img src={p.image} alt={p.name} loading="lazy" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
+                <img src={p.image} alt={p.name} crossOrigin="anonymous" loading="lazy" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
               </div>
               <div className="absolute left-2 top-2 inline-flex items-center gap-1 rounded-full bg-white/95 px-2 py-0.5">
                 <MapPin className="h-2 w-2" style={{ color: accent }} />
@@ -1991,7 +1991,7 @@ function HomePlayfulC({ template, hero, products, desktop }: Ctx) {
       {/* Maker of the week feature */}
       <div className="grid grid-cols-[55%_45%] gap-8 px-16 pb-6">
         <div className="relative aspect-[4/3] overflow-hidden rounded-3xl">
-          <img src={hero} alt="" loading="lazy" referrerPolicy="no-referrer" className="absolute inset-0 h-full w-full object-cover" />
+          <img src={hero} alt="" crossOrigin="anonymous" loading="lazy" referrerPolicy="no-referrer" className="absolute inset-0 h-full w-full object-cover" />
           <span className="absolute left-4 top-4 inline-flex items-center gap-2 rounded-full bg-white/95 px-3 py-1.5 text-xs font-black backdrop-blur-sm" style={{ color: primary }}>
             <span className="h-2 w-2 rounded-full" style={{ background: accent }} /> Maker of the week
           </span>
@@ -2026,7 +2026,7 @@ function HomePlayfulC({ template, hero, products, desktop }: Ctx) {
             ].map((m, i) => (
               <li key={i} className="flex items-center gap-3 rounded-2xl bg-white px-3 py-2 shadow-sm">
                 <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full ring-2" style={{ borderColor: accent }}>
-                  <img src={products[(i + 1) % products.length].image} alt="" className="h-full w-full object-cover" loading="lazy" referrerPolicy="no-referrer" />
+                  <img src={products[(i + 1) % products.length].image} alt="" className="h-full w-full object-cover" crossOrigin="anonymous" loading="lazy" referrerPolicy="no-referrer" />
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-black">{m.name}</p>
@@ -2045,7 +2045,7 @@ function HomePlayfulC({ template, hero, products, desktop }: Ctx) {
             {products.slice(0, 4).map((p, i) => (
               <div key={i} className="relative overflow-hidden rounded-2xl bg-white shadow-sm">
                 <div className="aspect-square">
-                  <img src={p.image} alt={p.name} loading="lazy" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
+                  <img src={p.image} alt={p.name} crossOrigin="anonymous" loading="lazy" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
                 </div>
                 <div className="absolute left-2 top-2 inline-flex items-center gap-1 rounded-full bg-white/95 px-2 py-0.5">
                   <MapPin className="h-2.5 w-2.5" style={{ color: accent }} />
@@ -2470,7 +2470,7 @@ function TrackGeneric({ template, products, desktop }: Ctx) {
               {products.slice(0, 3).map((p, i) => (
                 <li key={i} className="flex items-center gap-3 py-3">
                   <div className="h-12 w-12 shrink-0 overflow-hidden rounded">
-                    <img src={p.image} alt={p.name} loading="lazy" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
+                    <img src={p.image} alt={p.name} crossOrigin="anonymous" loading="lazy" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-semibold">{p.name}</p>
@@ -2532,7 +2532,7 @@ function WishlistGeneric({ template, products, desktop }: Ctx) {
           return (
             <div key={i} className="flex flex-col">
               <div className={cn("relative aspect-[4/5] overflow-hidden", style === "playful" && "rounded-2xl", isLuxe ? "" : "bg-zinc-50")}>
-                <img src={p.image} alt={p.name} loading="lazy" referrerPolicy="no-referrer" className={cn("h-full w-full object-cover", isLuxe && "opacity-90")} />
+                <img src={p.image} alt={p.name} crossOrigin="anonymous" loading="lazy" referrerPolicy="no-referrer" className={cn("h-full w-full object-cover", isLuxe && "opacity-90")} />
                 <div className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-white/95 shadow-sm">
                   <Heart className="h-4 w-4 fill-current" style={{ color: accent }} />
                 </div>
@@ -2594,7 +2594,7 @@ function HomeBoldC({ template, hero, products, desktop }: Ctx) {
         </div>
         {/* Hero */}
         <div className="relative aspect-[4/3] w-full">
-          <img src={hero} alt="" loading="lazy" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
+          <img src={hero} alt="" crossOrigin="anonymous" loading="lazy" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
           <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent" />
           <h1 className="absolute bottom-3 left-3 right-3 text-4xl font-black uppercase leading-[0.85] tracking-tight text-white">
             BUILT<br /><span style={{ color: accent }}>TO LAST</span>
@@ -2613,7 +2613,7 @@ function HomeBoldC({ template, hero, products, desktop }: Ctx) {
           {products.slice(0, 2).map((p, i) => (
             <div key={i} className="border-2 border-black bg-white">
               <div className="aspect-square overflow-hidden">
-                <img src={p.image} alt={p.name} loading="lazy" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
+                <img src={p.image} alt={p.name} crossOrigin="anonymous" loading="lazy" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
               </div>
               <div className="px-2 py-1.5">
                 <p className="truncate text-[10px] font-black uppercase">{p.name}</p>
@@ -2658,7 +2658,7 @@ function HomeBoldC({ template, hero, products, desktop }: Ctx) {
       </div>
       {/* Hero */}
       <div className="relative flex-1">
-        <img src={hero} alt="" loading="lazy" referrerPolicy="no-referrer" className="absolute inset-0 h-full w-full object-cover" />
+        <img src={hero} alt="" crossOrigin="anonymous" loading="lazy" referrerPolicy="no-referrer" className="absolute inset-0 h-full w-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-black/10" />
         <div className="absolute inset-0 flex items-center px-20">
           <div>
@@ -2710,7 +2710,7 @@ function HomeMinimalD({ template, hero, products, desktop }: Ctx) {
           <ShoppingBag className="h-5 w-5 text-zinc-700" />
         </header>
         <div className="relative aspect-square w-full bg-zinc-50">
-          <img src={products[0].image} alt="" loading="lazy" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
+          <img src={products[0].image} alt="" crossOrigin="anonymous" loading="lazy" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
           <span className="absolute left-3 top-3 rounded-none bg-black px-2 py-0.5 text-[9px] font-bold uppercase tracking-widest text-white">Drop 04 · waitlist</span>
         </div>
         <div className="px-6 py-4">
@@ -2758,7 +2758,7 @@ function HomeMinimalD({ template, hero, products, desktop }: Ctx) {
       <div className="grid flex-1 grid-cols-[55%_45%]">
         {/* Product photo */}
         <div className="relative overflow-hidden bg-zinc-50">
-          <img src={products[0].image} alt="" loading="lazy" referrerPolicy="no-referrer" className="absolute inset-0 h-full w-full object-cover" />
+          <img src={products[0].image} alt="" crossOrigin="anonymous" loading="lazy" referrerPolicy="no-referrer" className="absolute inset-0 h-full w-full object-cover" />
           <span className="absolute left-6 top-6 bg-black px-3 py-1 text-xs font-bold uppercase tracking-widest text-white">Drop 04</span>
           <span className="absolute bottom-6 left-6 rounded-full bg-white/95 px-3 py-1.5 text-xs font-semibold uppercase tracking-widest" style={{ color: primary }}>Numbered · 1 of 200</span>
         </div>
@@ -2823,7 +2823,7 @@ function HomeEditorialC({ template, hero, products, desktop }: Ctx) {
           <h1 className="mt-2 font-serif text-5xl italic leading-[0.95]">Hands<br />you trust.</h1>
         </div>
         <div className="relative aspect-[16/9] w-full">
-          <img src={hero} alt="" loading="lazy" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
+          <img src={hero} alt="" crossOrigin="anonymous" loading="lazy" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
           <span className="absolute right-3 top-3 rounded-full bg-white/95 px-3 py-1 font-serif text-[10px] italic" style={{ color: primary }}>Booked by 2,400+ in Lagos</span>
         </div>
         <div className="px-6 py-4">
@@ -2858,7 +2858,7 @@ function HomeEditorialC({ template, hero, products, desktop }: Ctx) {
       <div className="grid flex-1 grid-cols-[55%_45%]">
         {/* Hero photo + headline overlay */}
         <div className="relative">
-          <img src={hero} alt="" loading="lazy" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
+          <img src={hero} alt="" crossOrigin="anonymous" loading="lazy" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
           <div className="absolute bottom-10 left-10 right-10 text-white">
             <span className="font-serif text-sm uppercase tracking-[0.5em]" style={{ color: accent }}>The cover story</span>
@@ -2946,7 +2946,7 @@ function HomeBoldD({ template, hero, products, desktop }: Ctx) {
           {products.slice(0, 6).map((p, i) => (
             <div key={i} className="relative flex flex-col bg-white">
               <div className="relative aspect-square overflow-hidden">
-                <img src={p.image} alt={p.name} loading="lazy" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
+                <img src={p.image} alt={p.name} crossOrigin="anonymous" loading="lazy" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
                 <span className="absolute right-1.5 top-1.5 bg-white px-1.5 py-0.5 text-[8px] font-black uppercase tracking-wider" style={{ color: primary }}>In stock</span>
               </div>
               <div className="border-t-2 border-black px-2 py-1.5">
@@ -3013,7 +3013,7 @@ function HomeBoldD({ template, hero, products, desktop }: Ctx) {
             {products.slice(0, 8).map((p, i) => (
               <div key={i} className="relative flex flex-col bg-white">
                 <div className="relative aspect-[4/3] overflow-hidden">
-                  <img src={p.image} alt={p.name} loading="lazy" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
+                  <img src={p.image} alt={p.name} crossOrigin="anonymous" loading="lazy" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
                   {i % 3 === 0 && <span className="absolute left-2 top-2 bg-black px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wider text-white">New</span>}
                   {i === 1 && <span className="absolute left-2 top-2 px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wider text-black" style={{ background: accent }}>-12%</span>}
                   <span className="absolute right-2 top-2 bg-white px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wider" style={{ color: primary }}>In stock</span>
@@ -3072,7 +3072,7 @@ function HomeBoldE({ template, hero, products, desktop }: Ctx) {
         </div>
         {/* Hero */}
         <div className="relative aspect-[4/3] mx-6 overflow-hidden rounded-2xl" style={{ background: accent }}>
-          <img src={hero} alt="" loading="lazy" referrerPolicy="no-referrer" className="absolute inset-0 h-full w-full object-cover mix-blend-multiply" />
+          <img src={hero} alt="" crossOrigin="anonymous" loading="lazy" referrerPolicy="no-referrer" className="absolute inset-0 h-full w-full object-cover mix-blend-multiply" />
           <div className="absolute inset-0 flex flex-col justify-end p-4 text-white">
             <h1 className="text-5xl font-black uppercase leading-[0.85] tracking-tight">MADE<br /><span style={{ color: accent, textShadow: "2px 2px 0 #000" }}>DAILY.</span></h1>
             <p className="mt-2 text-xs font-bold uppercase tracking-widest text-white/90">Smoked over open flame · since 2019</p>
@@ -3088,7 +3088,7 @@ function HomeBoldE({ template, hero, products, desktop }: Ctx) {
             {products.slice(0, 2).map((p, i) => (
               <div key={i} className="overflow-hidden rounded-2xl bg-white">
                 <div className="relative aspect-[4/3]">
-                  <img src={p.image} alt={p.name} loading="lazy" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
+                  <img src={p.image} alt={p.name} crossOrigin="anonymous" loading="lazy" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
                   {i === 0 && <span className="absolute left-2 top-2 rounded-full px-2 py-0.5 text-[8px] font-black uppercase text-white" style={{ background: primary }}>Bestseller</span>}
                 </div>
                 <div className="px-2 py-1.5">
@@ -3134,7 +3134,7 @@ function HomeBoldE({ template, hero, products, desktop }: Ctx) {
       {/* Hero + side combos */}
       <div className="grid flex-1 grid-cols-[1.4fr_1fr] gap-6 p-8">
         <div className="relative overflow-hidden rounded-3xl" style={{ background: accent }}>
-          <img src={hero} alt="" loading="lazy" referrerPolicy="no-referrer" className="absolute inset-0 h-full w-full object-cover mix-blend-multiply" />
+          <img src={hero} alt="" crossOrigin="anonymous" loading="lazy" referrerPolicy="no-referrer" className="absolute inset-0 h-full w-full object-cover mix-blend-multiply" />
           <div className="absolute inset-0 flex flex-col justify-end p-10 text-white">
             <span className="inline-flex w-fit items-center gap-2 rounded-full bg-black/40 px-3 py-1 text-xs font-black uppercase tracking-widest backdrop-blur-sm">
               <span className="h-2 w-2 rounded-full" style={{ background: accent }} /> Open · ordering in 30 min
@@ -3157,7 +3157,7 @@ function HomeBoldE({ template, hero, products, desktop }: Ctx) {
             {products.slice(0, 4).map((p, i) => (
               <div key={i} className="relative overflow-hidden rounded-2xl bg-white">
                 <div className="relative aspect-[4/3]">
-                  <img src={p.image} alt={p.name} loading="lazy" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
+                  <img src={p.image} alt={p.name} crossOrigin="anonymous" loading="lazy" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
                   {i === 0 && <span className="absolute left-2 top-2 rounded-full px-2 py-0.5 text-[10px] font-black uppercase text-white" style={{ background: primary }}>Bestseller</span>}
                   {i === 2 && <span className="absolute left-2 top-2 rounded-full bg-black px-2 py-0.5 text-[10px] font-black uppercase" style={{ color: accent }}>Spicy</span>}
                 </div>
@@ -3234,7 +3234,7 @@ function HomeMinimalE({ template, hero, products, desktop }: Ctx) {
           {products.slice(0, 2).map((p, i) => (
             <div key={i} className="border border-zinc-200 p-2">
               <div className="aspect-square overflow-hidden bg-zinc-50">
-                <img src={p.image} alt={p.name} loading="lazy" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
+                <img src={p.image} alt={p.name} crossOrigin="anonymous" loading="lazy" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
               </div>
               <p className="mt-1 truncate text-xs">{p.name}</p>
               <p className="text-xs font-bold tabular-nums" style={{ color: primary }}>{p.price}</p>
@@ -3327,7 +3327,7 @@ function HomeMinimalE({ template, hero, products, desktop }: Ctx) {
           {products.slice(0, 4).map((p, i) => (
             <div key={i} className="border border-zinc-200">
               <div className="aspect-square overflow-hidden bg-zinc-50">
-                <img src={p.image} alt={p.name} loading="lazy" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
+                <img src={p.image} alt={p.name} crossOrigin="anonymous" loading="lazy" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
               </div>
               <div className="border-t border-zinc-200 px-4 py-3">
                 <p className="truncate text-sm">{p.name}</p>

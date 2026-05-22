@@ -1,0 +1,11 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "pos-hardware",
+  "description": "POS hardware drivers — ESC/POS thermal printers + raw serial for cash drawers, scales, USB barcode guns. iOS is excluded because (a) it's sandboxed (no raw USB / serial host), and (b) the thermal-printer crate ships no iOS Swift so its build.rs panics on aarch64-apple-ios*.",
+  "platforms": ["linux", "macOS", "windows", "android"],
+  "windows": ["main"],
+  "permissions": [
+    "thermal-printer:default",
+    "serialplugin:default"
+  ]
+}

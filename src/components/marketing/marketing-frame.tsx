@@ -8,7 +8,32 @@ import { ModeToggle } from "@/components/mode-toggle"
 import { SignInModal } from "@/components/marketing/sign-in-modal"
 import { WhatsAppButton } from "@/components/marketing/whatsapp-button"
 import { useIsMobile } from "@/hooks/use-mobile"
+import { isNative } from "@/hooks/use-native"
 import { cn } from "@/lib/utils"
+
+// App-shell = installed PWA or Tauri (desktop / iOS / Android). In
+// those contexts users land on /login or /register directly via the
+// inline redirect in index.html, and the marketing top nav + footer
+// + WhatsApp widget would be visual noise — these surfaces aren't
+// where you sell the product, they're where you USE it. So skip the
+// chrome and render bare children.
+function useIsAppShell(): boolean {
+  return React.useSyncExternalStore(
+    (cb) => {
+      const mql = window.matchMedia?.("(display-mode: standalone)")
+      mql?.addEventListener?.("change", cb)
+      return () => mql?.removeEventListener?.("change", cb)
+    },
+    () => {
+      if (isNative) return true
+      if (typeof window === "undefined") return false
+      const standalone = window.matchMedia?.("(display-mode: standalone)").matches
+      const iosPwa = (window.navigator as { standalone?: boolean }).standalone === true
+      return !!(standalone || iosPwa)
+    },
+    () => false, // SSR fallback — marketing chrome by default
+  )
+}
 
 // Public marketing shell. Top nav with brand mark + page links +
 // theme toggle + Sign in / Get started CTAs. Long footer with brand
@@ -27,6 +52,7 @@ const NAV_LINKS = [
 
 export function MarketingFrame({ children }: { children: React.ReactNode }) {
   const isMobile = useIsMobile()
+  const isAppShell = useIsAppShell()
   const [navOpen, setNavOpen] = React.useState(false)
   const [signInOpen, setSignInOpen] = React.useState(false)
 
@@ -36,6 +62,18 @@ export function MarketingFrame({ children }: { children: React.ReactNode }) {
     window.addEventListener("popstate", onLocationChange)
     return () => window.removeEventListener("popstate", onLocationChange)
   }, [])
+
+  // App-shell render: just the page. /login + /register own their own
+  // layout (centred card with the brand mark in the header). Legal
+  // pages reached via deep link from those forms render bare too —
+  // still readable, just without the marketing top nav/footer.
+  if (isAppShell) {
+    return (
+      <div className="flex min-h-[100dvh] flex-col bg-background text-foreground">
+        <main id="main" className="flex-1">{children}</main>
+      </div>
+    )
+  }
 
   return (
     <div className="flex min-h-[100dvh] flex-col bg-background text-foreground">

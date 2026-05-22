@@ -7,33 +7,41 @@
     </linearGradient>
   </defs>
   <rect width="512" height="512" rx="112" fill="#f5f3ff"/>
-  <!-- Price-tag silhouette, tilted -45° around its center -->
+  <!-- Price-tag silhouette, tilted. Outer rotate keeps the diagonal
+       composition; inner scale(1.30) gives the mark ~10% padding
+       inside the lavender squircle — same proportions VS Code,
+       Chrome, MongoDB Compass etc. use for the content inside their
+       app-icon tile. Edge-to-edge (1.48) made the tag feel cramped
+       against the rounded corners; this leaves the brand breathing
+       room while still reading as the icon's main feature. -->
   <g transform="rotate(-12 256 256)">
-    <path d="M 112 144
-             L 320 144
-             L 432 256
-             L 320 368
-             L 112 368
-             Z"
-          fill="url(#g10)"/>
-    <!-- Tag hole -->
-    <circle cx="370" cy="256" r="22" fill="#f5f3ff"/>
-    <!-- P inside the tag, white -->
-    <path
-      d="M 156 184
-         L 156 328
-         L 196 328
-         L 196 286
-         L 232 286
-         Q 296 286 296 235
-         Q 296 184 232 184
-         Z
-         M 196 218
-         L 230 218
-         Q 256 218 256 235
-         Q 256 252 230 252
-         L 196 252
-         Z"
-      fill="#ffffff"/>
+    <g transform="translate(256 256) scale(1.30) translate(-256 -256)">
+      <path d="M 112 144
+               L 320 144
+               L 432 256
+               L 320 368
+               L 112 368
+               Z"
+            fill="url(#g10)"/>
+      <!-- Tag hole -->
+      <circle cx="370" cy="256" r="22" fill="#f5f3ff"/>
+      <!-- P inside the tag, white -->
+      <path
+        d="M 156 184
+           L 156 328
+           L 196 328
+           L 196 286
+           L 232 286
+           Q 296 286 296 235
+           Q 296 184 232 184
+           Z
+           M 196 218
+           L 230 218
+           Q 256 218 256 235
+           Q 256 252 230 252
+           L 196 252
+           Z"
+        fill="#ffffff"/>
+    </g>
   </g>
 </svg>

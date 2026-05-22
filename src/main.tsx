@@ -29,3 +29,28 @@ createRoot(document.getElementById("root")!).render(
     <App />
   </StrictMode>,
 )
+
+// Dismiss the inline splash painted by index.html. We wait until both
+// (a) React has rendered (two RAFs) and (b) the splash entrance
+// animations have had time to play, whichever is later. The entrance
+// runs ~1040ms; we add a tiny breathing room and call it 1200ms total.
+// Faster cold-loads still get the full splash, slow loads dismiss the
+// moment React is ready after the minimum.
+const SPLASH_MIN_MS = 1200
+const splashStart = performance.now()
+
+function dismissSplash() {
+  const el = document.getElementById("pallio-splash")
+  if (!el) return
+  el.classList.add("is-hiding")
+  el.addEventListener("transitionend", () => el.remove(), { once: true })
+  // Safety net in case the transition event never fires.
+  setTimeout(() => el.remove(), 1000)
+}
+requestAnimationFrame(() =>
+  requestAnimationFrame(() => {
+    const elapsed = performance.now() - splashStart
+    const wait = Math.max(0, SPLASH_MIN_MS - elapsed)
+    setTimeout(dismissSplash, wait)
+  }),
+)

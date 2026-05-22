@@ -35,7 +35,7 @@ export function BrandMark({ className, bgClassName, bare = false, ariaHidden = f
         viewBox="0 0 512 512"
         role={ariaHidden ? undefined : "img"}
         aria-label={ariaHidden ? undefined : "Pallio"}
-        className="h-[78%] w-[78%]"
+        className={bare ? "h-full w-full" : "h-[92%] w-[92%]"}
       >
         <defs>
           <linearGradient id="pallio-brand-grad" x1="0" y1="0" x2="1" y2="1">
@@ -44,15 +44,23 @@ export function BrandMark({ className, bgClassName, bare = false, ariaHidden = f
           </linearGradient>
         </defs>
         <g transform="rotate(-12 256 256)">
-          <path
-            d="M 112 144 L 320 144 L 432 256 L 320 368 L 112 368 Z"
-            fill="url(#pallio-brand-grad)"
-          />
-          <circle cx="370" cy="256" r="22" className="fill-violet-50 dark:fill-violet-500/10" />
-          <path
-            d="M 156 184 L 156 328 L 196 328 L 196 286 L 232 286 Q 296 286 296 235 Q 296 184 232 184 Z M 196 218 L 230 218 Q 256 218 256 235 Q 256 252 230 252 L 196 252 Z"
-            fill="#ffffff"
-          />
+          {/* scale(1.30) matches favicon.svg — gives the mark ~10%
+              padding inside the lavender, same proportions as
+              VS Code / Chrome / Compass app icons. mark.svg keeps
+              its tighter scale because it renders standalone on
+              dark backgrounds (splash, marketing hero) where no
+              container is competing for space. */}
+          <g transform="translate(256 256) scale(1.30) translate(-256 -256)">
+            <path
+              d="M 112 144 L 320 144 L 432 256 L 320 368 L 112 368 Z"
+              fill="url(#pallio-brand-grad)"
+            />
+            <circle cx="370" cy="256" r="22" className="fill-violet-50 dark:fill-violet-500/10" />
+            <path
+              d="M 156 184 L 156 328 L 196 328 L 196 286 L 232 286 Q 296 286 296 235 Q 296 184 232 184 Z M 196 218 L 230 218 Q 256 218 256 235 Q 256 252 230 252 L 196 252 Z"
+              fill="#ffffff"
+            />
+          </g>
         </g>
       </svg>
     </span>

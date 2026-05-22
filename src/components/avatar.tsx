@@ -74,6 +74,7 @@ export function Avatar({
       width={size}
       height={size}
       loading="lazy"
+      crossOrigin="anonymous"
       referrerPolicy="no-referrer"
       onError={() => setErrored(true)}
       style={{ width: size, height: size }}

@@ -79,7 +79,7 @@ function RouterBootstrap() {
 // (sidebar / mobile chrome). Listed here, not on each route, so the
 // shell-switch logic stays in one place.
 const MARKETING_PATHS = new Set<string>([
-  "/", "/pricing", "/about", "/faq", "/contact", "/privacy", "/terms", "/login",
+  "/", "/pricing", "/about", "/faq", "/contact", "/privacy", "/terms", "/login", "/register",
 ])
 
 function isMarketingPath(pathname: string): boolean {

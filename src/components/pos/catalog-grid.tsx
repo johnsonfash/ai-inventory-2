@@ -143,6 +143,7 @@ export function CatalogGrid({ catalog, onAdd, cart, onScanRequest, onOverflowReq
                     src={p.image || "/placeholder.svg"}
                     alt={p.name}
                     loading="lazy"
+                    crossOrigin="anonymous"
                     onError={(e) => {
                       const img = e.currentTarget
                       if (img.src.endsWith("/placeholder.svg")) return
@@ -200,6 +201,7 @@ export function CatalogGrid({ catalog, onAdd, cart, onScanRequest, onOverflowReq
                   src={p.image || "/placeholder.svg"}
                   alt={p.name}
                   loading="lazy"
+                  crossOrigin="anonymous"
                   className="absolute inset-0 h-full w-full object-cover transition-transform group-hover:scale-105"
                 />
                 {inCart > 0 && (

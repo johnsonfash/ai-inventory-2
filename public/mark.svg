@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="8 70 504 400" role="img" aria-label="Pallio">
+  <!-- Pallio brand mark — just the price-tag P, no rounded-card
+       background. Used wherever the mark sits on a non-white surface
+       (splash, auth headers, marketing hero) so the brand colour
+       reads cleanly without competing with a white frame. -->
+  <defs>
+    <linearGradient id="markGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#7c3aed"/>
+      <stop offset="100%" stop-color="#4c1d95"/>
+    </linearGradient>
+    <!-- Mask that punches the tag-hole circle out of the body so
+         whatever's behind the SVG shows through. White = keep,
+         black = remove. -->
+    <mask id="tagHole">
+      <rect width="512" height="512" fill="white"/>
+      <circle cx="370" cy="256" r="22" fill="black"/>
+    </mask>
+  </defs>
+  <g transform="rotate(-12 256 256)">
+    <g transform="translate(256 256) scale(1.48) translate(-256 -256)">
+      <g mask="url(#tagHole)">
+        <path d="M 112 144
+                 L 320 144
+                 L 432 256
+                 L 320 368
+                 L 112 368
+                 Z"
+              fill="url(#markGrad)"/>
+      </g>
+      <!-- P inside the tag, white -->
+      <path
+        d="M 156 184
+           L 156 328
+           L 196 328
+           L 196 286
+           L 232 286
+           Q 296 286 296 235
+           Q 296 184 232 184
+           Z
+           M 196 218
+           L 230 218
+           Q 256 218 256 235
+           Q 256 252 230 252
+           L 196 252
+           Z"
+        fill="#ffffff"/>
+    </g>
+  </g>
+</svg>

@@ -16,8 +16,6 @@
     "clipboard-manager:default",
     "process:default",
     "opener:default",
-    "sharesheet:default",
-    "thermal-printer:default",
-    "serialplugin:default"
+    "sharesheet:default"
   ]
 }

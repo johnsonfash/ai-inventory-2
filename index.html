@@ -8,6 +8,32 @@
     <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png" />
     <link rel="manifest" href="/manifest.json" />
     <!--
+      iOS Safari ignores manifest.json's `background_color` for the
+      home-screen launch splash. Without these per-device PNGs, users
+      who Add-to-Home-Screen get a white flash on cold launch. Each
+      tag's media query matches one device class (logical resolution
+      + DPR). Regenerate with `node assets/build-pwa-splash.mjs`.
+    -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Pallio" />
+    <link rel="apple-touch-startup-image" media="(device-width: 440px) and (device-height: 956px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="/splash/1320x2868.png" />
+    <link rel="apple-touch-startup-image" media="(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="/splash/1290x2796.png" />
+    <link rel="apple-touch-startup-image" media="(device-width: 428px) and (device-height: 926px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="/splash/1284x2778.png" />
+    <link rel="apple-touch-startup-image" media="(device-width: 402px) and (device-height: 874px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="/splash/1206x2622.png" />
+    <link rel="apple-touch-startup-image" media="(device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="/splash/1179x2556.png" />
+    <link rel="apple-touch-startup-image" media="(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="/splash/1170x2532.png" />
+    <link rel="apple-touch-startup-image" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="/splash/1125x2436.png" />
+    <link rel="apple-touch-startup-image" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="/splash/1242x2688.png" />
+    <link rel="apple-touch-startup-image" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="/splash/828x1792.png" />
+    <link rel="apple-touch-startup-image" media="(device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="/splash/1242x2208.png" />
+    <link rel="apple-touch-startup-image" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="/splash/750x1334.png" />
+    <link rel="apple-touch-startup-image" media="(device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="/splash/2048x2732.png" />
+    <link rel="apple-touch-startup-image" media="(device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="/splash/1668x2388.png" />
+    <link rel="apple-touch-startup-image" media="(device-width: 820px) and (device-height: 1180px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="/splash/1640x2360.png" />
+    <link rel="apple-touch-startup-image" media="(device-width: 810px) and (device-height: 1080px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="/splash/1620x2160.png" />
+    <link rel="apple-touch-startup-image" media="(device-width: 744px) and (device-height: 1133px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="/splash/1488x2266.png" />
+    <!--
       `maximum-scale=1` blocks the iOS Safari auto-zoom that triggers
       when an input's computed font-size is < 16 px. Manual pinch-zoom
       still works on iOS 17+ + on all current Android browsers.
@@ -24,8 +50,212 @@
     <meta property="og:type" content="website" />
     <meta name="twitter:card" content="summary_large_image" />
     <title>Pallio</title>
+    <!--
+      Resolves the effective theme BEFORE first paint so:
+      (a) the body's `bg-white` / `dark:bg-neutral-950` lands on
+          the right colour first frame — no white flash for dark
+          users, no dark flash for light users.
+      (b) the inline splash below picks light vs dark via the
+          `.dark` class on <html>.
+      Order: stored user pref → system pref → default light. Must
+      stay in <head> and BEFORE any stylesheet/markup that paints.
+      Keep in sync with src/components/tw-theme-provider.tsx.
+    -->
+    <script>
+      (function () {
+        try {
+          var stored = localStorage.getItem("theme")
+          var isDark
+          if (stored === "dark") isDark = true
+          else if (stored === "light") isDark = false
+          else isDark = window.matchMedia("(prefers-color-scheme: dark)").matches
+          if (isDark) document.documentElement.classList.add("dark")
+        } catch (_) { /* private mode etc. — fall back to light */ }
+      })()
+    </script>
+    <!--
+      App-shell context (installed PWA / Tauri desktop / iOS / Android)
+      should NEVER see the marketing landing — the app's the product
+      surface, not the marketing site. Rewrite the URL before React
+      Router boots so /login renders directly with no landing flash.
+      Browser-tab visits fall through and see /landing as normal.
+      Deep links to specific routes are preserved — we only intercept
+      cold launches that land on `/`.
+    -->
+    <script>
+      (function () {
+        try {
+          var path = location.pathname
+          if (path !== "/" && path !== "") return
+          var standalone = window.matchMedia("(display-mode: standalone)").matches
+                        || window.navigator.standalone === true
+          var tauri      = "__TAURI_INTERNALS__" in window
+          if (standalone || tauri) {
+            history.replaceState(null, "", "/login" + location.search + location.hash)
+          }
+        } catch (_) { /* fall through to landing */ }
+      })()
+    </script>
   </head>
   <body class="min-h-svh bg-white text-neutral-900 antialiased dark:bg-neutral-950 dark:text-neutral-50">
+    <!--
+      Inline splash. Painted by the WebView before React parses, so
+      cold launches (PWA, Tauri desktop, Tauri iOS, Tauri Android)
+      never show a flash. main.tsx removes the node after the first
+      React render. Always dark — branded look, matches the OS-level
+      launch screens (LaunchScreen.storyboard, Android splash theme).
+    -->
+    <style>
+      #pallio-splash {
+        position: fixed; inset: 0; z-index: 2147483647;
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        background: #0a0a0a;
+        color: #fff;
+        overflow: hidden;
+        font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Inter, system-ui, sans-serif;
+        transition: opacity .32s ease-out;
+        -webkit-user-select: none; user-select: none;
+        -webkit-tap-highlight-color: transparent;
+      }
+      #pallio-splash.is-hiding { opacity: 0; pointer-events: none; }
+
+      /* Aurora — two soft brand-coloured glows that drift behind the
+         mark. Heavy blur + low opacity reads as ambient light rather
+         than decoration. The drift loops on alternate so it never
+         visibly resets. */
+      #pallio-splash::before {
+        content: "";
+        position: absolute; inset: -25%;
+        background:
+          radial-gradient(closest-side at 28% 32%, rgba(124, 58, 237, 0.55), transparent 62%),
+          radial-gradient(closest-side at 72% 70%, rgba(217, 70, 239, 0.32), transparent 62%),
+          radial-gradient(closest-side at 50% 50%, rgba(99, 102, 241, 0.18), transparent 70%);
+        filter: blur(40px);
+        animation: pallio-aurora 9s ease-in-out infinite alternate;
+        will-change: transform;
+      }
+      @keyframes pallio-aurora {
+        from { transform: translate(-2%, -1%) scale(1);    }
+        to   { transform: translate(2%, 3%)  scale(1.12);  }
+      }
+
+      /* Faint dot grid overlay on top of the aurora — adds texture
+         that hints at the surface without competing for attention. */
+      #pallio-splash::after {
+        content: "";
+        position: absolute; inset: 0;
+        background-image: radial-gradient(rgba(255, 255, 255, 0.045) 1px, transparent 1px);
+        background-size: 22px 22px;
+        mask-image: radial-gradient(ellipse at center, #000 30%, transparent 75%);
+        -webkit-mask-image: radial-gradient(ellipse at center, #000 30%, transparent 75%);
+        pointer-events: none;
+      }
+
+      /* Logo — spring-pop in, then a slow breathing pulse. Drop
+         shadow uses brand violet so the mark feels lit. The mark
+         SVG's viewBox is cropped tight to the tag so the rendered
+         image fills the container with no invisible padding —
+         eliminates the "framed inside an empty square" look that the
+         512×512 viewBox produced. */
+      #pallio-splash .pallio-mark {
+        position: relative;
+        width: 48vmin; max-width: 320px; min-width: 180px;
+        animation: pallio-pop 720ms cubic-bezier(0.34, 1.56, 0.64, 1) both,
+                   pallio-breathe 4.2s ease-in-out 720ms infinite;
+      }
+      #pallio-splash .pallio-mark img {
+        width: 100%; height: auto; display: block;
+        filter: drop-shadow(0 24px 50px rgba(124, 58, 237, 0.5));
+      }
+      @keyframes pallio-pop {
+        0%   { opacity: 0; transform: scale(0.6)  translateY(10px); }
+        60%  { opacity: 1; transform: scale(1.07) translateY(0);    }
+        100% { opacity: 1; transform: scale(1)    translateY(0);    }
+      }
+      @keyframes pallio-breathe {
+        0%, 100% { transform: scale(1)     translateY(0);   }
+        50%      { transform: scale(1.025) translateY(-2px); }
+      }
+
+      /* Wordmark + tagline. Both fade-up with staggered delays so the
+         eye lands logo → name → context in rhythm. */
+      #pallio-splash .pallio-word {
+        margin-top: 1.45rem;
+        font-size: clamp(20px, 4.2vmin, 30px);
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        line-height: 1;
+        background: linear-gradient(180deg, #fff 0%, rgba(255, 255, 255, 0.78) 100%);
+        -webkit-background-clip: text; background-clip: text;
+        -webkit-text-fill-color: transparent; color: transparent;
+        opacity: 0;
+        animation: pallio-fade-up 620ms ease-out 280ms both;
+      }
+      #pallio-splash .pallio-tag {
+        margin-top: 0.55rem;
+        font-size: 11px;
+        font-weight: 500;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.5);
+        opacity: 0;
+        animation: pallio-fade-up 620ms ease-out 420ms both;
+      }
+      @keyframes pallio-fade-up {
+        from { opacity: 0; transform: translateY(8px); }
+        to   { opacity: 1; transform: translateY(0);   }
+      }
+
+      /* Loader rail. Indeterminate gradient sweep at the foot of the
+         screen — same shimmer pattern used on skeleton rows so the
+         splash visually previews the loading idiom of the app. */
+      #pallio-splash .pallio-loader {
+        position: absolute;
+        bottom: max(env(safe-area-inset-bottom, 0px), 36px);
+        left: 50%; transform: translateX(-50%);
+        width: 64px; height: 3px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.08);
+        overflow: hidden;
+        opacity: 0;
+        animation: pallio-fade-in 420ms ease-out 620ms both;
+      }
+      #pallio-splash .pallio-loader::after {
+        content: "";
+        position: absolute; top: 0; height: 100%; width: 45%;
+        left: -45%;
+        border-radius: 999px;
+        background: linear-gradient(90deg, transparent, #c4b5fd 35%, #a78bfa 65%, transparent);
+        animation: pallio-loader-sweep 1.6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+      }
+      @keyframes pallio-loader-sweep {
+        0%   { left: -50%; }
+        100% { left: 100%; }
+      }
+      @keyframes pallio-fade-in { to { opacity: 1; } }
+
+      @media (prefers-reduced-motion: reduce) {
+        #pallio-splash::before,
+        #pallio-splash .pallio-mark,
+        #pallio-splash .pallio-word,
+        #pallio-splash .pallio-tag,
+        #pallio-splash .pallio-loader,
+        #pallio-splash .pallio-loader::after { animation: none !important; }
+        #pallio-splash .pallio-word,
+        #pallio-splash .pallio-tag,
+        #pallio-splash .pallio-loader { opacity: 1; }
+      }
+    </style>
+    <div id="pallio-splash" role="status" aria-label="Loading Pallio">
+      <div class="pallio-mark">
+        <!-- SVG mark, no rounded-card background — lets the purple
+             tag glow against the dark aurora directly. -->
+        <img src="/mark.svg" alt="" width="512" height="512" />
+      </div>
+      <div class="pallio-word">Pallio</div>
+      <div class="pallio-tag">Inventory · POS · Storefront</div>
+      <div class="pallio-loader" aria-hidden="true"></div>
+    </div>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

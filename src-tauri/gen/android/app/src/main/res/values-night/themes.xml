@@ -1,6 +1,13 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
-    <style name="Theme.pallio" parent="Theme.MaterialComponents.DayNight.NoActionBar">
-        <!-- Customize your theme here. -->
+    <!-- Dark theme inherits the same splash treatment — Pallio's
+         splash is dark in both modes (dark-first design). -->
+    <style name="Theme.pallio" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/splashBackground</item>
+        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_splash</item>
+        <item name="postSplashScreenTheme">@style/Theme.pallio.NoActionBar</item>
+    </style>
+
+    <style name="Theme.pallio.NoActionBar" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="android:windowBackground">@color/splashBackground</item>
     </style>
 </resources>

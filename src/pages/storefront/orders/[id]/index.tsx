@@ -337,6 +337,7 @@ export default function StorefrontOrderDetail() {
                         src={it.image}
                         alt={it.name}
                         loading="lazy"
+                        crossOrigin="anonymous"
                         referrerPolicy="no-referrer"
                         className="h-14 w-14 shrink-0 rounded-lg object-cover ring-1 ring-border"
                       />

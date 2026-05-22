@@ -35,7 +35,18 @@ import {
   setBiometricLockEnabled,
   useBiometric,
   verify as verifyBiometric,
+  register as registerBiometric,
+  unregister as unregisterBiometric,
 } from "@/hooks/use-biometric"
+import {
+  usePasskey,
+  isPasskeyLoginEnabled,
+  setPasskeyLoginEnabled,
+  isBiometricLoginEnabled,
+  setBiometricLoginEnabled,
+  register as registerPasskey,
+  unregister as unregisterPasskey,
+} from "@/hooks/use-passkey"
 import { isNative } from "@/hooks/use-native"
 import { cn } from "@/lib/utils"
 
@@ -126,7 +137,13 @@ const SESSIONS: Session[] = [
 export default function SecuritySettings() {
   useRegisterPageRefresh(React.useCallback(async () => { await new Promise((r) => setTimeout(r, 250)) }, []))
   const bio = useBiometric()
+  const passkey = usePasskey()
   const [lockEnabled, setLockEnabled] = React.useState(() => isBiometricLockEnabled())
+  // Sleekr-pattern sign-in shortcuts — separate from the lock toggle.
+  // "Biometric login" → /login shows a biometric button (Tauri only).
+  // "Passkey login"   → /login shows a passkey button (web only).
+  const [bioLogin, setBioLogin]     = React.useState(() => isBiometricLoginEnabled())
+  const [passkeyOn, setPasskeyOn]   = React.useState(() => isPasskeyLoginEnabled())
 
   // 2FA state — mocked in kv via setup-step-machine.
   const [twoFAStatus, setTwoFAStatus] = React.useState<"off" | "setup" | "verifying" | "on">("off")
@@ -166,6 +183,48 @@ export default function SecuritySettings() {
     setBiometricLockEnabled(true)
     setLockEnabled(true)
     window.dispatchEvent(new CustomEvent("pallio:biometric-lock-changed"))
+  }
+
+  // Biometric sign-in: gate the /login biometric button. Real auth
+  // would also save the current refresh-token pair behind the
+  // device's Keychain (Sleekr pattern) so login can unlock it. Mock
+  // build runs the actual platform ceremony (Touch ID prompt on
+  // macOS, native sheet on iOS) so the toggle's UX is real even
+  // without a backend.
+  const onToggleBioLogin = async (next: boolean) => {
+    if (!next) {
+      await unregisterBiometric()
+      setBiometricLoginEnabled(false)
+      setBioLogin(false)
+      toast.success("Biometric sign-in turned off")
+      return
+    }
+    // register() prompts Touch ID/Face ID/Hello and stores the
+    // credential on success. Returns false on cancel — don't flip
+    // the toggle in that case.
+    const ok = await registerBiometric("Pallio")
+    if (!ok) { toast.error("Couldn't enable biometric sign-in."); return }
+    setBiometricLoginEnabled(true)
+    setBioLogin(true)
+    toast.success("Biometric sign-in enabled")
+  }
+
+  // Passkey sign-in: enrolment runs the WebAuthn ceremony, then
+  // persists the flag. Disabling clears the stored credential ID
+  // (server would also revoke server-side — mock build is local-only).
+  const onTogglePasskey = async (next: boolean) => {
+    if (!next) {
+      unregisterPasskey()
+      setPasskeyLoginEnabled(false)
+      setPasskeyOn(false)
+      toast.success("Passkey sign-in turned off")
+      return
+    }
+    const res = await registerPasskey("Pallio")
+    if (!res.ok) { toast.error("Couldn't create a passkey on this device."); return }
+    setPasskeyLoginEnabled(true)
+    setPasskeyOn(true)
+    toast.success("Passkey saved — you can sign in with it next time.")
   }
 
   const start2FA = () => setTwoFAStatus("setup")
@@ -458,12 +517,12 @@ export default function SecuritySettings() {
                 <p className="text-sm font-semibold">{bioLabel}</p>
                 <p className="text-[11px] text-muted-foreground">
                   {!isNative
-                    ? "Available on the iOS / Android build only."
+                    ? "Available in the iOS / Android / desktop app — not in the browser."
                     : !bio.ready
                       ? "Checking device support…"
                       : bio.available
                         ? "Device supports biometric authentication."
-                        : "No biometric set up on this device — enroll one in Settings."}
+                        : "No biometric set up on this device — enroll one in your system Settings."}
                 </p>
               </div>
             </div>
@@ -484,6 +543,69 @@ export default function SecuritySettings() {
               onCheckedChange={onToggleLock}
               disabled={!isNative || !bio.available}
             />
+          </div>
+        </FormSection>
+
+        {/* Sign-in shortcuts — separate from biometric LOCK above.
+            These two toggles control the buttons that appear on the
+            /login page. Mirrors Sleekr's pattern: native gets
+            biometric, web gets passkey. Both stay hidden on platforms
+            where they can't work. */}
+        <FormSection
+          title="Sign-in shortcuts"
+          description="Skip your password on this device when you sign in."
+          Icon={KeyRound}
+          trailing={
+            <StatusBadge tone={bioLogin || passkeyOn ? "success" : "neutral"} withDot>
+              {bioLogin && passkeyOn ? "biometric + passkey"
+                : bioLogin ? "biometric"
+                : passkeyOn ? "passkey"
+                : "password only"}
+            </StatusBadge>
+          }
+        >
+          <div className="grid gap-3">
+            {/* Biometric sign-in (Tauri only) */}
+            <div className="rounded-xl border border-border bg-background p-3">
+              <SwitchField
+                label={`Sign in with ${bioLabel}`}
+                description={
+                  !isNative
+                    ? "Available in the iOS / Android / desktop app — not in the browser."
+                    : !bio.ready
+                      ? "Checking device support…"
+                      : !bio.available
+                        ? "No biometric set up on this device — enroll one in your phone's Settings."
+                        : bioLogin
+                          ? `On — tap ${bioLabel} on the sign-in screen instead of typing your password.`
+                          : "Off — sign in always asks for your password."
+                }
+                checked={bioLogin}
+                onCheckedChange={onToggleBioLogin}
+                disabled={!isNative || !bio.available}
+              />
+            </div>
+
+            {/* Passkey sign-in (web only) */}
+            <div className="rounded-xl border border-border bg-background p-3">
+              <SwitchField
+                label="Sign in with a passkey"
+                description={
+                  isNative
+                    ? "Passkeys are managed by your browser — use the web app for this."
+                    : !passkey.ready
+                      ? "Checking browser support…"
+                      : !passkey.available
+                        ? "Your browser doesn't support platform passkeys (need Safari 16+, Chrome 108+, or Firefox 119+)."
+                        : passkeyOn
+                          ? "On — use Face ID / Touch ID / Windows Hello to sign in. Synced via iCloud Keychain or Google Password Manager."
+                          : "Off — sign in always asks for your password."
+                }
+                checked={passkeyOn}
+                onCheckedChange={onTogglePasskey}
+                disabled={isNative || !passkey.available}
+              />
+            </div>
           </div>
         </FormSection>
 
