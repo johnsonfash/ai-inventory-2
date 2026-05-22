@@ -4,262 +4,19 @@ import { createPortal } from "react-dom"
 import { AnimatePresence, motion } from "framer-motion"
 import { Link, useLocation } from "react-router-dom"
 import {
-  BarChart3,
-  Bell,
-  Bookmark,
-  Bot,
-  Mail,
-  CalendarDays,
   ChevronDown,
   ChevronRight,
-  ClipboardList,
-  CreditCard,
-  FileText,
-  Globe,
-  Megaphone,
-  Package2,
   PanelLeftClose,
   PanelLeftOpen,
-  Puzzle,
-  Receipt,
-  Settings,
-  ShoppingCart,
-  Wallet,
-  type LucideIcon,
 } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { BrandMark } from "@/components/brand-mark"
 import { cn } from "@/lib/utils"
+import { NAV, type NavItem } from "@/lib/nav"
 
-type SubItem = { title: string; url: string }
-type Item = { title: string; url?: string; icon: LucideIcon; sub?: SubItem[] }
-
-// Sidebar groups, ordered the way a shop owner actually thinks about
-// their day:
-//   1. At-a-glance       → Dashboard
-//   2. Daily ops         → POS, Appointments
-//   3. Sell side         → Sales, Inventory
-//   4. Buy side          → Purchases, Expenses
-//   5. Books             → Accounting, Reporting
-//   6. Grow              → Marketing, Communications, AI Assistant
-//   7. System            → Notifications, Integrations, Settings
-// Sub-items inside each group keep the "list first, new last"
-// convention so the most-used screen is always closest to the click.
-const nav: Item[] = [
-  { title: "Dashboard", url: "/dashboard", icon: BarChart3 },
-
-  {
-    title: "Point of Sale",
-    icon: CreditCard,
-    sub: [
-      { title: "Current Sale", url: "/pos" },
-      { title: "Drafts", url: "/pos/drafts" },
-      { title: "Transactions", url: "/pos/transactions" },
-      { title: "Invoices", url: "/pos/invoices" },
-      { title: "Returns", url: "/pos/returns" },
-      { title: "Start Return", url: "/pos/returns/new" },
-    ],
-  },
-
-  { title: "Appointments", url: "/appointments", icon: CalendarDays },
-
-  {
-    title: "Sales",
-    icon: ShoppingCart,
-    sub: [
-      { title: "Customers", url: "/sales/customers" },
-      { title: "Orders", url: "/sales/orders" },
-      { title: "Invoices", url: "/sales/invoices" },
-      { title: "Receipts", url: "/sales/receipts" },
-      { title: "Shipments", url: "/sales/shipments" },
-      { title: "Returns", url: "/sales/returns" },
-      { title: "Discounts", url: "/sales/discounts" },
-      { title: "Sales Leaderboard", url: "/sales/team" },
-      { title: "Live Inventory (Sales)", url: "/sales/inventory" },
-      { title: "New Customer", url: "/sales/customers/new" },
-      { title: "New Order", url: "/sales/orders/new" },
-      { title: "New Invoice", url: "/sales/invoices/new" },
-      { title: "New Shipment", url: "/sales/shipments/new" },
-      { title: "New Return", url: "/sales/returns/new" },
-      { title: "New Discount", url: "/sales/discounts/new" },
-    ],
-  },
-
-  {
-    title: "Inventory",
-    icon: Package2,
-    sub: [
-      { title: "Items", url: "/inventory" },
-      { title: "Receive Stock", url: "/inventory/receive" },
-      { title: "Adjustments", url: "/inventory/adjustments" },
-      { title: "Transfers", url: "/inventory/transfers" },
-      { title: "Categories", url: "/inventory/categories" },
-      { title: "Units", url: "/inventory/units" },
-      { title: "Brands", url: "/inventory/brands" },
-      { title: "Warranties", url: "/inventory/warranties" },
-      { title: "Price Lists", url: "/inventory/price-lists" },
-      { title: "Composite Items", url: "/inventory/composite" },
-      { title: "Recipes & BOMs", url: "/inventory/recipes" },
-      { title: "Production runs", url: "/inventory/production" },
-      { title: "Lots & batches", url: "/inventory/lots" },
-      { title: "Recall trace", url: "/inventory/recall" },
-      { title: "Label Print", url: "/inventory/labels" },
-      { title: "New Item", url: "/inventory/new" },
-      { title: "Add Category", url: "/inventory/categories/new" },
-      { title: "Add Unit", url: "/inventory/units/new" },
-      { title: "Add Brand", url: "/inventory/brands/new" },
-      { title: "Add Warranty", url: "/inventory/warranties/new" },
-      { title: "New Price List", url: "/inventory/price-lists/new" },
-      { title: "New Composite", url: "/inventory/composite/new" },
-      { title: "New Recipe", url: "/inventory/recipes/new" },
-    ],
-  },
-
-  {
-    title: "Purchases",
-    icon: ClipboardList,
-    sub: [
-      { title: "Vendors", url: "/purchasing/vendors" },
-      { title: "Purchase Orders", url: "/purchasing/pos" },
-      { title: "Receipts", url: "/purchasing/receipts" },
-      { title: "Bills", url: "/purchasing/bills" },
-      { title: "Vendor Credits", url: "/purchasing/vendor-credits" },
-      { title: "Add Vendor", url: "/purchasing/vendors/new" },
-      { title: "New Purchase Order", url: "/purchasing/pos/new" },
-      { title: "New Receipt", url: "/purchasing/receipts/new" },
-      { title: "New Bill", url: "/purchasing/bills/new" },
-      { title: "New Vendor Credit", url: "/purchasing/vendor-credits/new" },
-    ],
-  },
-
-  {
-    title: "Expenses",
-    icon: Receipt,
-    sub: [
-      { title: "All Expenses", url: "/expenses" },
-      { title: "Add Expense", url: "/expenses/new" },
-    ],
-  },
-
-  {
-    title: "Accounting",
-    icon: Wallet,
-    sub: [
-      { title: "Profit & Loss",  url: "/accounting/profit-loss" },
-      { title: "Balance Sheet",  url: "/accounting/balance-sheet" },
-      { title: "Cash Flow",      url: "/accounting/cash-flow" },
-      { title: "Payroll",        url: "/accounting/payroll" },
-      { title: "Commission Payouts", url: "/accounting/commissions" },
-      { title: "Tax Filings",    url: "/accounting/taxes" },
-      { title: "Chart of Accounts", url: "/accounting/chart-of-accounts" },
-      { title: "Journal Entries",   url: "/accounting/journal-entries" },
-      { title: "Bank Reconciliation", url: "/accounting/reconciliation" },
-    ],
-  },
-
-  {
-    title: "Reporting",
-    icon: FileText,
-    sub: [
-      { title: "Profit & Loss", url: "/reporting/profit-loss" },
-      { title: "Purchase & Sale", url: "/reporting/purchase-sale" },
-      { title: "Tax Analytics", url: "/reporting/tax" },
-      { title: "Supplier & Customer", url: "/reporting/supplier-customer" },
-      { title: "Customer Group", url: "/reporting/customer-group" },
-      { title: "Stock", url: "/reporting/stock" },
-      { title: "Stock Expiry", url: "/reporting/stock-expiry" },
-      { title: "Stock Adjustment", url: "/reporting/stock-adjustment" },
-      { title: "Variance (theoretical vs actual)", url: "/reporting/variance" },
-      { title: "Recipe cost watch", url: "/reporting/recipe-cost" },
-      { title: "Allergens", url: "/reporting/allergens" },
-      { title: "Trending Product", url: "/reporting/trending-product" },
-      { title: "Item", url: "/reporting/item" },
-      { title: "Product Purchase", url: "/reporting/product-purchase" },
-      { title: "Product Sell", url: "/reporting/product-sell" },
-      { title: "Purchase Payment", url: "/reporting/purchase-payment" },
-      { title: "Sell Payment", url: "/reporting/sell-payment" },
-      { title: "Expense", url: "/reporting/expense" },
-      { title: "Register", url: "/reporting/register" },
-      { title: "Sales Representatives", url: "/reporting/sales-representatives" },
-      { title: "Activity Log", url: "/reporting/activity-log" },
-    ],
-  },
-
-  {
-    title: "Storefront",
-    icon: Globe,
-    sub: [
-      { title: "Manage", url: "/storefront" },
-      { title: "Orders", url: "/storefront/orders" },
-      { title: "Customers", url: "/storefront/customers" },
-      { title: "Products", url: "/storefront/products" },
-      { title: "Discounts", url: "/storefront/discounts" },
-      { title: "Pages & Content", url: "/storefront/pages" },
-      { title: "Analytics", url: "/storefront/analytics" },
-      { title: "Domain & DNS", url: "/storefront/domain" },
-      { title: "Billing", url: "/storefront/billing" },
-      { title: "Settings", url: "/storefront/settings" },
-      { title: "Browse Templates", url: "/storefront/templates" },
-    ],
-  },
-
-  {
-    title: "Marketing",
-    icon: Megaphone,
-    sub: [
-      { title: "Overview", url: "/marketing" },
-      { title: "Facebook Marketplace", url: "/marketing/facebook-marketplace" },
-      { title: "Facebook Ads", url: "/marketing/facebook-ads" },
-      { title: "Instagram Ads", url: "/marketing/instagram-ads" },
-      { title: "YouTube & AdSense", url: "/marketing/youtube-adsense" },
-      { title: "Commissions", url: "/marketing/commissions" },
-      { title: "New Listing", url: "/marketing/listings/new" },
-    ],
-  },
-
-  {
-    title: "Communications",
-    icon: Mail,
-    sub: [
-      { title: "Inbox", url: "/communications" },
-      { title: "Compose", url: "/communications/new" },
-      { title: "Templates", url: "/communications/templates" },
-      { title: "Team Chat", url: "/sales/team/chat" },
-    ],
-  },
-
-  { title: "AI Assistant", url: "/ai", icon: Bot },
-
-  { title: "My Commissions", url: "/affiliate/dashboard", icon: Bookmark },
-
-  { title: "Notifications", url: "/notifications", icon: Bell },
-
-  { title: "Integrations", url: "/settings/integrations", icon: Puzzle },
-
-  {
-    title: "Settings",
-    icon: Settings,
-    sub: [
-      { title: "Business Settings", url: "/settings/business" },
-      { title: "Business Location", url: "/settings/locations" },
-      { title: "Warehouses", url: "/settings/warehouses" },
-      { title: "Team", url: "/settings/users" },
-      { title: "Roles & Permissions", url: "/settings/roles" },
-      { title: "Currency", url: "/settings/currency" },
-      { title: "Tax Settings", url: "/settings/taxes" },
-      { title: "Payment Settings", url: "/settings/payments" },
-      { title: "Receiving Accounts", url: "/settings/payments/business-accounts" },
-      { title: "Payout Accounts",    url: "/settings/payments/accounts" },
-      { title: "Invoice Settings", url: "/settings/invoice" },
-      { title: "Receipt Printers", url: "/settings/printers" },
-      { title: "Barcode Settings", url: "/settings/barcodes" },
-      { title: "Notification Settings", url: "/settings/notifications" },
-      { title: "Security", url: "/settings/security" },
-      { title: "Preferences", url: "/settings/preferences" },
-    ],
-  },
-]
-
+// Sidebar reads the full app menu from `@/lib/nav` — single source of
+// truth, shared with the mobile More drawer. See lib/nav.ts for the
+// section/sub-item ordering rationale.
 const COLLAPSED_KEY = "pallio:sidebar-collapsed"
 
 export function AppSidebar() {
@@ -294,7 +51,7 @@ export function AppSidebar() {
   }, [])
 
   const [openStates, setOpenStates] = React.useState<Record<string, boolean>>(() =>
-    nav.reduce(
+    NAV.reduce(
       (acc, item) => {
         const active = item.url ? pathname === item.url : item.sub?.some((s) => pathname.startsWith(s.url))
         acc[item.title] = !!active
@@ -313,10 +70,10 @@ export function AppSidebar() {
   // sub-item — so the user sees the context.
   const [query, setQuery] = React.useState("")
   const trimmedQuery = query.trim().toLowerCase()
-  const filteredNav = React.useMemo<Item[]>(() => {
-    if (!trimmedQuery) return nav
-    const out: Item[] = []
-    for (const item of nav) {
+  const filteredNav = React.useMemo<NavItem[]>(() => {
+    if (!trimmedQuery) return NAV
+    const out: NavItem[] = []
+    for (const item of NAV) {
       const titleMatches = item.title.toLowerCase().includes(trimmedQuery)
       if (!item.sub) {
         if (titleMatches) out.push(item)
@@ -388,14 +145,14 @@ export function AppSidebar() {
   // Clean up the timer on unmount.
   React.useEffect(() => () => cancelClose(), [cancelClose])
 
-  const flyoutItem = flyout ? nav.find((n) => n.title === flyout.title) : null
+  const flyoutItem = flyout ? NAV.find((n) => n.title === flyout.title) : null
 
   // When the route changes, re-expand the matching group so deep
   // links open into the right tree.
   React.useEffect(() => {
     setOpenStates((prev) => {
       const next = { ...prev }
-      for (const item of nav) {
+      for (const item of NAV) {
         if (item.sub?.some((s) => pathname.startsWith(s.url))) next[item.title] = true
       }
       return next

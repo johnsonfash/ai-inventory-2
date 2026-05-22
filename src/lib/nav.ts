@@ -1,8 +1,8 @@
 import {
   BarChart3,
   Bell,
-  Bot,
   Bookmark,
+  Bot,
   CalendarDays,
   ClipboardList,
   CreditCard,
@@ -22,70 +22,118 @@ import {
 export type SubItem = { title: string; url: string }
 export type NavItem = { title: string; url?: string; icon: LucideIcon; sub?: SubItem[] }
 
+// ----- Single source of truth for the full app navigation -----
+//
+// Consumed by:
+//   - AppSidebar           (desktop)
+//   - MobileMoreDrawer     (mobile tile grid + drill-in + search)
+//
+// NOT consumed by — these are intentionally curated subsets:
+//   - BOTTOM_NAV_PRIMARY   (mobile bottom bar, 4 fixed icons)
+//   - Command palette      (curated NAVIGATE + QUICK_ACTIONS in
+//                           components/command/sources.ts)
+//
+// Section ordering follows how a shop owner actually thinks about
+// their day:
+//   1. At-a-glance       → Dashboard
+//   2. Daily ops         → POS, Appointments
+//   3. Sell side         → Sales, Inventory
+//   4. Buy side          → Purchases, Expenses
+//   5. Books             → Accounting, Reporting
+//   6. Grow              → Storefront, Marketing, Communications, AI Assistant
+//   7. System            → My Commissions, Notifications, Integrations, Settings, Help
+//
+// Sub-item ordering inside each group follows the "list/manage pages
+// first, then 'new X' creation pages clustered at the bottom"
+// convention — better for vertical scanning on desktop and tap
+// scrolling on mobile.
 export const NAV: NavItem[] = [
   { title: "Dashboard", url: "/dashboard", icon: BarChart3 },
+
   {
     title: "Point of Sale",
     icon: CreditCard,
     sub: [
       { title: "Current Sale", url: "/pos" },
       { title: "Drafts", url: "/pos/drafts" },
-      { title: "Invoices", url: "/pos/invoices" },
       { title: "Transactions", url: "/pos/transactions" },
+      { title: "Invoices", url: "/pos/invoices" },
       { title: "Returns", url: "/pos/returns" },
       { title: "Start Return", url: "/pos/returns/new" },
     ],
   },
+
   { title: "Appointments", url: "/appointments", icon: CalendarDays },
-  {
-    title: "Inventory",
-    icon: Package2,
-    sub: [
-      { title: "Items", url: "/inventory" },
-      { title: "New Item", url: "/inventory/new" },
-      { title: "Categories", url: "/inventory/categories" },
-      { title: "Add Category", url: "/inventory/categories/new" },
-      { title: "Units", url: "/inventory/units" },
-      { title: "Add Unit", url: "/inventory/units/new" },
-      { title: "Brands", url: "/inventory/brands" },
-      { title: "Add Brand", url: "/inventory/brands/new" },
-      { title: "Warranties", url: "/inventory/warranties" },
-      { title: "Add Warranty", url: "/inventory/warranties/new" },
-      { title: "Price Lists", url: "/inventory/price-lists" },
-      { title: "New Price List", url: "/inventory/price-lists/new" },
-      { title: "Composite Items", url: "/inventory/composite" },
-      { title: "New Composite", url: "/inventory/composite/new" },
-      { title: "Recipes & BOMs", url: "/inventory/recipes" },
-      { title: "New Recipe", url: "/inventory/recipes/new" },
-      { title: "Production runs", url: "/inventory/production" },
-      { title: "Lots & batches", url: "/inventory/lots" },
-      { title: "Recall trace", url: "/inventory/recall" },
-      { title: "Adjustments", url: "/inventory/adjustments" },
-      { title: "Transfers", url: "/inventory/transfers" },
-      { title: "Label Print", url: "/inventory/labels" },
-      { title: "Receive Stock", url: "/inventory/receive" },
-    ],
-  },
+
   {
     title: "Sales",
     icon: ShoppingCart,
     sub: [
       { title: "Customers", url: "/sales/customers" },
-      { title: "New Customer", url: "/sales/customers/new" },
       { title: "Orders", url: "/sales/orders" },
-      { title: "New Order", url: "/sales/orders/new" },
       { title: "Invoices", url: "/sales/invoices" },
-      { title: "New Invoice", url: "/sales/invoices/new" },
+      { title: "Receipts", url: "/sales/receipts" },
       { title: "Shipments", url: "/sales/shipments" },
-      { title: "New Shipment", url: "/sales/shipments/new" },
       { title: "Returns", url: "/sales/returns" },
-      { title: "New Return", url: "/sales/returns/new" },
       { title: "Discounts", url: "/sales/discounts" },
-      { title: "New Discount", url: "/sales/discounts/new" },
       { title: "Sales Leaderboard", url: "/sales/team" },
       { title: "Live Inventory (Sales)", url: "/sales/inventory" },
+      { title: "New Customer", url: "/sales/customers/new" },
+      { title: "New Order", url: "/sales/orders/new" },
+      { title: "New Invoice", url: "/sales/invoices/new" },
+      { title: "New Shipment", url: "/sales/shipments/new" },
+      { title: "New Return", url: "/sales/returns/new" },
+      { title: "New Discount", url: "/sales/discounts/new" },
     ],
   },
+
+  {
+    title: "Inventory",
+    icon: Package2,
+    sub: [
+      { title: "Items", url: "/inventory" },
+      { title: "Receive Stock", url: "/inventory/receive" },
+      { title: "Adjustments", url: "/inventory/adjustments" },
+      { title: "Transfers", url: "/inventory/transfers" },
+      { title: "Categories", url: "/inventory/categories" },
+      { title: "Units", url: "/inventory/units" },
+      { title: "Brands", url: "/inventory/brands" },
+      { title: "Warranties", url: "/inventory/warranties" },
+      { title: "Price Lists", url: "/inventory/price-lists" },
+      { title: "Composite Items", url: "/inventory/composite" },
+      { title: "Recipes & BOMs", url: "/inventory/recipes" },
+      { title: "Production runs", url: "/inventory/production" },
+      { title: "Lots & batches", url: "/inventory/lots" },
+      { title: "Recall trace", url: "/inventory/recall" },
+      { title: "Label Print", url: "/inventory/labels" },
+      { title: "New Item", url: "/inventory/new" },
+      { title: "Add Category", url: "/inventory/categories/new" },
+      { title: "Add Unit", url: "/inventory/units/new" },
+      { title: "Add Brand", url: "/inventory/brands/new" },
+      { title: "Add Warranty", url: "/inventory/warranties/new" },
+      { title: "New Price List", url: "/inventory/price-lists/new" },
+      { title: "New Composite", url: "/inventory/composite/new" },
+      { title: "New Recipe", url: "/inventory/recipes/new" },
+    ],
+  },
+
+  {
+    title: "Purchases",
+    icon: ClipboardList,
+    sub: [
+      { title: "Vendors", url: "/purchasing/vendors" },
+      { title: "Purchase Orders", url: "/purchasing/pos" },
+      { title: "Receipts", url: "/purchasing/receipts" },
+      { title: "Bills", url: "/purchasing/bills" },
+      { title: "Vendor Credits", url: "/purchasing/vendor-credits" },
+      { title: "Add Vendor", url: "/purchasing/vendors/new" },
+      { title: "New Purchase Order", url: "/purchasing/pos/new" },
+      { title: "New Receipt", url: "/purchasing/receipts/new" },
+      { title: "New Bill", url: "/purchasing/bills/new" },
+      { title: "New Vendor Credit", url: "/purchasing/vendor-credits/new" },
+    ],
+  },
+
   {
     title: "Expenses",
     icon: Receipt,
@@ -94,22 +142,23 @@ export const NAV: NavItem[] = [
       { title: "Add Expense", url: "/expenses/new" },
     ],
   },
+
   {
-    title: "Purchases",
-    icon: ClipboardList,
+    title: "Accounting",
+    icon: Wallet,
     sub: [
-      { title: "Vendors", url: "/purchasing/vendors" },
-      { title: "Add Vendor", url: "/purchasing/vendors/new" },
-      { title: "Purchase Orders", url: "/purchasing/pos" },
-      { title: "New Purchase Order", url: "/purchasing/pos/new" },
-      { title: "Receipts", url: "/purchasing/receipts" },
-      { title: "New Receipt", url: "/purchasing/receipts/new" },
-      { title: "Bills", url: "/purchasing/bills" },
-      { title: "New Bill", url: "/purchasing/bills/new" },
-      { title: "Vendor Credits", url: "/purchasing/vendor-credits" },
-      { title: "New Vendor Credit", url: "/purchasing/vendor-credits/new" },
+      { title: "Profit & Loss",  url: "/accounting/profit-loss" },
+      { title: "Balance Sheet",  url: "/accounting/balance-sheet" },
+      { title: "Cash Flow",      url: "/accounting/cash-flow" },
+      { title: "Payroll",        url: "/accounting/payroll" },
+      { title: "Commission Payouts", url: "/accounting/commissions" },
+      { title: "Tax Filings",    url: "/accounting/taxes" },
+      { title: "Chart of Accounts", url: "/accounting/chart-of-accounts" },
+      { title: "Journal Entries",   url: "/accounting/journal-entries" },
+      { title: "Bank Reconciliation", url: "/accounting/reconciliation" },
     ],
   },
+
   {
     title: "Reporting",
     icon: FileText,
@@ -137,21 +186,7 @@ export const NAV: NavItem[] = [
       { title: "Activity Log", url: "/reporting/activity-log" },
     ],
   },
-  {
-    title: "Accounting",
-    icon: Wallet,
-    sub: [
-      { title: "Profit & Loss",  url: "/accounting/profit-loss" },
-      { title: "Balance Sheet",  url: "/accounting/balance-sheet" },
-      { title: "Cash Flow",      url: "/accounting/cash-flow" },
-      { title: "Payroll",        url: "/accounting/payroll" },
-      { title: "Commission Payouts", url: "/accounting/commissions" },
-      { title: "Tax Filings",    url: "/accounting/taxes" },
-      { title: "Chart of Accounts", url: "/accounting/chart-of-accounts" },
-      { title: "Journal Entries",   url: "/accounting/journal-entries" },
-      { title: "Bank Reconciliation", url: "/accounting/reconciliation" },
-    ],
-  },
+
   {
     title: "Storefront",
     icon: Globe,
@@ -169,6 +204,7 @@ export const NAV: NavItem[] = [
       { title: "Browse Templates", url: "/storefront/templates" },
     ],
   },
+
   {
     title: "Marketing",
     icon: Megaphone,
@@ -182,6 +218,7 @@ export const NAV: NavItem[] = [
       { title: "New Listing", url: "/marketing/listings/new" },
     ],
   },
+
   {
     title: "Communications",
     icon: Mail,
@@ -192,10 +229,15 @@ export const NAV: NavItem[] = [
       { title: "Team Chat", url: "/sales/team/chat" },
     ],
   },
+
   { title: "AI Assistant", url: "/ai", icon: Bot },
+
   { title: "My Commissions", url: "/affiliate/dashboard", icon: Bookmark },
+
   { title: "Notifications", url: "/notifications", icon: Bell },
+
   { title: "Integrations", url: "/settings/integrations", icon: Puzzle },
+
   {
     title: "Settings",
     icon: Settings,
@@ -207,9 +249,9 @@ export const NAV: NavItem[] = [
       { title: "Roles & Permissions", url: "/settings/roles" },
       { title: "Currency", url: "/settings/currency" },
       { title: "Tax Settings", url: "/settings/taxes" },
-      { title: "Receiving Accounts", url: "/settings/payments/business-accounts" },
-      { title: "Payout Accounts",    url: "/settings/payments/accounts" },
       { title: "Payment Settings", url: "/settings/payments" },
+      { title: "Receiving Accounts", url: "/settings/payments/business-accounts" },
+      { title: "Payout Accounts", url: "/settings/payments/accounts" },
       { title: "Invoice Settings", url: "/settings/invoice" },
       { title: "Receipt Printers", url: "/settings/printers" },
       { title: "Barcode Settings", url: "/settings/barcodes" },
@@ -219,12 +261,13 @@ export const NAV: NavItem[] = [
       { title: "Profile", url: "/settings/profile" },
     ],
   },
+
   { title: "Help", url: "/help/glossary", icon: FileText },
 ]
 
-// Primary destinations exposed in the mobile bottom nav. Picked for
-// "most-used" rather than full coverage — everything else falls into
-// the More drawer.
+// Primary destinations exposed in the mobile bottom nav. INTENTIONALLY
+// a curated subset — picked for "most-used" rather than full coverage.
+// Everything else falls into the More drawer.
 export const BOTTOM_NAV_PRIMARY: { title: string; url: string; icon: LucideIcon }[] = [
   { title: "Home", url: "/dashboard", icon: BarChart3 },
   { title: "POS", url: "/pos", icon: CreditCard },
