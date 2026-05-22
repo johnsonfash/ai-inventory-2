@@ -65,6 +65,7 @@ const STOCK_OPTIONS = [
   { value: "in", label: "In stock" },
   { value: "low", label: "Low" },
   { value: "out", label: "Out" },
+  { value: "over", label: "Overstock" },
 ] as const
 const SORT_OPTIONS = [
   { value: "name", label: "Name (A → Z)" },
@@ -76,10 +77,16 @@ const SORT_OPTIONS = [
 type StockFilter = (typeof STOCK_OPTIONS)[number]["value"]
 type SortKey = (typeof SORT_OPTIONS)[number]["value"]
 
+// Overstock heuristic: 2.5× reorder point. Without a per-SKU `max`
+// field this is the best general-purpose threshold — operators
+// typically reorder when stock dips below the reorder point, so
+// >2.5× sitting around suggests slow-mover / over-ordered cash
+// tied up. Tighten later once the data model adds a `max_qty`.
 function stockStatus(it: Item): { tone: StatusTone; label: string } {
   if (it.stock === 0) return { tone: "danger", label: "Out" }
   if (it.stock <= it.reorder * 0.4) return { tone: "danger", label: "Critical" }
   if (it.stock < it.reorder) return { tone: "warning", label: "Low" }
+  if (it.stock > it.reorder * 2.5) return { tone: "info", label: "Overstock" }
   return { tone: "success", label: "OK" }
 }
 
@@ -138,7 +145,8 @@ export default function InventoryItems() {
       list = list.filter((it) => {
         if (stock === "out") return it.stock === 0
         if (stock === "low") return it.stock > 0 && it.stock < it.reorder
-        if (stock === "in") return it.stock >= it.reorder
+        if (stock === "in") return it.stock >= it.reorder && it.stock <= it.reorder * 2.5
+        if (stock === "over") return it.stock > it.reorder * 2.5
         return true
       })
     }

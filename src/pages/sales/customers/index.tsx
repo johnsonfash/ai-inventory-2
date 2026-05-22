@@ -44,6 +44,13 @@ const customers: Customer[] = [
   { name: "Zenith Ltd", email: "accounts@zenith.co", phone: "+234 803 555 0166", orders: 19, lifetimeSpend: 6210, tier: "lapsed", lastOrderDaysAgo: 180 },
 ]
 
+// URL-safe slug for the per-customer detail route. Email-derived
+// when available (stable + unique), name-derived for cash walk-ins.
+function customerSlug(c: Customer): string {
+  const src = c.email && c.email !== "—" ? c.email : c.name
+  return src.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "walk-in"
+}
+
 const tierTone: Record<Customer["tier"], StatusTone> = {
   vip: "brand",
   regular: "info",
@@ -197,7 +204,7 @@ export default function Customers() {
                           },
                         ]}
                       >
-                        <Link to="/sales/customers" className="flex items-center gap-3 p-3">
+                        <Link to={`/sales/customers/${customerSlug(c)}`} className="flex items-center gap-3 p-3">
                           <Avatar seed={c.email || c.name} name={c.name} size={40} />
                           <div className="min-w-0 flex-1">
                             <div className="flex items-center justify-between gap-2">
@@ -252,7 +259,7 @@ export default function Customers() {
                     </td>
                     <td className="px-3 py-2.5 text-right">
                       <Button size="sm" variant="ghost" asChild>
-                        <Link to="/sales/customers">Open</Link>
+                        <Link to={`/sales/customers/${customerSlug(c)}`}>Open</Link>
                       </Button>
                     </td>
                   </tr>
