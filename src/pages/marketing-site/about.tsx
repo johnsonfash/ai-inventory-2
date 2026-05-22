@@ -43,7 +43,7 @@ const VALUES: { Icon: LucideIcon; tone: string; title: string; body: string }[] 
 ]
 
 const TIMELINE = [
-  { year: "Years before", title: "The same complaint, over and over",        body: "I'd spent years building business software. Inventory tools, point-of-sale apps, sales dashboards. Every operator I talked to said the same thing: they were paying for five apps that wouldn't talk to each other." },
+  { year: "Years before", title: "The same complaint, over and over",        body: "We'd spent years building business software. Inventory tools, point-of-sale apps, sales dashboards. Every operator we talked to said the same thing: they were paying for five apps that wouldn't talk to each other." },
   { year: "2024",         title: "Started Pallio",                            body: "Built the first version for one operator's beauty and electronics shop in Lagos. Inventory, POS, books, all in one place. They stopped copying numbers between tabs in week two." },
   { year: "2025",         title: "Rewrote it for real",                       body: "Rebuilt from scratch with everything we'd learned. Phone-first design. AI that nudges instead of chats. Integrations with the tools Nigerian SMBs actually use." },
   { year: "2026",         title: "Apps for iPhone, Android, Mac, Windows",    body: "Same Pallio, on every device you already own. Install from the App Store, Play Store, or just open it in your browser. Works when the network drops." },
@@ -90,7 +90,7 @@ export default function AboutPage() {
             <p className="text-xs font-semibold uppercase tracking-wider text-brand dark:text-primary">
               The story
             </p>
-            <h2 className="text-2xl font-bold tracking-tight md:text-3xl">Why I built Pallio.</h2>
+            <h2 className="text-2xl font-bold tracking-tight md:text-3xl">Why we built Pallio.</h2>
           </motion.div>
           <motion.div
             initial={{ opacity: 0, y: 16 }}
@@ -100,13 +100,13 @@ export default function AboutPage() {
             className="space-y-4 text-base leading-relaxed text-muted-foreground"
           >
             <p>
-              I've spent years building software for businesses. Inventory systems. Point-of-sale apps. Sales dashboards. Each one solved a piece of the puzzle, and each one made the puzzle harder.
+              We've spent years building software for businesses. Inventory systems, point-of-sale apps, sales dashboards. Each one solved a piece of the puzzle, and each one made the puzzle harder.
             </p>
             <p>
-              The same operators kept telling me the same thing. They were paying for five apps that wouldn't talk to each other. They were copying numbers between tabs. The cashier was on one tool, the accountant on another, the marketing person on a third nobody else had ever seen. They didn't want better features. They wanted one app that just did the lot.
+              The same operators kept telling us the same thing. They were paying for five apps that wouldn't talk to each other. They were copying numbers between tabs. The cashier was on one tool, the accountant on another, the marketing person on a third nobody else had ever seen. They didn't want better features. They wanted one app that just did the lot.
             </p>
             <p>
-              Pallio is that app. Inventory, POS, sales team, marketing, books and an AI that actually nudges you when something needs attention. Built so the same numbers show up in the same place no matter who you are or what you're trying to do.
+              Pallio is that app. Inventory, POS, sales team, marketing, books and an AI that nudges you when something needs attention. Built so the same numbers show up in the same place no matter who you are or what you're trying to do.
             </p>
             <p>
               One login. One subscription you can afford. One thing to learn. That's it.
