@@ -347,9 +347,69 @@ When backend lands, the migration is: add `VITE_API_BASE_URL`, generate OpenAPI 
 Loaded automatically from `~/.claude/projects/-Users-johnfash-Work-inventory-app/memory/`:
 - `project_pallio_overview.md` — brand + scope
 - `project_inventory_catalog_source.md` — inventory sub-page TODO list
+- `project_recipe_bom_system.md` — generic Recipe/BOM/Production/Lot feature, never add vertical modules
 - `feedback_industry_agnostic_derivations.md` — the agnostic principle in detail
 - `feedback_commit_attribution.md` — no AI trailer
 - `feedback_compact_before_long_breaks.md` — `/compact` before long breaks
+
+## Recipe / BOM / Production / Lot system (added 2026-05-22)
+
+Pallio ships a full production-inventory system matching niche apps (R365, Cybake, Apicbase, MarginEdge) — but generic across industries. The strategic moat is that one model handles bakery + smoothie shop + perfume lab + auto workshop + tailor + soap maker + manufacturer + repair service + candle maker. **Never** add a "Restaurant Mode" or vertical module toggle — that destroys the moat.
+
+### Data model — `lib/inventory/recipes.ts`
+
+- **Recipe** — `{ id, parentSku, name, method?, lines: RecipeLine[], yield, yieldUnit, durationMinutes?, allergens: Allergen[], nutrition?, status, version?, tags? }`
+- **RecipeLine** — `{ componentSku, componentName?, qty, unit, wastageFactor?, notes? }`. If `componentSku` matches another recipe's `parentSku`, it's a sub-recipe (auto-expanded).
+- **ProductionRun** — recorded batch run: `{ id, recipeId, parentSku, batches, lotCode?, expiresAt?, locationId?, runById, ranAt, note?, committed }`. `committed=true` means stock has been adjusted; false = draft/planning.
+- **LotEntry** — `{ id, sku, lotCode, qty, originalQty, unit, expiresAt?, receivedAt, poNumber?, productionRunId?, locationId, vendor? }`. Both received lots and production-output lots.
+- **UnitConversion** — `{ fromUnit, toUnit, factor, forSku? }`. Universal conversions table built-in (kg/g, L/ml, m/cm, hr/min, dz/pcs); per-SKU overrides supported.
+- **VarianceEntry** — theoretical-vs-actual snapshot for the variance report.
+- **Allergen** — top-14 EU allergens + sugar/alcohol additions. All recipe allergen fields are OPTIONAL.
+
+### Pages
+
+- `/inventory/recipes` — index with cost rollup, tag filter, sub-recipe indicator, allergen badges
+- `/inventory/recipes/new` — recipe builder (yield, wastage %, optional allergens, optional nutrition; tooltip + tips deliberately list 5+ industries each)
+- `/inventory/recipes/:id` — detail with cost rollup, "used by" backlinks (sub-recipe parents), production history, allergens, nutrition
+- `/inventory/production` — runs log (committed + draft tabs) + scheduling stub
+- `/inventory/lots` — FEFO-sorted lot list with expiry/qty progress bars
+- `/inventory/recall` — full trace: lot → at-risk recipes → production runs → downstream lots → affected invoices
+- `/reporting/variance` — theoretical vs actual drift with cost impact, severity bands at 10% and 20%
+- `/reporting/allergens` — per-allergen rollup with cross-contact reminder
+- `/reporting/recipe-cost` — cost-per-unit drift watch
+
+### Helpers exported from `lib/inventory/recipes.ts`
+
+- `loadRecipes()`, `getRecipe(id)`, `recipesUsingComponent(sku)` — query layer
+- `loadProductionRuns()`, `loadLots()`, `lotsForSku(sku)` — run + lot lookups
+- `rollupRecipeCost(recipe, priceLookup, seen?)` — recursive cost rollup with sub-recipe expansion + cycle detection + wastage factor
+- `fefoOrder(lots)` — sort lots first-expired-first-out (undefined expiry last)
+- `convertUnit(qty, fromUnit, toUnit, forSku?)` — universal + per-SKU conversions; returns null when no path exists
+- `mockVariance()` — placeholder dataset for the variance report; backend will replace
+
+### UI language rules (enforced)
+
+- "Recipe / BOM" hybrid title — covers both food (recipe) and manufacturing (bill of materials) conventions
+- "Components" not "ingredients"
+- `Workflow`, `Component`, `Layers`, `Boxes` icons — **never** `ChefHat`
+- Tooltips list 5+ industries every time the feature is explained
+- Allergens + nutrition fields are fully optional; non-food operators leave them blank with zero penalty
+- Wastage % defaults to 0; non-zero only when input → output loses mass
+
+### Composite vs Recipe distinction
+
+- **Composite** (`/inventory/composite`) — SALES bundle. One SKU sold = multiple components deducted. Gift sets, meal deals, "buy 3 get 1".
+- **Recipe** (`/inventory/recipes`) — PRODUCTION BOM. Parent SKU is MADE from components. Supports yield, wastage, sub-recipes, allergens, lot tracking.
+- Composite page tooltip cross-links to Recipes to make the distinction explicit.
+
+### Backend implications
+
+When the backend lands:
+- POS sale of a recipe-backed parent SKU: check parent on-hand → if zero, walk recipe and FEFO-deduct each component
+- `inventory/receive` flow needs lot code + expiry form fields (data model is ready)
+- Purchasing forecast: recipe consumption rate × expected sales velocity × lead time × safety factor
+- Recall trace: same algorithm as the frontend implementation, with `WHERE org_id = req.user.org_id` scoping
+- Cost rollup runs server-side on price changes; frontend just renders the result
 
 ---
 
