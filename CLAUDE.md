@@ -119,7 +119,19 @@ Sync worker NOT yet implemented — see `MIGRATION.md` "Offline POS architecture
 8 codes (NGN, USD, EUR, GBP, GHS, KES, ZAR, SLL). ZERO_DECIMAL set (NGN, KES, SLL, GHS) renders 0 decimals; others 2. Default NGN. Persisted to `kv`. Use `useCurrency().formatPrice(amount)` everywhere prices show.
 
 ### Auth (mocked): `lib/auth/store.ts` + `lib/auth/rbac.ts`
-Mocked users + groups in localStorage. 8 roles (`Owner, Manager, Cashier, Sales, Marketer, Affiliate, Viewer, Custom`) with a hardcoded permission matrix in `rbac.ts`. `hasPermission(role, perm)` is the check. Real auth = TODO when backend lands; client has `auth-token.ts` ready.
+Mocked users + groups in localStorage. **Two different role systems coexist — easy to confuse:**
+
+- **`lib/auth/rbac.ts`** — permission gates. 5 roles: `Admin | Manager | Sales | Marketing | Viewer`. 8 permissions: `view:team`, `view:team:detail`, `edit:roles`, `edit:users`, `view:commissions`, `view:inventory`, `pos:charge`, `pos:refund`. `hasPermission(role, perm)` is the check.
+- **`lib/team/types.ts`** — staff management role catalogue (`RoleKey`). 8 keys: `owner | manager | cashier | sales-rep | marketer | affiliate | viewer | custom`. Each has a structured `permissions` object with per-area levels (`inventory: "none"|"read"|"write"`, `pos: "none"|"use"|"void"`, etc.).
+
+The first is for runtime guards; the second is for the team-settings UI catalogue. When wiring backend auth, decide which model the API normalizes to — they aren't 1:1.
+
+### Auth tokens: `lib/api/auth-token.ts`
+Split-storage model (ready for real backend):
+- **Access token** → in memory only. Lost on reload. Refresh flow re-populates on boot.
+- **Refresh token** → `kv` at key `pallio:auth-refresh` (so it survives reloads + reinstalls).
+- `clearAuth()` drops both + dispatches `pallio:auth-cleared` window event (App.tsx listens to navigate to `/login`).
+- `hasAuth()` returns true if EITHER token is present — doesn't validate; that's the server's job.
 
 ### WebAuthn / biometric: `lib/webauthn.ts` + `hooks/use-biometric.tsx` + `components/biometric-gate.tsx`
 Touch ID / Face ID / Windows Hello / Android biometric. Client-side WebAuthn ceremony today (no server verification yet). Credential ID + user handle stored in localStorage. `BiometricGate` is a top-level lock screen — when enabled in Settings → Security AND we're on a native build, blocks the app behind a biometric prompt on cold launch.
@@ -338,3 +350,192 @@ Loaded automatically from `~/.claude/projects/-Users-johnfash-Work-inventory-app
 - `feedback_industry_agnostic_derivations.md` — the agnostic principle in detail
 - `feedback_commit_attribution.md` — no AI trailer
 - `feedback_compact_before_long_breaks.md` — `/compact` before long breaks
+
+---
+
+# Verified deep-dive (data layer + native shell)
+
+The sections above were written from a mix of direct reads + Explore agent summaries. This section is **everything I have directly verified by reading the file** — facts a backend builder must not get wrong.
+
+## Sales pipeline shape (`lib/sales/types.ts`)
+
+Order → Invoice → Payment → Receipt. All amount fields end in **`Usd`** (the mock pretends to be USD-normalized; backend should pick a single convention).
+
+- **OrderStatus** (6): `draft | sent | accepted | invoiced | fulfilled | cancelled`
+- **InvoiceStatus** (6): `open | partial | paid | overdue | void | refunded`
+- **PaymentMethod** (5): `cash | card | transfer | wallet | store-credit`
+- `LineItem` has per-line `taxRate` as a fraction (`0.075` = 7.5%)
+- `Invoice` carries computed snapshots: `subtotalUsd`, `taxUsd`, `totalUsd`, `paidUsd`, `balanceUsd` (= total - paid, kept for sorting)
+- `Invoice.payments[]` is chronological; a `receiptId` is auto-generated after the final paid payment
+- Mock dataset deliberately demos every state combo: SO-2401 (closed), SO-2402 (partial+overdue), SO-2403 (sent unpaid), SO-2404 (accepted not-invoiced), SO-2405 (draft), SO-2406 (refunded after pay)
+
+## Team/staff (`lib/team/types.ts` + `data.ts`)
+
+- 5 locations: Warehouse A (Austin), Downtown Store (Austin), East DC (Atlanta), West Hub (Portland), SXSW Popup (Austin)
+- `Member` carries `mtdSalesUsd`, `mtdCommissionUsd`, `affiliateCode`, `affiliateClicks` (sales-rep + affiliate roles)
+- MemberStatus (3): `active | invited | suspended`
+- Invite has `token` (stable opaque) + `expiresAt`
+- Session has `current: boolean` — UI labels it "This device" and suppresses Revoke
+- Role catalogue (the 8 RoleKey values) has tone + structured `permissions` per area, used by the `/settings/roles` cards
+
+## Storefront (`lib/storefront/types.ts`)
+
+- 8 sectors: `fashion | beauty | food | electronics | home | auto | wholesale | services`
+- 5 styles: `minimal | bold | editorial | playful | luxe`
+- Subdomain convention: **`{subdomain}.pallio.shop`** (separate from `pallio.app` which is the operator app)
+- `customDomain` optional via CNAME/A — null when not configured
+- `published: boolean` — gates customer-facing visibility
+- `paymentProviderIds[]` + `deliveryProviderIds[]` — references into the integrations catalogue
+- Storefront templates have `tier: free|pro|premium` + `popularity` metric + `cover` URL (Unsplash CDN)
+
+## Integrations (`lib/integrations/types.ts` + `data.ts`)
+
+- 8 categories: `payments | commerce | delivery | comms | marketing | accounting | team | analytics`
+- 5 field kinds: `text | password | url | select | switch`
+- **Nigerian payment focus is first-class** — Paystack, Flutterwave, Opay, PalmPay all in the catalogue with their official brand hex colors. Stripe etc. are alongside but secondary.
+- Each `ProviderField` flags `sensitive: true` for secret fields — UI masks + adds a Reveal toggle.
+- **`IntegrationConnection.fieldsMasked`** persists only the masked preview (e.g. `"•••• abc1"`) in kv. **Real secrets MUST stay server-side** when backend lands; the kv field is just for the UI to show what was connected without re-prompting.
+- `events[]` is the per-connection event log shown on the detail page (`connected | test | disconnected | error`).
+- `IntegrationInsight` shape: `{ label, value, delta?, trend?, hint? }` — same shape backend should return for per-provider metric tiles.
+
+## Insights (`lib/insights/types.ts` + `engine.ts`)
+
+- 4 severities: `good | info | warning | critical` (drives color + sort priority)
+- 8 categories: `stock | sales | purchasing | marketing | cashflow | team | forecast | system`
+- Stable id pattern: `ins-{category}-{hash(title)}` — UI keys on this
+- Sparkline = 4-10 number array
+- Optional `action: { label, href }` — routes inside the app
+- `generateInsights()` is rule-based, NOT ML. Time-of-day flavor in copy (`tod()` returns morning/afternoon/evening) so the dashboard feels fresh on each visit. Output shape is what backend should match.
+- `generateForecast()` returns 7-day forecast with confidence bands
+
+## Communications (`lib/comms/types.ts`)
+
+- 4 template categories: `transactional | marketing | ops | team`
+- `EmailTemplate.tokens[]` array of `{ key, label, sample }` — composer surfaces these as fill-ins
+- `EmailTemplate.builtin: true` prevents user deletion
+- `EmailMessage.folder`: `inbox | sent | drafts`
+- Body is HTML (sanitised at render time)
+
+## Currency context (`contexts/currency.tsx`)
+
+- 8 codes: NGN, USD, EUR, GBP, GHS, KES, ZAR, SLL
+- Default: NGN. Storage key: `pallio:currency`
+- **ZERO_DECIMAL set** (renders 0 decimals): NGN, KES, SLL, GHS. Others render 2.
+- Symbol table: `NGN: "₦", GHS: "₵", KES: "KSh", ZAR: "R", SLL: "Le"` (others standard)
+- Three exports for mock data files that can't use the hook: `getCurrentCurrency()`, `formatPriceFor(n, code)`, `formatPriceCompact(n, code)` (the compact form does `k`/`M` suffixes at 1000/1000000)
+- `useCurrency()` returns fallback formatter even outside provider so static helpers don't crash
+
+## PageMeta context (`contexts/page-meta.tsx`)
+
+Split-context pattern (value + setter) to avoid an infinite re-render loop. Key facts a refactorer must respect:
+
+- `useLayoutEffect` (NOT `useEffect`) so the title lands before paint — eliminates one-frame title flash on route change
+- Setter context's value is React's stable `useState` setter — PageShell never re-renders from meta changes
+- `DEFAULT_META = { title: "", withToolbar: false }` — PageShell passes `withToolbar = true` by default
+- `PageMeta` fields: `title`, `titleTooltip?`, `withToolbar`, `toolbarActions?`, `mobileTrailing?`
+- AppFrame reads via `usePageMeta()`; PageShell publishes via `useSetPageMeta(meta)`
+
+## WebAuthn (`lib/webauthn.ts`)
+
+**NOT a mock — runs real WebAuthn ceremony.** OS-level prompt actually fires on every supporting platform:
+- macOS WKWebView → Touch ID
+- Windows WebView2 → Windows Hello (PIN / fingerprint / face)
+- Linux WebKitGTK → PAM / fprintd
+- Browser → standard passkey (synced via iCloud Keychain / Google Password Manager / Edge)
+
+Challenge is generated **client-side** today (no backend). When backend lands: swap the challenge source for a server-issued one and forward the assertion for server verification. Storage keys: `pallio.webauthn.credentialId`, `pallio.webauthn.userHandle`.
+
+## Rust plugin registration (`src-tauri/src/lib.rs`)
+
+Verified. Plugin tree:
+- **Always (every target)**: store, os, notification, sql, shell, dialog, fs, clipboard-manager, process, opener, deep-link
+- **`#[cfg(mobile)]`**: haptics, barcode-scanner, biometric, keep-screen-on, sharesheet
+- **`#[cfg(not(target_os = "ios"))]`** (desktop + Android): thermal-printer, serialplugin
+- **`#[cfg(not(any(android, ios)))]`** (desktop only): updater, single-instance (focus existing window on relaunch), window-state, autostart (`MacosLauncher::LaunchAgent`)
+
+`src/main.rs` has `#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]` so release builds on Windows don't pop a console.
+
+## pallio-fcm custom plugin
+
+Tree at `src-tauri/plugins/pallio-fcm/`:
+```
+Cargo.toml
+src/lib.rs        ← Rust side (scaffolded)
+ios/TODO.md       ← Swift side TODO
+android/TODO.md   ← Kotlin side TODO
+```
+Not yet wired in `src-tauri/src/lib.rs` (the registration call is the last item in MIGRATION.md's TODO list).
+
+## Theme tokens (`src/index.css`)
+
+Tailwind v4 (`@import 'tailwindcss'` + `tw-animate-css`). `@custom-variant dark (&:is(.dark *))`. **All colors are oklch**. Key values:
+
+- **Brand** — `oklch(0.55 0.22 295)` (violet-600)
+- Brand soft — `oklch(0.96 0.04 295)` (tints)
+- Background — `oklch(0.99 0.003 264)` light / `oklch(0.16 0.012 264)` dark (near-black with violet undertone)
+- Semantic: destructive `oklch(0.62 0.22 27)`, success `oklch(0.68 0.18 152)`, warning `oklch(0.76 0.17 75)`, info `oklch(0.68 0.16 240)`
+- **6-color chart palette**: violet / emerald / amber / red / sky / pink (same hues across light/dark, lightness flipped in dark block)
+- `--radius: 0.625rem` base
+- Sidebar gets its own token set so it can theme independently
+- Custom utilities: `.scrollbar-hide`, `.pwa-bottom`, `.pwa-top`, `.pb-mobile-nav`, `.prose-pallio`
+
+## Pre-dev hook (`ip.js`)
+
+Runs before `vite` in dev (`"dev": "node ip.js && vite ..."`).
+
+- Resolves machine's LAN IPv4 via `ifconfig` (matches en0-style `inet X.X.X.X netmask ... broadcast ...`)
+- Writes `.env.local` with:
+  - `VITE_API_BASE_URL="https://{ip}:8000/v1"` (backend expected at port 8000, API path `/v1`)
+  - `VITE_WEB_SOCKET_URL="wss://{ip}:8000/ws"` (WebSocket at `/ws`)
+- If keys exist with different variable names from an old version, appends correct ones (migration path for old `VITE_BASE_URL` / `VITE_WEB_SOCKET` names)
+- Anchored regex matches scheme+host+port together so it can't accidentally rewrite an unrelated Firebase project id
+
+## Vercel deploy (`vercel.json`)
+
+- Framework `vite`, build `npm run build`, out `dist`
+- SPA fallback: `{ source: "/(.*)", destination: "/" }`
+- Cache headers:
+  - `/assets/*` → `public, max-age=31536000, immutable` (Vite hashes asset URLs)
+  - `/icons/*` → `public, max-age=604800` (1 week — icons change occasionally)
+  - `/.well-known/apple-app-site-association` → explicit `Content-Type: application/json`, `max-age=3600` (iOS Associated Domains)
+  - `/.well-known/assetlinks.json` → explicit `Content-Type: application/json`, `max-age=3600` (Android App Links)
+
+**Backend note**: the `.well-known/*` routes are reserved for native deep-link verification. Don't proxy them through the API server.
+
+## Pages: hub vs leaf structure
+
+Some sidebar sections have NO root `index.tsx` — they're directory hubs whose children are the actual routed pages. Backend builder should note this for API surface design — these are roll-up contexts, not single-page operations:
+
+- `/accounting/*` — 9 sub-pages, no root
+- `/purchasing/*` — 6 sub-pages, no root
+- `/sales/*` — 9 sub-pages, no root (except `/sales/inventory` which is a live view)
+- `/affiliate/*` — only `/affiliate/dashboard`, no root
+- `/help/*` — only `/help/glossary`, no root
+- `/integrations` — only `/integrations/website`, no root
+
+Sections WITH a root index.tsx that's an actual rendered page: `dashboard, pos, inventory, reporting, marketing, storefront, communications, settings, ai, analytics, expenses, appointments, notifications, onboarding`.
+
+## Pages convention (from audit)
+
+- Every authed page wraps in `PageShell` (publishes title/toolbar/mobileTrailing to context).
+- Every page calls `useRegisterPageRefresh(...)` (250-400ms mock latency for pull-to-refresh).
+- Pages never call `kv.set()` directly — go through `kvJson.set()` or dispatch a custom event (`pallio:onboarding-changed`, `pallio:biometric-lock-changed`, `pallio:auth-cleared`).
+- Marketing-site pages don't use PageShell (different shell).
+- Affiliate dashboard hardcodes `ME_ID = "m-6"` as "you" — needs to come from auth when backend lands.
+- Help glossary supports URL hash anchors (`#term-<id>`) — backend should preserve these in any link-sharing flows.
+- Onboarding progress key: `pallio:onboarding-progress` (kvJson).
+
+## Components: corrections from audit
+
+The Explore-agent component sweep had at least one prop-shape error (`BiometricGate` it claimed takes `{ onUnlock, locked }` — actual signature is `{ children: React.ReactNode }`). When wiring real backend, **verify prop shapes against the source** before integrating — don't trust this CLAUDE.md alone. Patterns observed:
+
+- `app/UserMenu` + `app/NotificationBell` — top-bar utility components (dropdown + popover)
+- `auth/RoleGuard` — wraps children in a permission check; renders fallback if denied
+- `pos/*` — much bigger than expected: `BarcodeScannerInput, CartContent, CartPanel, CartSheet, CatalogGrid, CheckoutSheet, FloatingCart, InvoicePrint, PosSettingsSheet`
+- `reports/*` — own primitives: `ChartCard, DataTable, ExportMenu, KpiBand, PeriodChips, RankedList, ReportShell`
+- `charts/*` — three concrete charts: `StockLevelsChart, SalesVsPurchaseChart, CategoryBreakdownChart`
+- `team/CommissionCalculator` reused by both affiliate dashboard and sales-team commission UI
+
+## Audit coverage statement
+
+Files I have personally read in this session (verified): ~50 of ~333. Files reported by Explore agents (one had a prop-shape error, one falsely claimed `src-tauri` didn't exist): the rest. **Treat agent-reported prop shapes as starting points to verify, not as truth.** The verified deep-dive section above is what I'm confident in.
