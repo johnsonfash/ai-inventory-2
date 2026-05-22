@@ -59,6 +59,7 @@ export const NAV: NavItem[] = [
       { title: "New Recipe", url: "/inventory/recipes/new" },
       { title: "Production runs", url: "/inventory/production" },
       { title: "Lots & batches", url: "/inventory/lots" },
+      { title: "Recall trace", url: "/inventory/recall" },
       { title: "Adjustments", url: "/inventory/adjustments" },
       { title: "Transfers", url: "/inventory/transfers" },
       { title: "Label Print", url: "/inventory/labels" },

@@ -78,10 +78,17 @@ export default function CompositeItems() {
       withToolbar
       titleTooltip={
         <>
-          Bundles or kits — a single SKU made up of multiple
-          underlying items. When you sell the bundle, Pallio
-          automatically deducts each component from stock. Great for
-          gift sets, meal deals, or "buy 3 get 1" packs.
+          <strong>Composite = sales bundle.</strong> A single SKU made
+          up of multiple underlying items, sold as one. Selling the
+          bundle deducts each component. Great for gift sets, meal
+          deals, "buy 3 get 1" packs.
+          <br /><br />
+          For <strong>production recipes / BOMs</strong> (a parent SKU
+          that's <em>made</em> from components — bread loaf, perfume
+          blend, brake-pad service, soap bar, panel assembly), use{" "}
+          <Link to="/inventory/recipes" className="font-semibold underline">Recipes & BOMs</Link>{" "}
+          instead. Recipes support yield, wastage, sub-recipes,
+          allergens, and lot tracking.
         </>
       }
     >

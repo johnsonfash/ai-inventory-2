@@ -86,6 +86,7 @@ export const routes: RouteObject[] = [
   { path: "/inventory/recipes/new", Component: page(() => import("./pages/inventory/recipes/new")) },
   { path: "/inventory/recipes/:id", Component: page(() => import("./pages/inventory/recipes/[id]")) },
   { path: "/inventory/lots", Component: page(() => import("./pages/inventory/lots")) },
+  { path: "/inventory/recall", Component: page(() => import("./pages/inventory/recall")) },
   { path: "/inventory/receive", Component: page(() => import("./pages/inventory/receive")) },
   { path: "/inventory/transfers", Component: page(() => import("./pages/inventory/transfers")) },
   { path: "/inventory/units", Component: page(() => import("./pages/inventory/units")) },
