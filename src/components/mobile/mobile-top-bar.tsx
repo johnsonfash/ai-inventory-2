@@ -1,6 +1,5 @@
 import { ChevronLeft } from "lucide-react"
 import { useNavigate, useLocation } from "react-router-dom"
-import { ModeToggle } from "@/components/mode-toggle"
 import { BrandMark } from "@/components/brand-mark"
 import { InfoTooltip } from "@/components/info-tooltip"
 import { cn } from "@/lib/utils"
@@ -54,8 +53,11 @@ export function MobileTopBar({ title, showBack, trailing, titleTooltip, classNam
         )}
       </h1>
 
+      {/* Theme toggle intentionally omitted — UserMenu (rendered in
+          the `trailing` slot's avatar dropdown) has its own theme
+          switcher. Showing a standalone moon/sun icon here would
+          duplicate the affordance. */}
       {trailing}
-      <ModeToggle />
     </header>
   )
 }

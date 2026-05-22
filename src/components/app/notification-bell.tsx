@@ -73,7 +73,11 @@ export function NotificationBell() {
   const unread = items.filter((n) => n.unread).length
 
   React.useEffect(() => {
-    if (!open) return
+    // Mobile uses BottomSheet which owns its own dismissal — running
+    // this outside-click handler would close the sheet on every
+    // internal tap (the sheet's portalled DOM isn't inside the
+    // `notif-popover` element we check against).
+    if (!open || isMobile) return
     const onClick = (e: MouseEvent) => {
       const t = e.target as Node
       if (!triggerRef.current?.contains(t) && !document.getElementById("notif-popover")?.contains(t)) {
@@ -87,7 +91,7 @@ export function NotificationBell() {
       document.removeEventListener("mousedown", onClick)
       window.removeEventListener("keydown", onKey)
     }
-  }, [open])
+  }, [open, isMobile])
 
   const onOpen = () => {
     if (triggerRef.current) setAnchorRect(triggerRef.current.getBoundingClientRect())
@@ -172,7 +176,7 @@ export function NotificationBell() {
         aria-label="Notifications"
         aria-haspopup="dialog"
         aria-expanded={open}
-        className="relative inline-flex h-9 w-9 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+        className="relative inline-flex h-9 w-9 items-center justify-center rounded-full text-foreground/80 transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
       >
         <Bell className="h-4 w-4" />
         {unread > 0 && (

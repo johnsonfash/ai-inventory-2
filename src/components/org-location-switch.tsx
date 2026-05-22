@@ -1,49 +1,31 @@
 import { Building2, MapPin } from "lucide-react"
-import { useEffect, useState } from "react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useOrgLocation } from "@/hooks/use-org-location"
 
-const ORG_KEY = "iv:org"
-const LOC_KEY = "iv:loc"
-
-// Businesses the signed-in user can switch between (dummy data world).
-// Realistic Nigerian SMBs to match Pallio's launch market.
-const orgs = [
-  { value: "funke",      label: "Funke Apparel",  sub: "Fashion · 3 stores" },
-  { value: "eko",        label: "Eko Provisions", sub: "Wholesale · 1 store" },
-  { value: "lagosmart",  label: "LagosMart",      sub: "Convenience · 2 stores" },
-]
-
-// Stores / warehouses owned by the active org.
-// Single-line labels so the trigger never wraps; the city is shown as
-// a muted sub-line inside the dropdown.
-const locs = [
-  { value: "lekki",  label: "Lekki Phase 1",   sub: "Lagos · Flagship" },
-  { value: "ikeja",  label: "Ikeja City Mall", sub: "Lagos · Kiosk" },
-  { value: "wuse",   label: "Wuse 2",          sub: "Abuja · Showroom" },
-]
-
+// Desktop top-bar dual-select. Shares state via useOrgLocation with
+// the WorkspaceSwitcher in UserMenu's drawer — flipping either side
+// instantly updates the other.
+//
+// Compact at md (just first word: "Funke" / "Lekki") so the header
+// doesn't push the avatar off-screen at narrow desktop widths.
+// Full label at lg+ (≥1024px).
 export function OrgLocationSwitch() {
-  const [org, setOrg] = useState<string>(() => orgs[0].value)
-  const [loc, setLoc] = useState<string>(() => locs[0].value)
-
-  useEffect(() => {
-    localStorage.setItem(ORG_KEY, org)
-  }, [org])
-
-  useEffect(() => {
-    localStorage.setItem(LOC_KEY, loc)
-  }, [loc])
-
-  const orgLabel = orgs.find((o) => o.value === org)?.label ?? orgs[0].label
-  const locLabel = locs.find((l) => l.value === loc)?.label ?? locs[0].label
+  const { org, setOrg, loc, setLoc, currentOrg, currentLoc, orgs, locs } = useOrgLocation()
+  // Compact label = first word only. "Funke Apparel" → "Funke",
+  // "Lekki Phase 1" → "Lekki". Used at md-lg widths.
+  const orgShort = currentOrg.label.split(/\s+/)[0]
+  const locShort = currentLoc.label.split(/\s+/)[0]
 
   return (
     <div className="hidden items-center gap-2 md:flex">
       <Select value={org} onValueChange={setOrg}>
-        <SelectTrigger className="w-[180px]">
+        <SelectTrigger className="w-[120px] lg:w-[180px]">
           <span className="flex min-w-0 items-center gap-2">
             <Building2 className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-            <SelectValue placeholder="Organization">{orgLabel}</SelectValue>
+            <SelectValue placeholder="Organization">
+              <span className="truncate lg:hidden">{orgShort}</span>
+              <span className="hidden truncate lg:inline">{currentOrg.label}</span>
+            </SelectValue>
           </span>
         </SelectTrigger>
         <SelectContent>
@@ -59,10 +41,13 @@ export function OrgLocationSwitch() {
       </Select>
 
       <Select value={loc} onValueChange={setLoc}>
-        <SelectTrigger className="w-[200px]">
+        <SelectTrigger className="w-[120px] lg:w-[200px]">
           <span className="flex min-w-0 items-center gap-2">
             <MapPin className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-            <SelectValue placeholder="Location">{locLabel}</SelectValue>
+            <SelectValue placeholder="Location">
+              <span className="truncate lg:hidden">{locShort}</span>
+              <span className="hidden truncate lg:inline">{currentLoc.label}</span>
+            </SelectValue>
           </span>
         </SelectTrigger>
         <SelectContent>

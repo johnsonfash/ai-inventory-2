@@ -62,7 +62,10 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
   // menu. Pages that publish their own mobileTrailing (e.g. settings
   // sheets) override this.
   const defaultMobileTrailing = (
-    <div className="flex items-center gap-1.5">
+    // gap-2 (8px) — matches the visual rhythm of three 36×36 circles
+    // side-by-side. gap-1.5 (6px) was too tight; the bell ended up
+    // crowding the avatar.
+    <div className="flex items-center gap-2">
       <button
         type="button"
         onClick={() => openPalette(true)}
@@ -138,12 +141,25 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
           </h1>
           <div className="ml-auto flex items-center gap-1.5 md:gap-2">
             <OrgLocationSwitch />
-            {/* Command-palette trigger. Tap or hit ⌘K. */}
+            {/* Command-palette trigger. Two presentations:
+                - md-lg (768–1023): icon-only button — saves ~240px of
+                  header width so the avatar doesn't clip on narrow
+                  desktops.
+                - lg+ (≥ 1024): full search bar with placeholder + ⌘K
+                  hint. Both open the same palette. */}
             <button
               type="button"
               onClick={() => openPalette(true)}
               aria-label="Search the app (Cmd+K)"
-              className="hidden h-9 items-center gap-2 rounded-md border border-input bg-background px-3 text-left text-sm text-muted-foreground transition-colors hover:bg-accent md:flex md:w-[240px] lg:w-[280px]"
+              className="hidden h-9 w-9 items-center justify-center rounded-md border border-input bg-background text-muted-foreground transition-colors hover:bg-accent md:flex lg:hidden"
+            >
+              <Search className="h-4 w-4" />
+            </button>
+            <button
+              type="button"
+              onClick={() => openPalette(true)}
+              aria-label="Search the app (Cmd+K)"
+              className="hidden h-9 items-center gap-2 rounded-md border border-input bg-background px-3 text-left text-sm text-muted-foreground transition-colors hover:bg-accent lg:flex lg:w-[280px]"
             >
               <Search className="h-4 w-4" />
               <span className="flex-1 truncate">Search items, orders…</span>

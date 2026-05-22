@@ -18,6 +18,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { Avatar } from "@/components/avatar"
 import { BottomSheet } from "@/components/mobile/bottom-sheet"
+import { WorkspaceSwitcher } from "@/components/app/workspace-switcher"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { useTWTheme } from "@/components/tw-theme-provider"
 import { clearAuth } from "@/lib/api/auth-token"
@@ -58,9 +59,13 @@ export function UserMenu() {
   const navigate = useNavigate()
   const { resolvedTheme, setTheme } = useTWTheme()
 
-  // Close on outside click + Escape.
+  // Close on outside click + Escape. Mobile is handled by BottomSheet
+  // itself (backdrop tap + Esc + drag-down) — running the outside-click
+  // handler there would treat every tap inside the sheet as "outside"
+  // and close the drawer immediately, since the sheet's portalled DOM
+  // isn't inside `user-menu-popover` (that's the desktop popover only).
   React.useEffect(() => {
-    if (!open) return
+    if (!open || isMobile) return
     const onClick = (e: MouseEvent) => {
       const t = e.target as Node
       if (!triggerRef.current?.contains(t) && !document.getElementById("user-menu-popover")?.contains(t)) {
@@ -76,7 +81,7 @@ export function UserMenu() {
       document.removeEventListener("mousedown", onClick)
       window.removeEventListener("keydown", onKey)
     }
-  }, [open])
+  }, [open, isMobile])
 
   const openMenu = () => {
     if (triggerRef.current) setAnchorRect(triggerRef.current.getBoundingClientRect())
@@ -103,6 +108,12 @@ export function UserMenu() {
 
   const body = (
     <>
+      {/* Workspace switcher — pinned at the top so multi-store
+          operators can flip org/location in one tap (avatar) + one
+          tap (row) + one tap (option). Shares state with the
+          desktop top-bar OrgLocationSwitch via useOrgLocation. */}
+      <WorkspaceSwitcher onSelect={() => setOpen(false)} />
+
       {/* Header — name + email + role */}
       <div className="border-b border-border px-4 py-3">
         <div className="flex items-center gap-3">

@@ -35,7 +35,7 @@ export function MobileBottomNav({ onMoreClick }: Props) {
                 onClick={() => haptic.light()}
                 aria-current={active ? "page" : undefined}
                 aria-label={it.title}
-                className="group relative flex flex-1 flex-col items-center justify-center rounded-xl py-0.5 text-[10px] font-medium leading-tight tracking-tight focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                className="group relative flex flex-1 cursor-pointer flex-col items-center justify-center rounded-xl py-0.5 text-[10px] font-medium leading-tight tracking-tight focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-background"
               >
                 <span
                   className={cn(
