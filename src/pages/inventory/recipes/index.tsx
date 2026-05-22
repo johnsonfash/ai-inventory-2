@@ -89,7 +89,7 @@ export default function RecipesIndex() {
 
   return (
     <PageShell
-      title="Recipes & BOMs"
+      title="Recipes"
       withToolbar
       titleTooltip={
         <>

@@ -69,8 +69,8 @@ export default function VarianceReport() {
 
   return (
     <ReportShell
-      title="Variance (theoretical vs actual)"
-      description="Gap between what your recipes + sales should have left vs what the count actually found"
+      title="Stock variance"
+      description="Gap between what your recipes + sales say you should have vs what the count actually found"
       titleTooltip={
         <>
           The single most valuable report in any production-driven

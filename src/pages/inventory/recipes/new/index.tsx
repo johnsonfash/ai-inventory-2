@@ -48,8 +48,8 @@ export default function NewRecipe() {
 
   return (
     <FormShell
-      title="New recipe / BOM"
-      description="Define how a parent SKU is built from its components."
+      title="New recipe"
+      description="Define how a finished SKU is built from its components."
       titleTooltip={
         <>
           One recipe model, every industry. Use it for a finished

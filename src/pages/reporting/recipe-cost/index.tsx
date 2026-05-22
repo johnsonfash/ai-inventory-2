@@ -146,8 +146,8 @@ export default function RecipeCostWatch() {
 
   return (
     <ReportShell
-      title="Recipe cost watch"
-      description="How recipe cost-per-unit has drifted as component prices changed"
+      title="Recipe costs"
+      description="How the cost to make each recipe has changed as component prices moved"
       titleTooltip={
         <>
           When any component's cost moves, every recipe containing it

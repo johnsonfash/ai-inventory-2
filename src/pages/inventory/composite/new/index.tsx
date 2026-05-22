@@ -37,7 +37,7 @@ export default function NewComposite() {
 
   return (
     <FormShell
-      title="New composite item"
+      title="New bundle"
       description="Bundle multiple SKUs into one sellable kit."
       titleTooltip={
         <>

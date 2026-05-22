@@ -102,7 +102,7 @@ export default function RecallTrace() {
 
   return (
     <PageShell
-      title="Recall trace"
+      title="Recalls"
       withToolbar
       titleTooltip={
         <>

@@ -49,7 +49,7 @@ export default function ProductionIndex() {
 
   return (
     <PageShell
-      title="Production runs"
+      title="Production"
       withToolbar
       titleTooltip={
         <>

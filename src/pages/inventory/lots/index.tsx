@@ -73,7 +73,7 @@ export default function LotsIndex() {
 
   return (
     <PageShell
-      title="Lots & batches"
+      title="Batches"
       withToolbar
       titleTooltip={
         <>
