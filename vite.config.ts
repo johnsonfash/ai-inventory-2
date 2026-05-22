@@ -26,10 +26,14 @@ export default defineConfig({
       srcDir: "src",
       filename: "sw.js",
 
-      // Show a custom update toast when a new SW is waiting. The auto
-      // injector would prompt with an alert(); we want our own UI.
-      registerType: "prompt",
-      injectRegister: null,
+      // autoUpdate: the new SW activates on next page load with no
+      // user prompt. Pairs with src/sw.js's `skipWaiting` + `clients.
+      // claim` so a deploy takes effect within one navigation. We
+      // also have a chunk-load reload fallback in src/routes.ts for
+      // the in-flight case where the running tab tries to fetch a
+      // chunk hash that no longer exists on the new deploy.
+      registerType: "autoUpdate",
+      injectRegister: "auto",
 
       // The handwritten manifest at `public/manifest.json` is the single
       // source of truth — index.html references `/manifest.json` directly.
@@ -109,6 +113,13 @@ export default defineConfig({
   // Keep CLI output from the `tauri dev` watcher intact.
   clearScreen: false,
   publicDir: "public",
+  define: {
+    // Build-time constant baked into the service worker. The SW uses
+    // this to namespace its runtime caches per deploy — old caches
+    // get orphaned (and cleaned up by cleanupOutdatedCaches + the
+    // activate handler) instead of accumulating stale chunk URLs.
+    __PALLIO_BUILD_ID__: JSON.stringify(Date.now().toString(36)),
+  },
   build: {
     sourcemap: true,
     outDir: "dist",

@@ -2,7 +2,39 @@ import { lazy, type ComponentType } from "react"
 import type { RouteObject } from "react-router-dom"
 
 type PageModule = { default: ComponentType<any> }
-const page = (load: () => Promise<PageModule>) => lazy(load)
+
+// Wraps React.lazy so a chunk-load failure (typical after a deploy:
+// the running tab holds the old asset manifest, the new build has
+// different hashes, the dynamic import 404s and Vercel serves the
+// SPA fallback HTML where a JS module was expected → MIME error)
+// triggers a one-time full reload. The reload pulls the fresh
+// index.html with the new asset URLs and the app boots cleanly.
+//
+// The sessionStorage guard prevents a reload loop if the chunk is
+// actually broken (not just stale). After one auto-reload, further
+// failures bubble up to the error boundary instead.
+const RELOAD_GUARD_KEY = "pallio:chunk-reload-once"
+
+const page = (load: () => Promise<PageModule>) =>
+  lazy(async () => {
+    try {
+      const mod = await load()
+      // Successful load — reset the guard so a future stale-chunk
+      // event after another deploy can recover the same way.
+      try { sessionStorage.removeItem(RELOAD_GUARD_KEY) } catch { /* private mode */ }
+      return mod
+    } catch (err) {
+      const reloaded = (() => { try { return sessionStorage.getItem(RELOAD_GUARD_KEY) === "1" } catch { return false } })()
+      if (!reloaded && typeof window !== "undefined") {
+        try { sessionStorage.setItem(RELOAD_GUARD_KEY, "1") } catch { /* private mode */ }
+        window.location.reload()
+        // Return a never-resolving promise so React keeps the
+        // Suspense fallback visible until the reload kicks in.
+        return new Promise(() => {}) as never
+      }
+      throw err
+    }
+  })
 
 export const routes: RouteObject[] = [
   // --- Public marketing site ---
