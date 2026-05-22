@@ -2,6 +2,17 @@
 <html lang="en" suppressHydrationWarning>
   <head>
     <meta charset="UTF-8" />
+    <!--
+      First-paint background. The browser/WebView viewport is white
+      by default until our CSS loads (the splash + theme styles ship
+      in /assets/index-*.css which loads AFTER the HTML chunk). This
+      tiny inline style applies the brand-dark colour the moment the
+      <head> is parsed — eliminates the ~50-200ms white flash on web
+      cold loads. Tauri's window backgroundColor handles the same
+      surface for the desktop / mobile WebView. manifest.json's
+      background_color handles installed PWAs.
+    -->
+    <style>html, body { background-color: #0a0a0a; }</style>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png" />
     <link rel="icon" type="image/png" sizes="16x16" href="/icons/favicon-16.png" />

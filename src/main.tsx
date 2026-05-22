@@ -2,7 +2,19 @@ import { StrictMode } from "react"
 import { createRoot } from "react-dom/client"
 import App from "./App"
 import { kv } from "./lib/storage/kv"
+import { isTauriMobile, isTauriDesktop } from "./lib/platform"
 import "./index.css"
+
+// On Tauri mobile (iOS / Android), the OS LaunchScreen / Splash
+// Screen API owns the entire launch phase. The HTML splash inside
+// the WebView would just duplicate it, so we strip it the moment
+// JS starts running. The window itself is hidden (set in
+// tauri.ios.conf.json + tauri.android.conf.json) and revealed
+// from JS once React has rendered.
+const MOBILE_NATIVE = isTauriMobile()
+if (MOBILE_NATIVE) {
+  document.getElementById("pallio-splash")?.remove()
+}
 
 // Native-only: copy any Preferences-only keys back into localStorage
 // so the sync readers in src/lib/pos/storage.ts + team chat see the
@@ -30,12 +42,19 @@ createRoot(document.getElementById("root")!).render(
   </StrictMode>,
 )
 
-// Dismiss the inline splash painted by index.html. We wait until both
-// (a) React has rendered (two RAFs) and (b) the splash entrance
-// animations have had time to play, whichever is later. The entrance
-// runs ~1040ms; we add a tiny breathing room and call it 1200ms total.
-// Faster cold-loads still get the full splash, slow loads dismiss the
-// moment React is ready after the minimum.
+// Post-mount cleanup. Two distinct paths:
+//
+//   * Mobile native (iOS / Android Tauri):
+//     The HTML splash was already stripped above. The window itself
+//     is hidden — the OS LaunchScreen / Android Splash Screen is
+//     covering the screen. As soon as React paints, show the window
+//     so the user sees a fully-rendered app the moment the OS splash
+//     dismisses. No double-pop.
+//
+//   * Desktop Tauri + web + PWA:
+//     No OS-level splash to defer to. Play the HTML splash for at
+//     least SPLASH_MIN_MS (the entrance animation needs ~1040ms to
+//     finish), then fade it out.
 const SPLASH_MIN_MS = 1200
 const splashStart = performance.now()
 
@@ -47,8 +66,26 @@ function dismissSplash() {
   // Safety net in case the transition event never fires.
   setTimeout(() => el.remove(), 1000)
 }
+
+async function showNativeWindow() {
+  try {
+    const { getCurrentWindow } = await import("@tauri-apps/api/window")
+    await getCurrentWindow().show()
+  } catch { /* dev / non-Tauri / window already visible — no-op */ }
+}
+
 requestAnimationFrame(() =>
   requestAnimationFrame(() => {
+    if (MOBILE_NATIVE) {
+      // Reveal the WebView window — OS splash gets replaced by an
+      // already-rendered app in one frame.
+      showNativeWindow()
+      return
+    }
+    // Desktop Tauri windows are visible from launch (with the dark
+    // backgroundColor) so we still need to show() in case a future
+    // config flips it. Cheap no-op when window is already visible.
+    if (isTauriDesktop()) showNativeWindow()
     const elapsed = performance.now() - splashStart
     const wait = Math.max(0, SPLASH_MIN_MS - elapsed)
     setTimeout(dismissSplash, wait)
