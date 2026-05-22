@@ -48,7 +48,7 @@ export default function NewRecipe() {
 
   return (
     <FormShell
-      title="New recipe"
+      title="New Recipe"
       description="Define how a finished SKU is built from its components."
       titleTooltip={
         <>

@@ -74,7 +74,7 @@ export default function CompositeItems() {
 
   return (
     <PageShell
-      title="Bundles & kits"
+      title="Bundles & Kits"
       withToolbar
       titleTooltip={
         <>

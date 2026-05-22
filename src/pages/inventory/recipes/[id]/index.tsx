@@ -64,6 +64,15 @@ export default function RecipeDetail() {
     <PageShell
       title={recipe.name}
       withToolbar
+      titleTooltip={
+        <>
+          Everything that goes into making <strong>{recipe.name}</strong> —
+          the components consumed, how much it yields per run, what it
+          costs to make, who's making it, and the lots/batches produced
+          so far. Edit it to change the recipe; tap "Log production"
+          to record a new batch made.
+        </>
+      }
       mobileTrailing={
         <Link to={`/inventory/recipes/${recipe.id}/edit`}>
           <Button variant="ghost" size="icon" aria-label="Edit recipe"><Edit3 className="h-4 w-4" /></Button>

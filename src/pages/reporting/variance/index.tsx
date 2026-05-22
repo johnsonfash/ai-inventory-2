@@ -69,7 +69,7 @@ export default function VarianceReport() {
 
   return (
     <ReportShell
-      title="Stock variance"
+      title="Stock Variance"
       description="Gap between what your recipes + sales say you should have vs what the count actually found"
       titleTooltip={
         <>

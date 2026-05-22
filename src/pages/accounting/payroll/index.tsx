@@ -107,10 +107,12 @@ export default function Payroll() {
       title="Payroll"
       titleTooltip={
         <>
-          Run staff salary + allowances + sales commissions + deductions
-          (PAYE / pension / NHF). Each pay run mirrors into Accounting
-          as an OPEX entry + generates the PAYE filing in
-          <strong> Tax Filings</strong>.
+          Pay your staff — salary, allowances, sales commissions —
+          minus the legal deductions (<strong>PAYE</strong> tax,
+          pension, <strong>NHF</strong> housing fund in Nigeria). Each
+          pay run records the spend in Accounting and prepares the tax
+          paperwork in <strong>Tax Filings</strong> automatically — you
+          just review and file.
         </>
       }
       exportFilename={`pallio-payroll-${period}`}

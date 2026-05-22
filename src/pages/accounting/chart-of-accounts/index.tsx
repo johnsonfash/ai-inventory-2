@@ -178,12 +178,14 @@ export default function ChartOfAccounts() {
       title="Chart of Accounts"
       titleTooltip={
         <>
-          The canonical list of every account Pallio posts to —
-          assets, liabilities, equity, revenue, expenses. Pallio
-          mirrors this structure into QuickBooks / Xero / Sage so your
-          books are recognisably standard. Anything tagged "system"
-          is owned by Pallio (POS sales, payroll, etc.) and shouldn't
-          take manual entries.
+          The master list of every "bucket" Pallio puts money into when
+          something happens — buckets for assets (what you own),
+          liabilities (what you owe), equity, revenue, and expenses.
+          Your accountant calls this the <strong>Chart of Accounts</strong>.
+          Pallio mirrors this structure into QuickBooks / Xero / Sage so
+          your books look familiar to any accountant. Rows tagged
+          "system" are managed by Pallio (sales at the till, payroll,
+          etc.) — don't post manual entries to them.
         </>
       }
       exportFilename={`pallio-coa-${period}`}

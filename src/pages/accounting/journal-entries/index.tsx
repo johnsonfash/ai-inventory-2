@@ -280,11 +280,14 @@ export default function JournalEntries() {
       title="Journal Entries"
       titleTooltip={
         <>
-          The general-ledger view — every debit + credit Pallio has
-          posted. System entries flow automatically from POS, online
-          sales, payroll, commissions, and bills. Manual entries are
-          for adjustments your accountant raises (depreciation,
-          prepaid amortisation, etc).
+          A receipt for every money move Pallio has made in your books.
+          Each entry has two halves — money came <em>out of</em> one
+          account and went <em>into</em> another (accountants call this
+          "debit" and "credit"). System entries happen automatically
+          when you make a sale, run payroll, pay a supplier, etc.
+          Manual entries are for one-off adjustments your accountant
+          raises (writing down value of old equipment, spreading the
+          cost of yearly rent across months, etc.).
         </>
       }
       exportFilename={`pallio-journal-${period}`}

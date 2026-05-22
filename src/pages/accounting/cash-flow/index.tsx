@@ -75,7 +75,7 @@ export default function CashFlow() {
   return (
     <ReportShell
       title="Cash flow"
-      titleTooltip="Where the cash actually came in and went out — separate from accrual profit. A profitable business can still run out of cash if it sits in A/R or stock."
+      titleTooltip="Where money actually moved in and out — separate from profit on paper. A profitable business can still run out of cash if it's tied up in customer-owed invoices or sitting on the shelf as stock."
       exportFilename={`pallio-cash-flow-${period}`}
       exportRows={exportRows}
       period={period}

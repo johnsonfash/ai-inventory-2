@@ -146,7 +146,7 @@ export default function RecipeCostWatch() {
 
   return (
     <ReportShell
-      title="Recipe costs"
+      title="Recipe Costs"
       description="How the cost to make each recipe has changed as component prices moved"
       titleTooltip={
         <>
