@@ -132,7 +132,7 @@ export function ChannelShell({ title, description, titleTooltip, Icon, tone, cam
           <ConnectionCard
             providerId={providerId}
             reason={providerConnected
-              ? `${title} is wired up — your catalog auto-syncs to this channel.`
+              ? `${title} is wired up. Your catalog auto-syncs to this channel.`
               : `Connect ${title} to run campaigns. Pallio syncs your catalog automatically.`}
           />
         )}

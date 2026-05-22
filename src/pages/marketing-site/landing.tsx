@@ -37,7 +37,7 @@ const fadeIn = {
 
 export default function LandingPage() {
   React.useEffect(() => {
-    document.title = "Pallio — Inventory, POS, sales and marketing in one app"
+    document.title = "Pallio · Inventory, POS, sales and marketing in one app"
   }, [])
 
   return (
@@ -93,7 +93,7 @@ function Hero() {
             variants={fadeIn}
             className="inline-flex items-center gap-2 rounded-full border border-brand/20 bg-brand-soft px-3 py-1 text-xs font-semibold uppercase tracking-wider text-brand dark:border-primary/30 dark:bg-primary/10 dark:text-primary"
           >
-            <Sparkles className="h-3 w-3" /> Built mobile-first · made for operators
+            <Sparkles className="h-3 w-3" /> Built for your phone · made for operators
           </motion.span>
 
           <motion.h1
@@ -112,7 +112,7 @@ function Hero() {
             variants={fadeIn}
             className="mt-5 max-w-xl text-base text-muted-foreground md:text-lg"
           >
-            Pallio is a single, fast, mobile-first command centre for your business — stock, register, team, ads, books, and AI insights. No more juggling six tools.
+            One fast app that runs the whole shop. Stock, register, team, ads, books, and AI insights. No more juggling six tools.
           </motion.p>
 
           <motion.div variants={fadeIn} className="mt-7 flex flex-wrap items-center gap-3">
@@ -136,8 +136,8 @@ function Hero() {
             {[
               "Free up to 100 SKUs",
               "No credit card",
-              "Mobile + desktop + native",
-              "iOS · Android · Web",
+              "Works on phone, laptop, tablet",
+              "iPhone · Android · Web",
             ].map((line) => (
               <li key={line} className="inline-flex items-center gap-1.5">
                 <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" /> {line}
@@ -255,19 +255,19 @@ const FEATURES: { Icon: LucideIcon; tone: string; title: string; body: string }[
     Icon: ShoppingCart,
     tone: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300",
     title: "Point of sale that actually feels fast",
-    body: "Tap-to-cart catalog, barcode scan, splits, returns, virtual accounts, drafts, multi-cashier. Works offline; syncs on reconnect.",
+    body: "Tap-to-cart catalog, barcode scan, splits, returns, virtual accounts, drafts, multi-cashier. Keeps selling when the power cuts; syncs when you're back.",
   },
   {
     Icon: Users,
     tone: "bg-fuchsia-500/15 text-fuchsia-700 dark:text-fuchsia-300",
     title: "Sales team that's actually accountable",
-    body: "Live leaderboard, per-rep commissions, team chat, real-time inventory visibility, and demographic-aware performance reports.",
+    body: "Live leaderboard, per-rep commissions, team chat, real-time inventory visibility, and clear performance reports.",
   },
   {
     Icon: Megaphone,
     tone: "bg-amber-500/15 text-amber-700 dark:text-amber-300",
     title: "Marketing without the swivel-chair",
-    body: "Facebook + Instagram + YouTube ads + Marketplace listings — connected to your live catalog. Affiliate program built in.",
+    body: "Facebook, Instagram, YouTube ads and Marketplace listings, all connected to your live catalog. Affiliate program built in.",
   },
   {
     Icon: Bot,
@@ -279,7 +279,7 @@ const FEATURES: { Icon: LucideIcon; tone: string; title: string; body: string }[
     Icon: ShieldCheck,
     tone: "bg-rose-500/15 text-rose-700 dark:text-rose-300",
     title: "Role-based access, biometric unlock",
-    body: "Invite staff, cashiers, marketers, affiliates — each with the right scopes. Face ID / fingerprint app lock keeps your data private.",
+    body: "Invite staff, cashiers, marketers and affiliates, each with the right access. Face ID and fingerprint unlock keep your data private.",
   },
 ]
 
@@ -301,7 +301,7 @@ function Features() {
             Six tools. <span className="text-muted-foreground">One app.</span>
           </h2>
           <p className="mt-3 text-base text-muted-foreground">
-            Pallio replaces the spreadsheet + standalone POS + standalone inventory + standalone email blast + standalone affiliate dashboard combination most teams cobble together.
+            Pallio replaces the spreadsheet, the separate POS, the separate inventory tool, the email blaster and the affiliate dashboard most teams cobble together. One login. One bill.
           </p>
         </motion.div>
 
@@ -356,7 +356,7 @@ function DashboardShowcase() {
               ["Pallio noticed", "Rule-based + ML-style observations from your live data."],
               ["7-day forecast", "Revenue projection + confidence band."],
               ["Smart restock", "Suggested qty per SKU, one-tap PO."],
-              ["Activity stream", "Sales / refunds / PO receipts / campaigns — live."],
+              ["Activity stream", "Sales, refunds, PO receipts and campaigns, live as they happen."],
             ].map(([k, v]) => (
               <li key={k} className="flex items-start gap-3">
                 <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-brand-soft text-brand dark:bg-primary/15 dark:text-primary">
@@ -411,7 +411,7 @@ function DeviceShowcase() {
           className="mx-auto max-w-2xl text-center"
         >
           <p className="text-xs font-semibold uppercase tracking-wider text-brand dark:text-primary">
-            Phone · Tablet · Desktop · Native
+            Phone · Tablet · Laptop · Till
           </p>
           <h2 className="mt-2 text-3xl font-bold tracking-tight md:text-4xl">
             Same Pallio.
@@ -419,7 +419,7 @@ function DeviceShowcase() {
             <span className="text-muted-foreground">Every device you own.</span>
           </h2>
           <p className="mt-3 text-base text-muted-foreground">
-            One codebase, three shells. The mobile build feels native (Capacitor wraps iOS + Android); the desktop is a fast SPA; the PWA installs offline. State syncs across all three the moment a real backend lands.
+            Open it on your phone, install it on your laptop, run it on the till. Same screens, same data, same speed everywhere. When the network drops, it keeps working and syncs the moment you're back.
           </p>
         </motion.div>
 
@@ -441,10 +441,10 @@ function DeviceShowcase() {
             doesn't wrap into a vertical letter+text stack. */}
         <ul className="mx-auto mt-12 flex max-w-3xl flex-wrap items-center justify-center gap-2 md:mt-16">
           {[
-            { label: "iOS",     body: "Native via Capacitor · Face ID · Push" },
-            { label: "Android", body: "Native via Capacitor · Adaptive icons" },
-            { label: "Web",     body: "Vite SPA · Installable PWA · Offline" },
-            { label: "iPad",    body: "Same Vite build · Sidebar layout" },
+            { label: "iOS",     body: "From the App Store · Face ID · Push alerts" },
+            { label: "Android", body: "From Play Store · Fingerprint unlock" },
+            { label: "Web",     body: "Open in any browser · Save to home screen" },
+            { label: "iPad",    body: "Same Pallio · Side-by-side layout" },
           ].map((p) => (
             <li
               key={p.label}
@@ -488,7 +488,7 @@ function InsightsShowcase() {
             Pallio tells you what to look at next.
           </h2>
           <p className="mt-3 text-base text-muted-foreground">
-            Trending SKUs, vendor lateness, margin drift, ROAS surges, low-stock crossings — surfaced as cards with one-tap actions. Stop scrolling reports.
+            Trending SKUs, vendor lateness, margin drift, ROAS surges, low-stock crossings. Surfaced as cards with one-tap actions. Stop scrolling reports.
           </p>
         </motion.div>
 
@@ -522,10 +522,10 @@ function InsightsShowcase() {
 // ---- Stats ----
 function Stats() {
   const items = [
-    { value: "131+", label: "Pages of functionality" },
-    { value: "13", label: "Native integrations" },
-    { value: "<3s", label: "Cold-start on 4G" },
-    { value: "100%", label: "Mobile-first" },
+    { value: "131+", label: "Pages of features" },
+    { value: "13", label: "Live integrations" },
+    { value: "<3s", label: "Opens on 4G" },
+    { value: "100%", label: "Built for your phone" },
   ]
   return (
     <section className="border-y border-border/60 bg-gradient-to-br from-brand/5 via-card/40 to-emerald-500/5 px-4 py-16 md:px-6 md:py-20 dark:from-primary/10 dark:to-emerald-950/15">
@@ -556,7 +556,7 @@ function Stats() {
 function Testimonials() {
   const quotes = [
     {
-      body: "Pallio replaced four subscriptions in the first week — inventory, POS, accounting, and the spreadsheet I used for stock counts. Whole shop runs from my phone now.",
+      body: "Pallio replaced four subscriptions in the first week. Inventory, POS, accounting, and the spreadsheet I used for stock counts. Whole shop runs from my phone now.",
       author: "Funke Adesanya",
       title: "Owner · Funke Apparel, Lekki",
     },
@@ -610,7 +610,7 @@ function FinalCTA() {
   const perks = [
     { Icon: Zap, label: "Instant setup" },
     { Icon: CreditCard, label: "Free up to 100 SKUs" },
-    { Icon: Globe, label: "Web + iOS + Android" },
+    { Icon: Globe, label: "Web, iPhone, Android" },
     { Icon: PackageCheck, label: "Cancel any time" },
   ]
   return (
@@ -668,9 +668,9 @@ function FinalCTA() {
 // Four-step "0 → 1" walkthrough aimed at first-time visitors.
 function HowItWorks() {
   const STEPS: { Icon: LucideIcon; title: string; body: string }[] = [
-    { Icon: Sparkles,    title: "Sign up — free for 30 days",     body: "Create your Pallio account in 30 seconds. No card. Full Scale-tier access for the first month." },
-    { Icon: PackagePlus, title: "Add your items + locations",      body: "CSV-import your catalog or add it by hand. Pallio's Getting Started checklist walks you through the rest." },
-    { Icon: ShoppingCart,title: "Start selling, online + in-store",body: "Open the POS for the floor, invoice your wholesale customers, list on Marketplace + Instagram — all from one app." },
+    { Icon: Sparkles,    title: "Sign up. Free for 30 days.",      body: "Create your Pallio account in 30 seconds. No card. Full Scale-tier access for the first month." },
+    { Icon: PackagePlus, title: "Add your items and locations",    body: "Import your catalog from a CSV or add it by hand. Pallio's Getting Started checklist walks you through the rest." },
+    { Icon: ShoppingCart,title: "Start selling, online and in-store", body: "Open the POS for the floor, invoice your wholesale customers, list on Marketplace and Instagram. All from one app." },
     { Icon: TrendingUp,  title: "Watch the AI nudge you",          body: "Pallio surfaces what to restock, where margin slipped, which campaign to pause. Your evenings come back." },
   ]
   return (
@@ -741,7 +741,7 @@ function Integrations() {
             Connects to the things <span className="text-muted-foreground">you already use.</span>
           </h2>
           <p className="mt-3 text-base text-muted-foreground">
-            Naira-first pricing + native support for the payment + marketplace + messaging stack Nigerian businesses actually run on. International rails included so growing across borders doesn't mean migrating.
+            Naira-first pricing and built-in support for the payment, marketplace and messaging tools Nigerian businesses actually run on. International options included so when you sell into Ghana or Kenya, you don't have to switch apps.
           </p>
         </motion.div>
 
@@ -752,7 +752,7 @@ function Integrations() {
         </div>
 
         <p className="mt-8 text-center text-xs text-muted-foreground">
-          Don't see your stack? <Link to="/contact" className="font-semibold text-brand hover:underline dark:text-primary">Ask us</Link> — we ship a new integration every other week.
+          Don't see your stack? <Link to="/contact" className="font-semibold text-brand hover:underline dark:text-primary">Ask us</Link>. We ship a new integration every other week.
         </p>
       </div>
     </section>
@@ -784,9 +784,9 @@ function LogoColumn({ title, items, accent }: { title: string; items: string[]; 
 function FaqTeaser() {
   const ITEMS = [
     { q: "Do I need a credit card to start?", a: "No. The first 30 days are free with full Scale-tier access. We only ask for a card when you pick a paid plan." },
-    { q: "How do payments work?",            a: "Connect Paystack, Flutterwave, Opay, PalmPay, Stripe, or bank transfer. Pallio doesn't take a transaction fee — you pay your processor what they charge, that's it." },
-    { q: "Will my data survive a reinstall?",a: "Yes. POS drafts, team chat history, and your toggles mirror to native storage that survives app reinstalls + cache clears." },
-    { q: "Can sales reps see real-time inventory?", a: "Yes — reps get a read-only live view that updates as items sell across every location." },
+    { q: "How do payments work?",            a: "Connect Paystack, Flutterwave, Opay, PalmPay, Stripe, or bank transfer. Pallio doesn't take a transaction fee. You pay your processor what they charge, that's it." },
+    { q: "Will my data survive a reinstall?",a: "Yes. POS drafts, team chat history and your toggles mirror to device storage that survives reinstalls and cache clears." },
+    { q: "Can sales reps see real-time inventory?", a: "Yes. Reps get a read-only live view that updates as items sell across every location." },
   ]
   const [open, setOpen] = React.useState<number | null>(0)
   return (

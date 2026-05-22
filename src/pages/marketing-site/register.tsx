@@ -62,7 +62,7 @@ export default function RegisterPage() {
   const strength = scorePassword(password)
 
   React.useEffect(() => {
-    document.title = "Create your account — Pallio"
+    document.title = "Create your account · Pallio"
   }, [])
 
   const finishSignUp = React.useCallback(
@@ -118,14 +118,14 @@ export default function RegisterPage() {
             Run every counter, shelf, and storefront from one place.
           </h2>
           <p className="mt-3 max-w-sm text-sm text-muted-foreground">
-            Inventory, POS, accounting, and your own hosted storefront — built mobile-first for the operators who actually run the floor.
+            Inventory, POS, accounting, and your own hosted storefront. Built for the operators who actually run the floor.
           </p>
 
           <ul className="mt-6 space-y-3 text-sm">
             {[
               { Icon: Zap,         label: "Set up in 5 minutes",   sub: "Drop in your products, you're selling today." },
               { Icon: Wifi,        label: "Works offline",         sub: "POS keeps ringing through power cuts. Syncs when you're back." },
-              { Icon: ShieldCheck, label: "Bank-grade encryption", sub: "Your books, your customers, your data — encrypted at rest." },
+              { Icon: ShieldCheck, label: "Bank-grade encryption", sub: "Your books, your customers, your data. Encrypted at rest." },
             ].map(({ Icon, label, sub }) => (
               <li key={label} className="flex items-start gap-3">
                 <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-brand-soft text-brand shadow-sm shadow-brand/15 dark:bg-primary/15 dark:text-primary">

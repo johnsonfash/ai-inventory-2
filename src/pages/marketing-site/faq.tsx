@@ -12,15 +12,15 @@ const SECTIONS: { title: string; items: Item[] }[] = [
     items: [
       {
         q: "Do I need a credit card to try Pallio?",
-        a: "No. The free plan is genuinely free — no card, no credit-check, no auto-conversion. You move to a paid plan only when you choose to.",
+        a: "No. The free plan is genuinely free. No card, no credit-check, no auto-conversion. You move to a paid plan only when you choose to.",
       },
       {
-        q: "Can I import data from my current POS / inventory tool?",
-        a: "Yes. Pallio supports CSV import for items, customers, vendors, and purchase orders. A guided importer maps your columns to Pallio's fields. Shopify + WooCommerce one-click sync is in the Growth plan.",
+        q: "Can I import data from my current POS or inventory tool?",
+        a: "Yes. Pallio supports CSV import for items, customers, vendors and purchase orders. A guided importer maps your columns to Pallio's fields. Shopify and WooCommerce one-click sync is in the Growth plan.",
       },
       {
         q: "Does Pallio work offline?",
-        a: "Yes. The PWA and native apps cache the catalog + recent transactions. Run sales offline at a pop-up; everything syncs the moment you reconnect.",
+        a: "Yes. The app caches your catalog and recent transactions. Keep ringing sales at a pop-up or through a power cut. Everything syncs the moment you're back online.",
       },
     ],
   },
@@ -29,15 +29,15 @@ const SECTIONS: { title: string; items: Item[] }[] = [
     items: [
       {
         q: "Are there transaction fees?",
-        a: "Pallio doesn't take a transaction fee. You pay your payment processor (Stripe / PayPal / etc.) their normal fee — same as if you wired them yourself.",
+        a: "Pallio doesn't take a transaction fee. You pay your payment processor (Paystack, Flutterwave, Stripe, etc.) their normal fee. Same as if you wired them yourself.",
       },
       {
         q: "Can I switch between monthly and yearly?",
-        a: "Any time. We prorate the difference and credit / charge accordingly.",
+        a: "Any time. We prorate the difference and credit or charge accordingly.",
       },
       {
         q: "What happens if I downgrade?",
-        a: "We keep your data and the features stay enabled until your current billing cycle ends. After that, anything outside the new plan's limits goes read-only — never deleted.",
+        a: "We keep your data and the features stay enabled until your current billing cycle ends. After that, anything outside the new plan's limits goes read-only. Never deleted.",
       },
     ],
   },
@@ -45,16 +45,16 @@ const SECTIONS: { title: string; items: Item[] }[] = [
     title: "Features + roadmap",
     items: [
       {
-        q: "Is the AI assistant a real model or a marketing label?",
-        a: "It's a hybrid. Rule-based heuristics handle the common cases (low stock, vendor lateness, margin drift) deterministically. A real LLM handles the chat surface in the AI Assistant page. Insights are never trained on YOUR data — they reason over it at request time.",
+        q: "Is the AI assistant real or just a marketing label?",
+        a: "Real, but tuned to be useful instead of chatty. Common alerts (low stock, vendor lateness, margin drift) come from rules so they're predictable. The chat surface uses a proper language model that reasons over your numbers at the moment you ask. Your data is never used to train anything.",
       },
       {
         q: "Can I run multiple locations?",
-        a: "Yes. The free plan covers 1 location, Growth 3, Scale unlimited. Stock + sales + reports attribute to whichever location they belong to.",
+        a: "Yes. The free plan covers 1 location, Growth covers 3, Scale is unlimited. Stock, sales and reports attribute to whichever location they belong to.",
       },
       {
         q: "Do you have an API?",
-        a: "Yes — REST API with API keys, webhooks for inbound events, and a custom-website integration for storefronts. Available on every plan.",
+        a: "Yes. REST API with API keys, webhooks for inbound events, and a custom-website integration for storefronts. Available on every plan.",
       },
     ],
   },
@@ -67,11 +67,11 @@ const SECTIONS: { title: string; items: Item[] }[] = [
       },
       {
         q: "Does Pallio train on my data?",
-        a: "No. Your data is never used to train any model. The AI assistant reasons over your data at request time and the conversation is discarded after the response is delivered.",
+        a: "No. Your data is never used to train any model. The AI assistant reasons over your data when you ask, then the conversation is discarded.",
       },
       {
         q: "Can I export everything?",
-        a: "Always. Full CSV export of every entity (items, customers, orders, invoices, POs, …) is one click from the Settings page. You own your data — Pallio is just where you work on it.",
+        a: "Always. Full CSV export of every record (items, customers, orders, invoices, POs and more) is one click from the Settings page. You own your data. Pallio is just where you work on it.",
       },
     ],
   },
@@ -79,7 +79,7 @@ const SECTIONS: { title: string; items: Item[] }[] = [
 
 export default function FaqPage() {
   React.useEffect(() => {
-    document.title = "FAQ — Pallio"
+    document.title = "FAQ · Pallio"
   }, [])
 
   return (
@@ -119,7 +119,7 @@ export default function FaqPage() {
         <section className="mt-16 rounded-2xl border border-border bg-gradient-to-br from-brand-soft via-card to-emerald-50/40 p-8 text-center dark:from-primary/10 dark:to-emerald-950/15">
           <h2 className="text-xl font-bold tracking-tight">Still stuck?</h2>
           <p className="mt-2 text-muted-foreground">
-            We answer every email + every chat. Average response &lt; 2 hours during business hours.
+            We answer every email and every chat. Average response under 2 hours during business hours.
           </p>
           <div className="mt-5 flex flex-wrap items-center justify-center gap-3">
             <Link to="/contact">

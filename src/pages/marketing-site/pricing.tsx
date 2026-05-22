@@ -51,7 +51,7 @@ const TIERS: Tier[] = [
       "Everything in Starter",
       "AI insights + 7-day forecast",
       "Smart restock + auto-POs",
-      "Marketing — FB / IG / YouTube / Marketplace",
+      "Marketing across Facebook, Instagram, YouTube + Marketplace",
       "Custom email templates + rich editor",
       "Role-based access (Cashier / Sales rep / Marketer)",
       "Priority email + chat support",
@@ -84,7 +84,7 @@ const COMPARISON: { feature: string; values: [string | boolean, string | boolean
   { feature: "Inventory items (SKUs)", values: ["Unlimited", "Unlimited", "Unlimited"] },
   { feature: "Point of sale",        values: [true, true, true] },
   { feature: "Composite items + bundles", values: [true, true, true] },
-  { feature: "AI insights + forecast", values: [false, true, true], tip: "Restock suggestions, vendor lateness flags, ROAS spikes, cashflow forecast. Reasons over your own data — never used to train any model." },
+  { feature: "AI insights + forecast", values: [false, true, true], tip: "Restock suggestions, vendor lateness flags, ROAS spikes, cashflow forecast. Reads your own numbers when you ask. Never used to train any model." },
   { feature: "Marketing (Ads + Marketplace)", values: [false, true, true] },
   { feature: "Affiliate program",    values: [false, false, true], tip: "Generate unique referral links, attribute sales automatically, and pay out commissions in one click from Settings → Payments → Withdrawals." },
   { feature: "Rich email + templates", values: [true, true, true] },
@@ -111,7 +111,7 @@ export default function PricingPage() {
   const [billing, setBilling] = React.useState<"monthly" | "yearly">("monthly")
 
   React.useEffect(() => {
-    document.title = "Pricing — Pallio"
+    document.title = "Pricing · Pallio"
   }, [])
 
   return (
@@ -133,7 +133,7 @@ export default function PricingPage() {
               Full <strong>Scale</strong> features. No card.
             </p>
             <p className="mt-0.5 text-xs text-muted-foreground">
-              Every Pallio account starts with 30 days of Scale-tier access. Pick a plan to continue after — or cancel any time.
+              Every Pallio account starts with 30 days of Scale-tier access. Pick a plan to continue after, or cancel any time.
             </p>
           </div>
           <Link to="/dashboard" className="hidden shrink-0 sm:inline-flex">
@@ -156,7 +156,7 @@ export default function PricingPage() {
             </span>
           </h1>
           <p className="mt-4 text-base text-muted-foreground md:text-lg">
-            Pay your payment processor what they charge — Pallio doesn't take a cut. Cancel any time. Annual plans get you 2 free months.
+            Pay your payment processor what they charge. Pallio doesn't take a cut. Cancel any time. Annual plans get you 2 free months.
           </p>
         </div>
 
@@ -287,7 +287,7 @@ export default function PricingPage() {
                               <Check className="h-3 w-3" />
                             </span>
                           ) : (
-                            <span className="text-muted-foreground/60">—</span>
+                            <span className="text-muted-foreground/60">·</span>
                           )
                         ) : (
                           <span className="font-semibold tabular-nums">{v}</span>

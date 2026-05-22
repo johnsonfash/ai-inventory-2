@@ -70,7 +70,7 @@ export default function LoginPage() {
   )
 
   React.useEffect(() => {
-    document.title = "Sign in — Pallio"
+    document.title = "Sign in · Pallio"
   }, [])
 
   // One-shot detection. Runs only on mount — no need to re-check.

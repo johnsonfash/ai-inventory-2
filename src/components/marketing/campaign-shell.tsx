@@ -41,7 +41,7 @@ export function CampaignShell({ channel, Icon, backHref, kind, providerId }: Pro
       description={
         kind === "campaign"
           ? "Define the objective, audience, and budget."
-          : "Single ad creative — drops into an existing campaign."
+          : "Single ad creative. Drops into an existing campaign."
       }
       backHref={backHref}
       onSubmit={() => {
@@ -77,14 +77,14 @@ export function CampaignShell({ channel, Icon, backHref, kind, providerId }: Pro
         <ConnectionCard
           providerId={providerId}
           reason={providerConnected
-            ? `${channel} is connected — Pallio will publish this ${kind} when you click submit.`
-            : `${channel} isn't connected yet. Connect it to publish — your draft is saved either way.`}
+            ? `${channel} is connected. Pallio will publish this ${kind} when you click submit.`
+            : `${channel} isn't connected yet. Connect it to publish. Your draft is saved either way.`}
         />
       )}
       <FormSection title="Basics" Icon={Icon}>
         <FormGrid cols={2}>
           <FormField label="Name" required>
-            <Input placeholder={kind === "campaign" ? "Summer Promo" : "Hero Reel — USB-C Hub"} required />
+            <Input placeholder={kind === "campaign" ? "Summer Promo" : "Hero Reel · USB-C Hub"} required />
           </FormField>
           {kind === "campaign" ? (
             <FormField label="Objective" required>
@@ -117,7 +117,7 @@ export function CampaignShell({ channel, Icon, backHref, kind, providerId }: Pro
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="EL-2109">USB‑C Hub 6‑in‑1 (EL-2109)</SelectItem>
-                  <SelectItem value="AP-4012">Cotton Tee — Black (AP-4012)</SelectItem>
+                  <SelectItem value="AP-4012">Cotton Tee · Black (AP-4012)</SelectItem>
                   <SelectItem value="HM-2205">Ceramic Mug 12oz (HM-2205)</SelectItem>
                   <SelectItem value="BT-9091">Hydrating Serum (BT-9091)</SelectItem>
                 </SelectContent>

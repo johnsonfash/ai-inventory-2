@@ -2,7 +2,7 @@ import * as React from "react"
 
 export default function TermsPage() {
   React.useEffect(() => {
-    document.title = "Terms — Pallio"
+    document.title = "Terms · Pallio"
   }, [])
 
   return (
@@ -72,7 +72,7 @@ export default function TermsPage() {
         <section>
           <h2>7. Service availability</h2>
           <p>
-            We target 99.9% monthly uptime. We notify you of planned maintenance. Scale-plan customers receive SLA credits for unmet uptime targets — terms in the signed Order Form.
+            We target 99.9% monthly uptime. We notify you of planned maintenance. Scale-plan customers receive SLA credits for unmet uptime targets. terms in the signed Order Form.
           </p>
         </section>
 

@@ -19,14 +19,14 @@ const VALUES: { Icon: LucideIcon; tone: string; title: string; body: string }[] 
   {
     Icon: Smartphone,
     tone: "bg-brand-soft text-brand dark:bg-primary/15 dark:text-primary",
-    title: "Mobile-first, always",
-    body: "Most operators run the floor with one hand on their phone. So that's the surface we design for — desktop is a nice-to-have, not the default.",
+    title: "The phone is the desk",
+    body: "Most shop owners run the day with one hand on their phone. So that's the screen we design for first. Your laptop and the till at the front of the shop come along for the ride.",
   },
   {
     Icon: ShieldCheck,
     tone: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300",
     title: "Boring on security",
-    body: "Bank-grade encryption, biometric unlock, role-scoped access, audit-friendly logs. Your data is yours — we don't sell it, train on it, or peek at it.",
+    body: "Bank-grade encryption, biometric unlock, role-scoped access, audit-friendly logs. Your data is yours. We don't sell it, train on it, or peek at it.",
   },
   {
     Icon: HandHeart,
@@ -38,20 +38,21 @@ const VALUES: { Icon: LucideIcon; tone: string; title: string; body: string }[] 
     Icon: Sparkles,
     tone: "bg-fuchsia-500/15 text-fuchsia-700 dark:text-fuchsia-300",
     title: "AI that's actually useful",
-    body: "Not a chat that hallucinates inventory. Pallio surfaces concrete decisions — restock this, audit that vendor, pause this campaign — with the data behind them visible.",
+    body: "Not a chat that makes up inventory numbers. Pallio surfaces concrete decisions (restock this, audit that vendor, pause this campaign) with the data behind them right there to check.",
   },
 ]
 
 const TIMELINE = [
-  { year: "2024", title: "First commit", body: "Pallio starts as a v0-scaffolded prototype for one operator's beauty + electronics business." },
-  { year: "2025", title: "131 pages, 14 waves", body: "Rebuilt mobile-first from the ground up. Real POS, real inventory, real reports — all with dummy data so anyone can kick the tires." },
-  { year: "2026", title: "Native shells + AI insights", body: "PWA + iOS + Android via Capacitor, plus rule-based AI that surfaces the next decision to make." },
-  { year: "Next", title: "Affiliates, multi-currency, AR scan", body: "Affiliate program with payouts, multi-currency, barcode scan with on-device ML." },
+  { year: "Years before", title: "The same complaint, over and over",        body: "I'd spent years building business software. Inventory tools, point-of-sale apps, sales dashboards. Every operator I talked to said the same thing: they were paying for five apps that wouldn't talk to each other." },
+  { year: "2024",         title: "Started Pallio",                            body: "Built the first version for one operator's beauty and electronics shop in Lagos. Inventory, POS, books, all in one place. They stopped copying numbers between tabs in week two." },
+  { year: "2025",         title: "Rewrote it for real",                       body: "Rebuilt from scratch with everything we'd learned. Phone-first design. AI that nudges instead of chats. Integrations with the tools Nigerian SMBs actually use." },
+  { year: "2026",         title: "Apps for iPhone, Android, Mac, Windows",    body: "Same Pallio, on every device you already own. Install from the App Store, Play Store, or just open it in your browser. Works when the network drops." },
+  { year: "What's next",  title: "Affiliates, multi-currency, on-device scan", body: "Affiliate program with payouts, multi-currency for cross-border sellers, and barcode scanning that runs on your phone (no extra hardware)." },
 ]
 
 export default function AboutPage() {
   React.useEffect(() => {
-    document.title = "About — Pallio"
+    document.title = "About · Pallio"
   }, [])
   return (
     <div className="px-4 py-16 md:px-6 md:py-24">
@@ -73,7 +74,7 @@ export default function AboutPage() {
             </span>
           </h1>
           <p className="mx-auto mt-5 max-w-2xl text-base text-muted-foreground md:text-lg">
-            Pallio is a single command centre for operators — inventory, POS, sales team, marketing, books — replacing the six-tool stack most teams cobble together by year two.
+            One app that runs the whole shop. Inventory, POS, sales team, marketing, books and AI in one place. So you can stop paying for five tools that don't talk to each other.
           </p>
         </motion.div>
 
@@ -89,7 +90,7 @@ export default function AboutPage() {
             <p className="text-xs font-semibold uppercase tracking-wider text-brand dark:text-primary">
               The story
             </p>
-            <h2 className="text-2xl font-bold tracking-tight md:text-3xl">Born on the floor.</h2>
+            <h2 className="text-2xl font-bold tracking-tight md:text-3xl">Why I built Pallio.</h2>
           </motion.div>
           <motion.div
             initial={{ opacity: 0, y: 16 }}
@@ -99,13 +100,16 @@ export default function AboutPage() {
             className="space-y-4 text-base leading-relaxed text-muted-foreground"
           >
             <p>
-              Pallio started as a side project for a single operator running a small electronics + beauty business across three pop-up locations. The spreadsheet was breaking. The POS app didn't talk to inventory. The Facebook Ads dashboard demanded constant tab-switching.
+              I've spent years building software for businesses. Inventory systems. Point-of-sale apps. Sales dashboards. Each one solved a piece of the puzzle, and each one made the puzzle harder.
             </p>
             <p>
-              The first version was a v0-scaffolded prototype. The second version was a complete rewrite — mobile-first, dark-mode-first, opinionated about speed. Today Pallio is a 131-page, 14-wave-refactored app that handles inventory, POS, sales team, purchasing, accounting, marketing, and an AI assistant — all from a phone.
+              The same operators kept telling me the same thing. They were paying for five apps that wouldn't talk to each other. They were copying numbers between tabs. The cashier was on one tool, the accountant on another, the marketing person on a third nobody else had ever seen. They didn't want better features. They wanted one app that just did the lot.
             </p>
             <p>
-              The bet: operators don't want more features. They want the right feature surfaced at the right time, on the screen they actually carry around.
+              Pallio is that app. Inventory, POS, sales team, marketing, books and an AI that actually nudges you when something needs attention. Built so the same numbers show up in the same place no matter who you are or what you're trying to do.
+            </p>
+            <p>
+              One login. One subscription you can afford. One thing to learn. That's it.
             </p>
           </motion.div>
         </section>
@@ -164,9 +168,9 @@ export default function AboutPage() {
               <p className="inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-brand dark:text-primary">
                 <Compass className="h-3.5 w-3.5" /> Careers
               </p>
-              <h3 className="mt-1 text-2xl font-bold tracking-tight">Want to help us build it?</h3>
+              <h3 className="mt-1 text-2xl font-bold tracking-tight">Want to help build it?</h3>
               <p className="mt-2 max-w-prose text-muted-foreground">
-                We're a tiny team obsessed with mobile-first ops software. If that sounds like home, drop us a line.
+                We're a small team that cares about software business owners actually want to open. If that sounds like your kind of work, drop us a line.
               </p>
             </div>
             <Link to="/contact">

@@ -75,7 +75,7 @@ export function WhatsAppButton() {
             <X className="h-3 w-3" />
           </button>
           <p className="font-semibold">Need help? Chat with us.</p>
-          <p className="mt-0.5 text-muted-foreground">+234 903 672 3177 — replies in minutes during business hours.</p>
+          <p className="mt-0.5 text-muted-foreground">+234 903 672 3177. Replies in minutes during business hours.</p>
         </motion.div>
       )}
       <motion.a

@@ -125,7 +125,7 @@ export function DesktopDashboardMock() {
             <div className="rounded-md border border-border bg-card p-1.5">
               <p className="text-[7px] font-semibold">Suggested restock</p>
               <div className="mt-1 space-y-0.5">
-                {["EL-2109 — Hub", "AP-4012 — Tee", "HM-2205 — Mug"].map((s) => (
+                {["EL-2109 · Hub", "AP-4012 · Tee", "HM-2205 · Mug"].map((s) => (
                   <div key={s} className="flex items-center justify-between rounded-sm bg-background px-1 py-0.5 text-[6px]">
                     <span className="truncate">{s}</span>
                     <span className="font-bold text-brand dark:text-primary">+60</span>

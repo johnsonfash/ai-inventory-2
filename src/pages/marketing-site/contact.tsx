@@ -11,7 +11,7 @@ import { toast } from "sonner"
 export default function ContactPage() {
   const [submitting, setSubmitting] = React.useState(false)
   React.useEffect(() => {
-    document.title = "Contact — Pallio"
+    document.title = "Contact · Pallio"
   }, [])
 
   const submit = async (e: React.FormEvent) => {
@@ -19,7 +19,7 @@ export default function ContactPage() {
     setSubmitting(true)
     await new Promise((r) => setTimeout(r, 700))
     setSubmitting(false)
-    toast.success("Thanks — we'll get back to you within a business day.")
+    toast.success("Thanks. We'll get back to you within a business day.")
     ;(e.target as HTMLFormElement).reset()
   }
 
@@ -39,7 +39,7 @@ export default function ContactPage() {
             Talk to a human.
           </h1>
           <p className="mx-auto mt-4 max-w-2xl text-base text-muted-foreground md:text-lg">
-            Questions about pricing, custom integrations, demos, security reviews? We answer every email — same person who's writing this page.
+            Questions about pricing, custom integrations, demos, security reviews? We answer every email ourselves. Same person who's writing this page.
           </p>
         </motion.div>
 
