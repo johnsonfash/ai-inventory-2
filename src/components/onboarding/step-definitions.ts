@@ -60,19 +60,19 @@ export const ORG_STEPS: StepDefinition[] = [
   },
   {
     key: "payments",
-    title: "Connect a payment processor",
+    title: "Get paid by customers",
     description:
-      "Wire up Stripe / PayPal / Bank Transfer so the POS can accept cards + the storefront can take orders.",
-    href: "/settings/integrations/stripe",
+      "Connect Paystack, Flutterwave, Opay, or a bank transfer option so customers can pay you at the till and on your storefront.",
+    href: "/settings/integrations",
     Icon: CreditCard,
     tone: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300",
     manualMarkOnly: true,
   },
   {
     key: "tax",
-    title: "Configure tax rates",
+    title: "Set your tax rates",
     description:
-      "Set the rates that apply at the register — single rate, multi-rate by location, or zero‑rated.",
+      "Tell Pallio what tax to add at the till — one flat rate, different rates per location, or zero if your items are tax-exempt.",
     href: "/settings/taxes",
     Icon: Receipt,
     tone: "bg-sky-500/15 text-sky-700 dark:text-sky-300",
@@ -103,9 +103,9 @@ export const PERSONAL_STEPS: StepDefinition[] = [
   },
   {
     key: "first-sale",
-    title: "Run a practice sale at the POS",
+    title: "Make a practice sale",
     description:
-      "Open the register, scan or tap items into the cart, take cash or card, and print the receipt.",
+      "Open the till, drop items into the cart, take cash or card, and print the receipt — your first end-to-end run.",
     href: "/pos",
     Icon: ShoppingCart,
     tone: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300",
@@ -113,9 +113,9 @@ export const PERSONAL_STEPS: StepDefinition[] = [
   },
   {
     key: "first-po",
-    title: "Create your first purchase order",
+    title: "Order stock from a supplier",
     description:
-      "Order stock from a vendor. Pallio tracks delivery, receipts, and bills against this PO from here on.",
+      "Place an order with a supplier. Pallio then tracks the delivery, the receipt, and the bill — so you can see what arrived vs what you paid for.",
     href: "/purchasing/pos/new",
     Icon: Boxes,
     tone: "bg-amber-500/15 text-amber-700 dark:text-amber-300",
@@ -133,9 +133,9 @@ export const PERSONAL_STEPS: StepDefinition[] = [
   },
   {
     key: "first-campaign",
-    title: "Spin up your first campaign",
+    title: "Run your first ad",
     description:
-      "Launch an Instagram or Facebook ad from inside Pallio. Catalog price + stock stay in sync automatically.",
+      "Promote an item on Instagram or Facebook without leaving Pallio. Your prices and stock stay in sync automatically.",
     href: "/marketing",
     Icon: Megaphone,
     tone: "bg-fuchsia-500/15 text-fuchsia-700 dark:text-fuchsia-300",
@@ -153,9 +153,9 @@ export const PERSONAL_STEPS: StepDefinition[] = [
   },
   {
     key: "first-withdrawal",
-    title: "Set up withdrawals",
+    title: "Connect a bank account",
     description:
-      "Tell Pallio where to send your money — a bank account, virtual account, or wallet — and on what schedule.",
+      "Add the bank, virtual account, or wallet Pallio should send your money to — and choose how often (daily, weekly, or on demand).",
     href: "/settings/payments/accounts",
     Icon: Banknote,
     tone: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300",
