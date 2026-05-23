@@ -109,10 +109,17 @@ export function useNetworkStatus(): NetworkSnapshot {
 
     const handleOffline = async () => {
       // Browser claims offline — verify before flipping the UI.
+      // `setOnline` runs in BOTH branches: when the probe confirms
+      // we're actually online (the WebKit false-positive case) it
+      // corrects the initial state, which lazy-inits from
+      // `navigator.onLine` and would otherwise sit at false forever.
       const reachable = await probeReachable()
-      if (reachable) return // false positive, ignore
-      setOnline(false)
-      startReprobe()
+      setOnline(reachable)
+      if (reachable) {
+        stopReprobe()
+      } else {
+        startReprobe()
+      }
     }
 
     window.addEventListener("online", handleOnline)
