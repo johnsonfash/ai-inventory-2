@@ -1,4 +1,5 @@
 import * as React from "react"
+import { createPortal } from "react-dom"
 import { Link } from "react-router-dom"
 import { Plus } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -27,7 +28,16 @@ type Props = {
 // indicator. Brand-coloured circular fill with a subtle elevation glow.
 // `extended` widens it to show the label inline (used on the page's
 // first visit or when there are zero items in the list).
+//
+// Portalled to document.body so its `position: fixed` resolves
+// against the viewport. Without the portal, the AppFrame's <main>
+// (which carries a permanent `transform: translateY(0)` for the
+// pull-to-refresh gesture) becomes the containing block and the FAB
+// scrolls with the list — same bug `FloatingCart` had on /pos before
+// the cart was portalled.
 export function MobileFab({ href, onClick, label, extended, Icon = Plus, mobileOnly = true, className }: Props) {
+  if (typeof document === "undefined") return null
+
   const inner = (
     <span className="flex items-center gap-2">
       <Icon className="h-5 w-5" />
@@ -41,7 +51,7 @@ export function MobileFab({ href, onClick, label, extended, Icon = Plus, mobileO
     "dark:from-primary dark:to-fuchsia-600",
   )
 
-  return (
+  return createPortal(
     <div
       className={cn(
         "pointer-events-none fixed right-3 bottom-0 z-30 pb-[calc(env(safe-area-inset-bottom)+4.5rem)]",
@@ -58,6 +68,7 @@ export function MobileFab({ href, onClick, label, extended, Icon = Plus, mobileO
           {inner}
         </button>
       )}
-    </div>
+    </div>,
+    document.body,
   )
 }
