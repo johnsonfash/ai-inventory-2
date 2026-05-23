@@ -19,7 +19,7 @@
 
 import { precacheAndRoute, cleanupOutdatedCaches } from "workbox-precaching"
 import { registerRoute, setDefaultHandler, setCatchHandler } from "workbox-routing"
-import { CacheFirst, NetworkFirst, StaleWhileRevalidate } from "workbox-strategies"
+import { CacheFirst, NetworkFirst, NetworkOnly, StaleWhileRevalidate } from "workbox-strategies"
 import { ExpirationPlugin } from "workbox-expiration"
 
 // Build-time constant from vite.config.ts `define`. Falls back to
@@ -41,6 +41,16 @@ precacheAndRoute(self.__WB_MANIFEST || [])
 cleanupOutdatedCaches()
 
 // ---- Runtime caching ----
+
+// Reachability probe (used by `src/hooks/use-network-status.tsx`).
+// MUST be registered BEFORE the image route below or the cached
+// favicon would answer the probe and an offline device would look
+// online. NetworkOnly with no fallback — a real failure is the
+// signal we want.
+registerRoute(
+  ({ url }) => url.searchParams.has("__probe"),
+  new NetworkOnly({ networkTimeoutSeconds: 4 }),
+)
 
 // Long-lived static assets keyed by hash in the filename.
 registerRoute(
