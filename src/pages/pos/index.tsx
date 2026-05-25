@@ -60,6 +60,7 @@ import {
 } from "@/lib/pos/hardware"
 import { loadReceiptSettings } from "@/lib/pos/receipt-settings"
 import { closeOpenOrder, getOpenOrder } from "@/lib/pos/venue"
+import { postInvoiceToLedger } from "@/lib/accounting/auto-post"
 import { db } from "@/lib/db/index"
 import { CoachMark } from "@/components/onboarding/coach-mark"
 import type { AuditEntry } from "@/lib/pos/storage"
@@ -534,6 +535,9 @@ export default function PointOfSale() {
     saveInvoice(invoice)
     // POS-5: queue for cloud sync (no-op on web; drains when online + backend).
     void db.enqueue("invoice", invoice)
+    // ACCT-2: a fully-paid sale auto-posts a balanced journal entry so the
+    // books + statements stay live. Idempotent; partial sales wait.
+    if (!partial) postInvoiceToLedger(invoice)
 
     // Settle the value instruments that were tendered (gift card / store
     // credit) regardless of partial — the customer actually used them.
