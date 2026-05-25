@@ -9,6 +9,8 @@ import { useRegisterPageRefresh } from "@/hooks/use-pull-to-refresh"
 import { EmptyState } from "@/components/lists/empty-state"
 import { StatusBadge, type StatusTone } from "@/components/lists/status-badge"
 import { SummaryStrip } from "@/components/lists/summary-strip"
+import { loadAllCatalog } from "@/lib/pos/storage"
+import { loadTiers, type PriceTier } from "@/lib/pos/pricing-tiers"
 
 type Row = {
   id: string
@@ -20,14 +22,6 @@ type Row = {
   status: "active" | "draft" | "archived"
 }
 
-const rows: Row[] = [
-  { id: "PL-1", name: "Retail (default)", audience: "Retail", basis: "msrp-", rule: "MSRP − 0%", items: 1284, status: "active" },
-  { id: "PL-2", name: "Wholesale", audience: "Wholesale", basis: "msrp-", rule: "MSRP − 35%", items: 1180, status: "active" },
-  { id: "PL-3", name: "VIP loyalty", audience: "VIP", basis: "msrp-", rule: "MSRP − 12%", items: 1284, status: "active" },
-  { id: "PL-4", name: "Staff", audience: "Staff", basis: "cost+", rule: "Cost + 5%", items: 1284, status: "active" },
-  { id: "PL-5", name: "Holiday flat", audience: "Retail", basis: "fixed", rule: "Fixed (per-item)", items: 86, status: "draft" },
-]
-
 const audienceTone: Record<Row["audience"], StatusTone> = {
   Retail: "brand",
   Wholesale: "info",
@@ -36,15 +30,39 @@ const audienceTone: Record<Row["audience"], StatusTone> = {
 }
 const statusTone: Record<Row["status"], StatusTone> = { active: "success", draft: "neutral", archived: "warning" }
 
+// Price lists ARE the POS price tiers (lib/pos/pricing-tiers) — the same
+// tiers a cashier applies at the till — shown here against the live
+// catalogue count. One source of truth, no parallel mock.
+function audienceFor(tier: PriceTier): Row["audience"] {
+  if (/wholesale|trade|b2b/i.test(tier.name)) return "Wholesale"
+  if (/member|vip|loyal/i.test(tier.name)) return "VIP"
+  if (/employee|staff/i.test(tier.name)) return "Staff"
+  return "Retail"
+}
+
+function derivePriceLists(): Row[] {
+  const itemCount = loadAllCatalog().length
+  return loadTiers().map((t) => ({
+    id: t.id,
+    name: `${t.name} price`,
+    audience: audienceFor(t),
+    basis: "msrp-",
+    rule: t.adjustPercent === 0 ? "List price" : `List ${t.adjustPercent > 0 ? "+" : "−"} ${Math.abs(t.adjustPercent)}%`,
+    items: itemCount,
+    status: "active" as const,
+  }))
+}
+
 export default function PriceLists() {
   const [query, setQuery] = React.useState("")
-  useRegisterPageRefresh(React.useCallback(async () => { await new Promise((r) => setTimeout(r, 400)) }, []))
+  const [rows, setRows] = React.useState<Row[]>(() => derivePriceLists())
+  useRegisterPageRefresh(React.useCallback(async () => { setRows(derivePriceLists()); await new Promise((r) => setTimeout(r, 300)) }, []))
 
   const filtered = React.useMemo(() => {
     const q = query.trim().toLowerCase()
     if (!q) return rows
     return rows.filter((r) => r.name.toLowerCase().includes(q) || r.audience.toLowerCase().includes(q))
-  }, [query])
+  }, [query, rows])
 
   const active = rows.filter((r) => r.status === "active").length
   const draft = rows.filter((r) => r.status === "draft").length

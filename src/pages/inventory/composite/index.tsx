@@ -10,6 +10,7 @@ import { EmptyState } from "@/components/lists/empty-state"
 import { StatusBadge, type StatusTone } from "@/components/lists/status-badge"
 import { SummaryStrip } from "@/components/lists/summary-strip"
 import { useCurrency } from "@/contexts/currency"
+import { loadAllCatalog } from "@/lib/pos/storage"
 
 type Row = {
   sku: string
@@ -20,51 +21,43 @@ type Row = {
   status: "active" | "draft"
 }
 
-const rows: Row[] = [
-  {
-    sku: "BUN-1001",
-    name: "Starter Kit (Hub + Mouse)",
-    components: [
-      { sku: "EL-2109", qty: 1 },
-      { sku: "EL-1001", qty: 1 },
-    ],
-    sellPrice: 64.99,
-    cost: 30,
-    status: "active",
-  },
-  {
-    sku: "BUN-1002",
-    name: "Beauty Routine Set",
-    components: [
-      { sku: "BT-9091", qty: 1 },
-      { sku: "BT-9092", qty: 1 },
-    ],
-    sellPrice: 42.0,
-    cost: 17,
-    status: "active",
-  },
-  {
-    sku: "BUN-1003",
-    name: "Tea Towel Trio",
-    components: [{ sku: "HM-2240", qty: 3 }],
-    sellPrice: 39.0,
-    cost: 18,
-    status: "draft",
-  },
+const statusTone: Record<Row["status"], StatusTone> = { active: "success", draft: "neutral" }
+
+// A bundle's MEMBERS are a business decision (authored), but the price +
+// cost are resolved from the live POS catalog so they never drift. We
+// keep only bundles whose components actually exist in the catalogue.
+const BUNDLE_DEFS: { sku: string; name: string; components: { sku: string; qty: number }[]; status: Row["status"] }[] = [
+  { sku: "BUN-1001", name: "Starter Kit (Hub + Mouse)", components: [{ sku: "EL-2109", qty: 1 }, { sku: "EL-1001", qty: 1 }], status: "active" },
+  { sku: "BUN-1002", name: "Tee + Cap Combo", components: [{ sku: "AP-4012", qty: 1 }, { sku: "AP-5012", qty: 1 }], status: "active" },
+  { sku: "BUN-1003", name: "Coffee & Sandwich", components: [{ sku: "DR-210", qty: 1 }, { sku: "FO-420", qty: 1 }], status: "draft" },
 ]
 
-const statusTone: Record<Row["status"], StatusTone> = { active: "success", draft: "neutral" }
+function deriveBundles(): Row[] {
+  const priceBySku = new Map(loadAllCatalog().map((c) => [c.sku, c.price]))
+  return BUNDLE_DEFS
+    .filter((b) => b.components.every((c) => priceBySku.has(c.sku)))
+    .map((b) => {
+      const sum = b.components.reduce((s, c) => s + (priceBySku.get(c.sku) ?? 0) * c.qty, 0)
+      return {
+        ...b,
+        // 10% off the à la carte total as the bundle price; cost ≈ 55%.
+        sellPrice: Math.round(sum * 0.9 * 100) / 100,
+        cost: Math.round(sum * 0.55 * 100) / 100,
+      }
+    })
+}
 
 export default function CompositeItems() {
   const [query, setQuery] = React.useState("")
   const { formatPrice } = useCurrency()
-  useRegisterPageRefresh(React.useCallback(async () => { await new Promise((r) => setTimeout(r, 400)) }, []))
+  const [rows, setRows] = React.useState<Row[]>(() => deriveBundles())
+  useRegisterPageRefresh(React.useCallback(async () => { setRows(deriveBundles()); await new Promise((r) => setTimeout(r, 300)) }, []))
 
   const filtered = React.useMemo(() => {
     const q = query.trim().toLowerCase()
     if (!q) return rows
     return rows.filter((r) => r.name.toLowerCase().includes(q) || r.sku.toLowerCase().includes(q))
-  }, [query])
+  }, [query, rows])
 
   const active = rows.filter((r) => r.status === "active").length
   const totalRevenue = rows.reduce((s, r) => s + r.sellPrice, 0)

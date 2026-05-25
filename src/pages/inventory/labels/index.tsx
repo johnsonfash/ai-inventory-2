@@ -8,19 +8,24 @@ import { useRegisterPageRefresh } from "@/hooks/use-pull-to-refresh"
 import { SummaryStrip } from "@/components/lists/summary-strip"
 import { cn } from "@/lib/utils"
 import { useCurrency } from "@/contexts/currency"
+import { loadAllCatalog } from "@/lib/pos/storage"
 
 type Item = { sku: string; name: string; price: number; checked: boolean; qty: number }
 
-const seed: Item[] = [
-  { sku: "EL-2109", name: "USB‑C Hub 6‑in‑1", price: 39.99, checked: true, qty: 1 },
-  { sku: "AP-4012", name: "Cotton Tee — Black", price: 12.0, checked: false, qty: 1 },
-  { sku: "HM-2205", name: "Ceramic Mug 12oz", price: 8.0, checked: false, qty: 1 },
-  { sku: "BT-9091", name: "Hydrating Serum", price: 18.95, checked: false, qty: 1 },
-  { sku: "EL-1001", name: "Wireless Mouse", price: 22.0, checked: false, qty: 1 },
-]
+// Label candidates are the live catalogue items — print a barcode/price
+// sticker for any of them. First item pre-checked for convenience.
+function deriveLabelItems(): Item[] {
+  return loadAllCatalog().map((c, i) => ({
+    sku: c.sku,
+    name: c.name,
+    price: c.price,
+    checked: i === 0,
+    qty: 1,
+  }))
+}
 
 export default function LabelPrint() {
-  const [items, setItems] = React.useState<Item[]>(seed)
+  const [items, setItems] = React.useState<Item[]>(() => deriveLabelItems())
   const [query, setQuery] = React.useState("")
   const [template, setTemplate] = React.useState<"standard" | "minimal" | "full">("standard")
   const { formatPrice } = useCurrency()
