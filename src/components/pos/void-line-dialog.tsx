@@ -7,7 +7,7 @@ import { VOID_REASONS, type VoidReason } from "@/lib/pos/settings"
 import { useCurrency } from "@/contexts/currency"
 import { cn } from "@/lib/utils"
 
-export type VoidTarget = { sku: string; name: string; value: number }
+export type VoidTarget = { id: string; name: string; value: number }
 
 // Captures WHY a line is being removed so it differs from a typo in the
 // audit trail. Shown before the line leaves the cart; the parent decides

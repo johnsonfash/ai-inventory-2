@@ -1,6 +1,7 @@
 import * as React from "react"
 import { Minus, Percent, Plus, Tag, Trash2 } from "lucide-react"
 import { lineDiscountValue, lineNet, type CartItem } from "@/lib/pos/storage"
+import { modifiersLabel } from "@/lib/pos/variants"
 import { Input } from "@/components/ui/input"
 import { useCurrency } from "@/contexts/currency"
 import { cn } from "@/lib/utils"
@@ -21,10 +22,12 @@ type Totals = {
 
 type Props = {
   cart: CartItem[]
-  onUpdateQty: (sku: string, next: number) => void
-  onRemove: (sku: string) => void
+  // Cart operations key on the line `id`, not the SKU — variants and
+  // modifiers (POS-2) mean the same SKU can appear on multiple lines.
+  onUpdateQty: (id: string, next: number) => void
+  onRemove: (id: string) => void
   /** Set a per-line discount. POS-1. */
-  onLineDiscount?: (sku: string, value: number, type: "flat" | "percent") => void
+  onLineDiscount?: (id: string, value: number, type: "flat" | "percent") => void
   discount: number
   discountType: "flat" | "percent"
   onDiscountChange: (v: number) => void
@@ -60,9 +63,10 @@ export function CartContent({
   className,
 }: Props) {
   const [showExtras, setShowExtras] = React.useState(false)
-  // Which line's discount editor is open. Kept here (not per-row) so only
-  // one editor shows at a time — keeps the mobile cart from ballooning.
-  const [discountSku, setDiscountSku] = React.useState<string | null>(null)
+  // Which line's discount editor is open (by line id). Kept here (not
+  // per-row) so only one editor shows at a time — keeps the mobile cart
+  // from ballooning.
+  const [discountId, setDiscountId] = React.useState<string | null>(null)
   const { formatPrice, symbol } = useCurrency()
 
   return (
@@ -77,13 +81,19 @@ export function CartContent({
           cart.map((c) => {
             const lineDisc = lineDiscountValue(c)
             const net = lineNet(c)
-            const editing = discountSku === c.sku
+            const editing = discountId === c.id
+            const modLabel = modifiersLabel(c.modifiers)
             return (
-              <li key={c.sku} className="rounded-xl border border-border bg-background p-3">
+              <li key={c.id} className="rounded-xl border border-border bg-background p-3">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-semibold">
                       {c.name}
+                      {c.variantLabel && (
+                        <span className="ml-1.5 text-xs font-medium text-muted-foreground">
+                          {c.variantLabel}
+                        </span>
+                      )}
                       {c.custom && (
                         <span className="ml-1.5 rounded bg-amber-500/15 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-amber-700 dark:text-amber-300">
                           Custom
@@ -91,12 +101,15 @@ export function CartContent({
                       )}
                     </p>
                     <p className="truncate font-mono text-[11px] text-muted-foreground">{c.sku}</p>
+                    {modLabel && (
+                      <p className="truncate text-[11px] text-muted-foreground">+ {modLabel}</p>
+                    )}
                   </div>
                   <div className="flex items-center gap-0.5">
                     {onLineDiscount && (
                       <button
                         type="button"
-                        onClick={() => setDiscountSku(editing ? null : c.sku)}
+                        onClick={() => setDiscountId(editing ? null : c.id)}
                         className={cn(
                           "inline-flex h-7 w-7 items-center justify-center rounded-md hover:bg-accent hover:text-foreground",
                           lineDisc > 0 || editing
@@ -111,7 +124,7 @@ export function CartContent({
                     )}
                     <button
                       type="button"
-                      onClick={() => onRemove(c.sku)}
+                      onClick={() => onRemove(c.id)}
                       className="inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground"
                       aria-label={`Remove ${c.name}`}
                     >
@@ -124,7 +137,7 @@ export function CartContent({
                   <div className="inline-flex items-center gap-1 rounded-lg border border-border">
                     <button
                       type="button"
-                      onClick={() => onUpdateQty(c.sku, c.qty - 1)}
+                      onClick={() => onUpdateQty(c.id, c.qty - 1)}
                       className="inline-flex h-8 w-8 items-center justify-center text-muted-foreground hover:bg-accent"
                       aria-label="Decrease"
                     >
@@ -135,12 +148,12 @@ export function CartContent({
                       placeholder="0"
                       value={c.qty === 0 ? "" : c.qty}
                       min={0}
-                      onChange={(e) => onUpdateQty(c.sku, e.target.value === "" ? 0 : Number(e.target.value) || 0)}
+                      onChange={(e) => onUpdateQty(c.id, e.target.value === "" ? 0 : Number(e.target.value) || 0)}
                       className="h-8 w-12 border-0 bg-transparent text-center text-sm tabular-nums outline-none"
                     />
                     <button
                       type="button"
-                      onClick={() => onUpdateQty(c.sku, c.qty + 1)}
+                      onClick={() => onUpdateQty(c.id, c.qty + 1)}
                       className="inline-flex h-8 w-8 items-center justify-center text-muted-foreground hover:bg-accent"
                       aria-label="Increase"
                     >
@@ -177,7 +190,7 @@ export function CartContent({
                       <div className="inline-flex h-8 rounded-md border border-input bg-background">
                         <button
                           type="button"
-                          onClick={() => onLineDiscount(c.sku, c.lineDiscount || 0, "flat")}
+                          onClick={() => onLineDiscount(c.id, c.lineDiscount || 0, "flat")}
                           className={cn(
                             "px-2 text-xs",
                             (c.lineDiscountType ?? "flat") === "flat"
@@ -189,7 +202,7 @@ export function CartContent({
                         </button>
                         <button
                           type="button"
-                          onClick={() => onLineDiscount(c.sku, c.lineDiscount || 0, "percent")}
+                          onClick={() => onLineDiscount(c.id, c.lineDiscount || 0, "percent")}
                           className={cn(
                             "border-l border-input px-2 text-xs",
                             c.lineDiscountType === "percent"
@@ -208,7 +221,7 @@ export function CartContent({
                         value={c.lineDiscount ? c.lineDiscount : ""}
                         onChange={(e) =>
                           onLineDiscount(
-                            c.sku,
+                            c.id,
                             e.target.value === "" ? 0 : Math.max(0, Number(e.target.value) || 0),
                             c.lineDiscountType ?? "flat",
                           )

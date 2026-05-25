@@ -25,9 +25,9 @@ type Props = {
   cart: CartItem[]
   customer: { name?: string; email?: string; phone?: string }
   onCustomerChange: (next: { name?: string; email?: string; phone?: string }) => void
-  onUpdateQty: (sku: string, next: number) => void
-  onRemove: (sku: string) => void
-  onLineDiscount?: (sku: string, value: number, type: "flat" | "percent") => void
+  onUpdateQty: (id: string, next: number) => void
+  onRemove: (id: string) => void
+  onLineDiscount?: (id: string, value: number, type: "flat" | "percent") => void
   onClearCart: () => void
   onHold: () => void
   discount: number

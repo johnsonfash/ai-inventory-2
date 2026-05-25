@@ -1,4 +1,5 @@
 import { kvJson } from "@/lib/storage/kv"
+import type { ModifierGroup, SelectedModifier, Variant, VariantAxis } from "@/lib/pos/variants"
 
 export type CatalogItem = {
   id: string
@@ -12,6 +13,12 @@ export type CatalogItem = {
   brand?: string
   stock?: number
   tags?: string[]
+  /** Variant structure (Size/Colour/etc). When present the POS shows a
+   *  variant picker before adding. POS-2. */
+  variantAxes?: VariantAxis[]
+  variants?: Variant[]
+  /** Add-on / substitution groups (extra shot, no onions, add toner). POS-2. */
+  modifierGroups?: ModifierGroup[]
 }
 
 export type CartItem = {
@@ -32,6 +39,27 @@ export type CartItem = {
   custom?: boolean
   /** Free-text note shown on the line + receipt (special requests). */
   note?: string
+  /** Chosen variant leaf SKU + its human label ("M / Black"). POS-2.
+   *  `price` already bakes in the variant + modifier deltas; these are
+   *  kept for display, receipts, and the eventual backend. */
+  variantSku?: string
+  variantLabel?: string
+  modifiers?: SelectedModifier[]
+}
+
+// Two cart lines merge only when they're the same product AND the same
+// variant AND the same set of modifiers. Otherwise they stay separate
+// (a latte with extra shot is not the same line as a plain latte). POS-2.
+export function cartLineKey(
+  sku: string,
+  variantSku?: string,
+  modifiers?: SelectedModifier[],
+): string {
+  const mods = (modifiers ?? [])
+    .map((m) => `${m.groupId}:${m.name}`)
+    .sort()
+    .join(",")
+  return `${variantSku || sku}|${mods}`
 }
 
 // ---- Per-line money math (POS-1) -------------------------------------
@@ -150,7 +178,7 @@ const RETURNS_KEY = "pos:returns"
 // /placeholder.svg to real Unsplash photos. The key suffix forces a
 // re-seed for users whose localStorage still holds the placeholder
 // catalog from a previous session.
-const CATALOG_KEY = "pos:catalog:mode:v5"
+const CATALOG_KEY = "pos:catalog:mode:v6"
 
 // -------------- KV Helpers --------------
 // Backed by src/lib/storage/kv.ts — reads are sync (localStorage),
@@ -214,6 +242,14 @@ export function loadCatalog(mode: "retail" | "restaurant" | "services" | "auto" 
       brand: "BasicCo",
       stock: 120,
       tags: ["clothing", "retail"],
+      // POS-2 demo: a sized garment. XL costs a touch more.
+      variantAxes: [{ name: "Size", values: ["S", "M", "L", "XL"] }],
+      variants: [
+        { sku: "AP-4012-S", axisValues: { Size: "S" }, stock: 30 },
+        { sku: "AP-4012-M", axisValues: { Size: "M" }, stock: 42 },
+        { sku: "AP-4012-L", axisValues: { Size: "L" }, stock: 33 },
+        { sku: "AP-4012-XL", axisValues: { Size: "XL" }, priceDelta: 1.5, stock: 15 },
+      ],
     },
     {
       id: "p2",
@@ -264,6 +300,31 @@ export function loadCatalog(mode: "retail" | "restaurant" | "services" | "auto" 
       brand: "Kitchen",
       stock: 9999,
       tags: ["food", "restaurant"],
+      // POS-2 demo: pick a milk (required), add extras (optional).
+      modifierGroups: [
+        {
+          id: "milk",
+          name: "Milk",
+          required: true,
+          multiSelect: false,
+          options: [
+            { name: "Whole", priceDelta: 0 },
+            { name: "Oat", priceDelta: 0.5 },
+            { name: "Almond", priceDelta: 0.5 },
+          ],
+        },
+        {
+          id: "extras",
+          name: "Extras",
+          required: false,
+          multiSelect: true,
+          options: [
+            { name: "Extra shot", priceDelta: 0.8 },
+            { name: "Vanilla syrup", priceDelta: 0.5 },
+            { name: "Decaf", priceDelta: 0 },
+          ],
+        },
+      ],
     },
     {
       id: "p6",

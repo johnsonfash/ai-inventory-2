@@ -8,6 +8,7 @@ import { CheckoutSheet } from "@/components/pos/checkout-sheet"
 import { CustomItemDialog, type CustomItemDraft } from "@/components/pos/custom-item-dialog"
 import { FloatingCart } from "@/components/pos/floating-cart"
 import { InvoicePreview, ReceiptPreview, printInvoiceNode } from "@/components/pos/invoice-print"
+import { ItemOptionsSheet, type ItemSelection } from "@/components/pos/item-options-sheet"
 import { ManagerPinDialog, type PinRequest } from "@/components/pos/manager-pin-dialog"
 import { PosSettingsSheet } from "@/components/pos/pos-settings-sheet"
 import { VoidLineDialog, type VoidTarget } from "@/components/pos/void-line-dialog"
@@ -24,6 +25,7 @@ import {
 } from "@/lib/payments/virtual-accounts"
 import {
   addCatalogItem,
+  cartLineKey,
   genId,
   genInvoiceNumber,
   getDraft,
@@ -39,6 +41,7 @@ import {
   type PaymentLine,
 } from "@/lib/pos/storage"
 import { loadPosSettings, type VoidEntry, type VoidReason } from "@/lib/pos/settings"
+import { modifiersTotal, variantLabel, variantUnitPrice } from "@/lib/pos/variants"
 import { cn } from "@/lib/utils"
 import {
   Barcode,
@@ -113,6 +116,8 @@ export default function PointOfSale() {
   const [customItemOpen, setCustomItemOpen] = React.useState(false)
   const [notFoundCode, setNotFoundCode] = React.useState<string | null>(null)
   const [voidTarget, setVoidTarget] = React.useState<VoidTarget | null>(null)
+  // POS-2: item with variants/modifiers awaiting an options pick.
+  const [optionsItem, setOptionsItem] = React.useState<CatalogItem | null>(null)
 
   // ----- Restore draft if `?draftId=...` was passed in -----
   React.useEffect(() => {
@@ -133,12 +138,30 @@ export default function PointOfSale() {
   }, [draftIdFromUrl])
 
   // ----- Cart mutations -----
-  const addItem = React.useCallback((item: CatalogItem, qty = 1) => {
+  // A line is identified by its `id`. Lines merge only when product +
+  // variant + modifiers all match (cartLineKey). POS-2.
+  const addCartLine = React.useCallback((item: CatalogItem, sel?: ItemSelection, qty = 1) => {
+    const variant = sel?.variant
+    const modifiers = sel?.modifiers && sel.modifiers.length ? sel.modifiers : undefined
+    const unitPrice =
+      Math.round((variantUnitPrice(item.price, variant) + modifiersTotal(modifiers)) * 100) / 100
+    const sku = variant?.sku ?? item.sku
+    const key = cartLineKey(item.sku, variant?.sku, modifiers)
     setCart((prev) => {
-      const idx = prev.findIndex((p) => p.sku === item.sku)
+      const idx = prev.findIndex((p) => cartLineKey(p.sku, p.variantSku, p.modifiers) === key)
       if (idx === -1) {
         return [
-          { id: item.id, sku: item.sku, name: item.name, price: item.price, taxRate: item.taxRate, qty },
+          {
+            id: genId("line"),
+            sku,
+            name: item.name,
+            price: unitPrice,
+            taxRate: item.taxRate,
+            qty,
+            variantSku: variant?.sku,
+            variantLabel: variant ? variantLabel(variant, item.variantAxes) : undefined,
+            modifiers,
+          },
           ...prev,
         ]
       }
@@ -148,18 +171,31 @@ export default function PointOfSale() {
     })
   }, [])
 
+  // Tap a catalog tile: items with variants/modifiers open the options
+  // sheet; everything else drops straight into the cart.
+  const onCatalogTap = React.useCallback(
+    (item: CatalogItem) => {
+      if ((item.variantAxes?.length ?? 0) > 0 || (item.modifierGroups?.length ?? 0) > 0) {
+        setOptionsItem(item)
+      } else {
+        addCartLine(item)
+      }
+    },
+    [addCartLine],
+  )
+
   const addByBarcode = (code: string) => {
     const found =
       catalog.find((p) => p.barcode && p.barcode === code) ||
       catalog.find((p) => p.sku.toLowerCase() === code.toLowerCase()) ||
       catalog.find((p) => p.name.toLowerCase().includes(code.toLowerCase()))
-    if (found) addItem(found, 1)
+    if (found) onCatalogTap(found)
     else setNotFoundCode(code)
   }
 
-  const updateQty = (sku: string, next: number) => {
+  const updateQty = (id: string, next: number) => {
     setCart((prev) =>
-      prev.map((p) => (p.sku === sku ? { ...p, qty: Math.max(0, next) } : p)).filter((p) => p.qty > 0),
+      prev.map((p) => (p.id === id ? { ...p, qty: Math.max(0, next) } : p)).filter((p) => p.qty > 0),
     )
   }
 
@@ -199,15 +235,15 @@ export default function PointOfSale() {
   }
 
   // ----- Line discount with manager-override gate (POS-1) -----
-  const setLineDiscount = (sku: string, value: number, type: "flat" | "percent") => {
+  const setLineDiscount = (id: string, value: number, type: "flat" | "percent") => {
     const apply = () =>
       setCart((prev) =>
-        prev.map((p) => (p.sku === sku ? { ...p, lineDiscount: value, lineDiscountType: type } : p)),
+        prev.map((p) => (p.id === id ? { ...p, lineDiscount: value, lineDiscountType: type } : p)),
       )
     const settings = loadPosSettings()
     // Gate deep percentage discounts. A flat amount is gated by the share
     // it represents of the line so a "₦5000 off a ₦6000 line" still asks.
-    const line = cart.find((p) => p.sku === sku)
+    const line = cart.find((p) => p.id === id)
     const pct =
       type === "percent"
         ? value
@@ -230,11 +266,11 @@ export default function PointOfSale() {
       ...prev,
       { sku: item.sku, name: item.name, qty: item.qty, value: lineNet(item), reason, approvedBy, at: Date.now() },
     ])
-    setCart((prev) => prev.filter((p) => p.sku !== item.sku))
+    setCart((prev) => prev.filter((p) => p.id !== item.id))
   }
 
-  const requestRemove = (sku: string) => {
-    const item = cart.find((p) => p.sku === sku)
+  const requestRemove = (id: string) => {
+    const item = cart.find((p) => p.id === id)
     if (!item) return
     const settings = loadPosSettings()
     if (!settings.requireVoidReason) {
@@ -251,13 +287,13 @@ export default function PointOfSale() {
     }
     // Capture a reason first; the dialog's confirm chains into the
     // manager gate when the line is above the threshold.
-    setVoidTarget({ sku: item.sku, name: item.name, value: lineNet(item) })
+    setVoidTarget({ id: item.id, name: item.name, value: lineNet(item) })
   }
 
   const confirmVoid = (reason: VoidReason, note?: string) => {
     const target = voidTarget
     if (!target) return
-    const item = cart.find((p) => p.sku === target.sku)
+    const item = cart.find((p) => p.id === target.id)
     if (!item) return
     const settings = loadPosSettings()
     const finish = (approvedBy?: string) => recordVoid(item, reason, approvedBy)
@@ -467,7 +503,7 @@ export default function PointOfSale() {
 
             <CatalogGrid
               catalog={catalog}
-              onAdd={addItem}
+              onAdd={onCatalogTap}
               businessMode={mode}
               cart={cart}
               onScanRequest={() => setMobileScanOpen(true)}
@@ -768,6 +804,13 @@ export default function PointOfSale() {
         onClose={() => setNotFoundCode(null)}
         onSubmit={addCustomItem}
         defaultTaxRate={catalog[0]?.taxRate}
+      />
+
+      {/* POS-2: variant / modifier picker */}
+      <ItemOptionsSheet
+        item={optionsItem}
+        onClose={() => setOptionsItem(null)}
+        onConfirm={(item, sel) => addCartLine(item, sel)}
       />
 
       {/* POS-1: void-with-reason */}
