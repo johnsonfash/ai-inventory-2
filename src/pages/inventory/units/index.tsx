@@ -9,29 +9,34 @@ import { useRegisterPageRefresh } from "@/hooks/use-pull-to-refresh"
 import { EmptyState } from "@/components/lists/empty-state"
 import { StatusBadge } from "@/components/lists/status-badge"
 import { SummaryStrip } from "@/components/lists/summary-strip"
+import { loadAllCatalog } from "@/lib/pos/storage"
+import { deriveUnit, unitMeta } from "@/lib/inventory/derive"
 
 type Row = { code: string; name: string; type: "discrete" | "weight" | "volume" | "length" | "time"; baseFor?: string; skus: number }
 
-const rows: Row[] = [
-  { code: "pcs", name: "Pieces", type: "discrete", skus: 842 },
-  { code: "box", name: "Box", type: "discrete", baseFor: "pcs · 12 per box", skus: 142 },
-  { code: "kg", name: "Kilogram", type: "weight", skus: 96 },
-  { code: "g", name: "Gram", type: "weight", baseFor: "1/1000 kg", skus: 38 },
-  { code: "L", name: "Litre", type: "volume", skus: 24 },
-  { code: "ml", name: "Millilitre", type: "volume", baseFor: "1/1000 L", skus: 18 },
-  { code: "m", name: "Metre", type: "length", skus: 12 },
-  { code: "hr", name: "Hour", type: "time", skus: 8 },
-]
+// Derived from the POS catalog: which units the live items actually use,
+// with a count of items per unit. No mock — stays in sync with the till.
+function deriveUnits(): Row[] {
+  const counts = new Map<string, number>()
+  for (const c of loadAllCatalog()) {
+    const code = deriveUnit(c)
+    counts.set(code, (counts.get(code) ?? 0) + 1)
+  }
+  return Array.from(counts.entries())
+    .map(([code, skus]) => ({ code, skus, ...unitMeta(code) }))
+    .sort((a, b) => b.skus - a.skus)
+}
 
 export default function Units() {
   const [query, setQuery] = React.useState("")
-  useRegisterPageRefresh(React.useCallback(async () => { await new Promise((r) => setTimeout(r, 400)) }, []))
+  const [rows, setRows] = React.useState<Row[]>(() => deriveUnits())
+  useRegisterPageRefresh(React.useCallback(async () => { setRows(deriveUnits()); await new Promise((r) => setTimeout(r, 300)) }, []))
 
   const filtered = React.useMemo(() => {
     const q = query.trim().toLowerCase()
     if (!q) return rows
     return rows.filter((r) => r.name.toLowerCase().includes(q) || r.code.toLowerCase().includes(q))
-  }, [query])
+  }, [query, rows])
 
   const totalSkus = rows.reduce((s, r) => s + r.skus, 0)
   const compoundCount = rows.filter((r) => r.baseFor).length

@@ -30,6 +30,7 @@ import { MobileFab } from "@/components/mobile/mobile-fab"
 import { cn } from "@/lib/utils"
 import { useCurrency } from "@/contexts/currency"
 import { loadCatalog, type CatalogItem } from "@/lib/pos/storage"
+import { deriveUnit, deriveWarranty } from "@/lib/inventory/derive"
 
 type Item = {
   sku: string
@@ -59,40 +60,6 @@ type Item = {
 const LOCATIONS = ["WH-A", "WH-B", "WH-C"]
 const UNLIMITED_STOCK = 9999  // catalog sentinel for non-tracked items
                               // (e.g. menu dishes that don't pull from a SKU)
-
-// Cue-based unit derivation. Matches against category and tags
-// (lowercased) so the rules cover any spelling variation. Order
-// matters — most specific first.
-function deriveUnit(c: CatalogItem): string {
-  const sig = `${c.category ?? ""} ${(c.tags ?? []).join(" ")}`.toLowerCase()
-  if (/\b(serv|service|consult|hour|hr)\b/.test(sig))                       return "hr"
-  if (/\b(food|meal|dish|course|side|dessert|menu)\b/.test(sig))            return "serv"
-  if (/\b(drink|beverage|coffee|tea|juice|wine|spirit)\b/.test(sig))        return "btl"
-  if (/\b(perfume|fragrance|cologne|oil|serum|tonic|lotion)\b/.test(sig))   return "btl"
-  if (/\b(flour|sugar|salt|rice|grain|powder|spice|seasoning)\b/.test(sig)) return "kg"
-  if (/\b(fabric|textile|cloth|leather|yarn|rope|cable|wire|hose)\b/.test(sig)) return "m"
-  if (/\b(paint|fuel|oil|coolant|liquid)\b/.test(sig))                      return "l"
-  if (/\b(grocer|bag|sack|pack|carton)\b/.test(sig))                        return "pkg"
-  if (/\b(set|kit|bundle)\b/.test(sig))                                     return "set"
-  if (/\b(dozen)\b/.test(sig))                                              return "dz"
-  return "pcs"  // safe universal default — works for clothing,
-                // electronics, auto parts, toys, books, anything
-                // sold one-at-a-time.
-}
-
-// Warranty derivation. Most items don't have warranties (food,
-// services, ingredients, perfume etc.) — those return "—" so the
-// column never lies. Items that typically DO carry warranty get a
-// sensible default based on industry norms.
-function deriveWarranty(c: CatalogItem): string {
-  const sig = `${c.category ?? ""} ${(c.tags ?? []).join(" ")}`.toLowerCase()
-  if (/\b(electronic|appliance|gadget|computer|phone)\b/.test(sig)) return "24 mo"
-  if (/\b(auto|car|vehicle|motorcycle|tyre)\b/.test(sig))           return "12 mo"
-  if (/\b(home|furniture|kitchen)\b/.test(sig))                     return "6 mo"
-  if (/\b(sport|fitness|outdoor)\b/.test(sig))                      return "6 mo"
-  if (/\b(machinery|equipment|tool|power-tool)\b/.test(sig))        return "12 mo"
-  return "—"
-}
 
 function deriveLocation(sku: string): string {
   // Deterministic hash so the same SKU always lives at the same warehouse.

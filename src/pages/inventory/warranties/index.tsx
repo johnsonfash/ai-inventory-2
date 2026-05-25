@@ -9,28 +9,53 @@ import { useRegisterPageRefresh } from "@/hooks/use-pull-to-refresh"
 import { EmptyState } from "@/components/lists/empty-state"
 import { StatusBadge, type StatusTone } from "@/components/lists/status-badge"
 import { SummaryStrip } from "@/components/lists/summary-strip"
+import { loadAllCatalog } from "@/lib/pos/storage"
+import { deriveWarranty } from "@/lib/inventory/derive"
 
 type Row = { code: string; name: string; durationMonths: number; coverage: string; skus: number; status: "active" | "draft" }
 
-const rows: Row[] = [
-  { code: "W12", name: "12-month standard", durationMonths: 12, coverage: "Manufacturer defects only", skus: 142, status: "active" },
-  { code: "W24", name: "2-year extended", durationMonths: 24, coverage: "Defects + accidental damage", skus: 86, status: "active" },
-  { code: "W6", name: "6-month basic", durationMonths: 6, coverage: "Defects only", skus: 320, status: "active" },
-  { code: "WLT", name: "Lifetime", durationMonths: 9999, coverage: "All defects, for life of product", skus: 12, status: "active" },
-  { code: "W3", name: "Holiday 90-day", durationMonths: 3, coverage: "Defects only, promo-only", skus: 0, status: "draft" },
-]
-
 const statusTone: Record<Row["status"], StatusTone> = { active: "success", draft: "neutral" }
+
+// Derived from the POS catalog: warranty tiers the live items fall into,
+// with item counts. Items deriveWarranty to "—" (food, services, etc.)
+// carry no warranty and are excluded.
+function deriveWarranties(): Row[] {
+  const counts = new Map<string, number>()
+  for (const c of loadAllCatalog()) {
+    const w = deriveWarranty(c)
+    if (w === "—") continue
+    counts.set(w, (counts.get(w) ?? 0) + 1)
+  }
+  const COVERAGE: Record<number, string> = {
+    24: "Defects + accidental damage",
+    12: "Manufacturer defects",
+    6: "Defects only",
+  }
+  return Array.from(counts.entries())
+    .map(([label, skus]) => {
+      const months = parseInt(label, 10) || 12
+      return {
+        code: `W${months}`,
+        name: `${months}-month`,
+        durationMonths: months,
+        coverage: COVERAGE[months] ?? "Manufacturer defects",
+        skus,
+        status: "active" as const,
+      }
+    })
+    .sort((a, b) => b.durationMonths - a.durationMonths)
+}
 
 export default function Warranties() {
   const [query, setQuery] = React.useState("")
-  useRegisterPageRefresh(React.useCallback(async () => { await new Promise((r) => setTimeout(r, 400)) }, []))
+  const [rows, setRows] = React.useState<Row[]>(() => deriveWarranties())
+  useRegisterPageRefresh(React.useCallback(async () => { setRows(deriveWarranties()); await new Promise((r) => setTimeout(r, 300)) }, []))
 
   const filtered = React.useMemo(() => {
     const q = query.trim().toLowerCase()
     if (!q) return rows
     return rows.filter((r) => r.name.toLowerCase().includes(q) || r.code.toLowerCase().includes(q))
-  }, [query])
+  }, [query, rows])
 
   const totalSkus = rows.reduce((s, r) => s + r.skus, 0)
   const active = rows.filter((r) => r.status === "active").length
