@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom"
 import {
   ArrowRight,
   Bot,
+  Check,
   CreditCard,
   Globe,
   PackagePlus,
@@ -14,6 +15,13 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { kv } from "@/lib/storage/kv"
+import {
+  INDUSTRIES,
+  loadBusinessProfile,
+  saveBusinessProfile,
+  type IndustryKey,
+  type SellsKind,
+} from "@/lib/profile/business-profile"
 import { cn } from "@/lib/utils"
 
 // First-run welcome modal — shown ONCE the very first time a user
@@ -36,6 +44,11 @@ type Screen = 0 | 1 | 2
 export function FirstRunModal() {
   const [open, setOpen] = React.useState(false)
   const [screen, setScreen] = React.useState<Screen>(0)
+  // App Wave 3: ask the one business-profile question first, unless the
+  // user already has a profile.
+  const [showProfile, setShowProfile] = React.useState(() => !loadBusinessProfile())
+  const [industry, setIndustry] = React.useState<IndustryKey | null>(null)
+  const [sells, setSells] = React.useState<SellsKind>("products")
   const navigate = useNavigate()
 
   // Mount-time decision — open only if first-run is unseen.
@@ -94,8 +107,77 @@ export function FirstRunModal() {
             <X className="h-4 w-4" />
           </button>
 
+          {/* Screen −1 — business profile (App Wave 3) */}
+          {showProfile && (
+            <div className="relative p-6 sm:p-8">
+              <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-brand to-fuchsia-500 text-white shadow-md shadow-brand/30">
+                <Store className="h-6 w-6" />
+              </span>
+              <h2 className="mt-4 text-2xl font-bold tracking-tight sm:text-3xl">What do you run?</h2>
+              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                Pick the closest fit. Pallio just reorders your setup steps to match —
+                <strong className="text-foreground"> nothing is hidden</strong>, and you can change it later.
+              </p>
+
+              <div className="mt-5 grid grid-cols-2 gap-2">
+                {INDUSTRIES.map((ind) => {
+                  const sel = industry === ind.key
+                  return (
+                    <button
+                      key={ind.key}
+                      type="button"
+                      onClick={() => setIndustry(ind.key)}
+                      className={cn(
+                        "flex flex-col rounded-xl border-2 p-3 text-left transition-colors",
+                        sel ? "border-brand bg-brand-soft dark:border-primary dark:bg-primary/15" : "border-border bg-background hover:bg-accent",
+                      )}
+                    >
+                      <span className="flex items-center justify-between">
+                        <span className="text-sm font-semibold">{ind.label}</span>
+                        {sel && <Check className="h-4 w-4 text-brand dark:text-primary" />}
+                      </span>
+                      <span className="mt-0.5 text-[11px] text-muted-foreground">{ind.blurb}</span>
+                    </button>
+                  )
+                })}
+              </div>
+
+              <p className="mt-4 text-xs font-medium text-muted-foreground">You mostly sell…</p>
+              <div className="mt-2 inline-flex rounded-lg border border-input p-0.5">
+                {(["products", "services", "both"] as const).map((k) => (
+                  <button
+                    key={k}
+                    type="button"
+                    onClick={() => setSells(k)}
+                    className={cn(
+                      "rounded-md px-3 py-1.5 text-xs font-semibold capitalize transition-colors",
+                      sells === k ? "bg-brand text-brand-foreground dark:bg-primary dark:text-primary-foreground" : "text-muted-foreground hover:bg-accent",
+                    )}
+                  >
+                    {k}
+                  </button>
+                ))}
+              </div>
+
+              <div className="mt-6 flex flex-wrap gap-2">
+                <Button
+                  disabled={!industry}
+                  onClick={() => {
+                    if (!industry) return
+                    saveBusinessProfile({ industry, sells })
+                    setShowProfile(false)
+                  }}
+                  className="flex-1 sm:flex-none"
+                >
+                  Continue <ArrowRight className="h-4 w-4" />
+                </Button>
+                <Button variant="ghost" onClick={() => setShowProfile(false)}>Skip</Button>
+              </div>
+            </div>
+          )}
+
           {/* Screen 0 — welcome */}
-          {screen === 0 && (
+          {!showProfile && screen === 0 && (
             <div className="relative p-6 sm:p-8">
               <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-brand to-fuchsia-500 text-white shadow-md shadow-brand/30">
                 <Sparkles className="h-6 w-6" />

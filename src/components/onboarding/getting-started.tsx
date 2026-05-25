@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { kv, kvJson } from "@/lib/storage/kv"
 import { ORG_STEPS, PERSONAL_STEPS, type StepDefinition } from "./step-definitions"
 import { CelebrationModal, hasCelebrated } from "./celebration"
+import { loadBusinessProfile, orderStepsForProfile } from "@/lib/profile/business-profile"
 import { cn } from "@/lib/utils"
 
 // jax/Zoho-style getting-started milestone card. Lives at the top of
@@ -56,23 +57,35 @@ export function GettingStarted({ className }: { className?: string }) {
   const [progress, setProgress] = React.useState<ProgressMap>(() => readProgress())
   const [dismissed, setDismissed] = React.useState<boolean>(() => readDismissed())
   const [collapsed, setCollapsed] = React.useState<boolean>(() => readCollapsed())
+  // App Wave 3: reorder the hands-on steps to match the business profile.
+  const [profile, setProfile] = React.useState(() => loadBusinessProfile())
 
-  // Re-read on external resets (Settings → Replay tour).
+  // Re-read on external resets (Settings → Replay tour) + profile changes.
   React.useEffect(() => {
     const onChange = () => {
       setProgress(readProgress())
       setDismissed(readDismissed())
       setCollapsed(readCollapsed())
     }
+    const onProfile = () => setProfile(loadBusinessProfile())
     window.addEventListener("pallio:onboarding-changed", onChange)
+    window.addEventListener("pallio:business-profile-changed", onProfile)
     window.addEventListener("storage", onChange)
     return () => {
       window.removeEventListener("pallio:onboarding-changed", onChange)
+      window.removeEventListener("pallio:business-profile-changed", onProfile)
       window.removeEventListener("storage", onChange)
     }
   }, [])
 
-  const allSteps = React.useMemo(() => [...ORG_STEPS, ...PERSONAL_STEPS], [])
+  const personalSteps = React.useMemo(() => {
+    const order = orderStepsForProfile(PERSONAL_STEPS.map((s) => s.key), profile)
+    return order
+      .map((k) => PERSONAL_STEPS.find((s) => s.key === k))
+      .filter((s): s is StepDefinition => !!s)
+  }, [profile])
+
+  const allSteps = React.useMemo(() => [...ORG_STEPS, ...personalSteps], [personalSteps])
   const completedCount = allSteps.filter((s) => progress[s.key]).length
   const totalSteps = allSteps.length
   const pct = Math.round((completedCount / totalSteps) * 100)
@@ -209,7 +222,7 @@ export function GettingStarted({ className }: { className?: string }) {
           <CompactSection
             heading="Get hands-on"
             subhead="Quick exercises that build muscle memory."
-            steps={PERSONAL_STEPS}
+            steps={personalSteps}
             startIndex={ORG_STEPS.length}
             progress={progress}
             nextKey={nextStep?.key}
