@@ -2,6 +2,7 @@ import * as React from "react"
 import { Check, Clock, Flame } from "lucide-react"
 import { PageShell } from "@/components/page-shell"
 import { EmptyState } from "@/components/lists/empty-state"
+import { CoachMark } from "@/components/onboarding/coach-mark"
 import { useRegisterPageRefresh } from "@/hooks/use-pull-to-refresh"
 import { prepQueue, setLinePrepStatus, type PrepStatus, type PrepTicket } from "@/lib/pos/venue"
 import { cn } from "@/lib/utils"
@@ -33,6 +34,7 @@ function waitLabel(firedAt?: number) {
 
 export default function PrepQueuePage() {
   const [tickets, setTickets] = React.useState<PrepTicket[]>(() => prepQueue())
+  const firstTicketRef = React.useRef<HTMLButtonElement>(null)
 
   const reload = React.useCallback(() => setTickets(prepQueue()), [])
 
@@ -78,13 +80,14 @@ export default function PrepQueuePage() {
         />
       ) : (
         <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {tickets.map((t) => {
+          {tickets.map((t, idx) => {
             const status = t.line.prepStatus ?? "queued"
             const meta = STATUS_META[status]
             const Icon = meta.Icon
             return (
               <button
                 key={t.line.id}
+                ref={idx === 0 ? firstTicketRef : undefined}
                 type="button"
                 onClick={() => advance(t)}
                 className={cn(
@@ -116,6 +119,14 @@ export default function PrepQueuePage() {
           })}
         </div>
       )}
+
+      <CoachMark
+        id="pos-prep-intro"
+        anchorRef={firstTicketRef}
+        title="Tap to advance"
+        body="Each tap moves a ticket along: New → Making → Ready → Served. The oldest sits at the front."
+        placement="bottom"
+      />
     </PageShell>
   )
 }

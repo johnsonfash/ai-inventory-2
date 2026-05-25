@@ -6,6 +6,7 @@ import { BottomSheet } from "@/components/mobile/bottom-sheet"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useRegisterPageRefresh } from "@/hooks/use-pull-to-refresh"
+import { CoachMark } from "@/components/onboarding/coach-mark"
 import { useCurrency } from "@/contexts/currency"
 import { genId, loadCatalog, type CartItem } from "@/lib/pos/storage"
 import {
@@ -40,6 +41,7 @@ export default function VenuePage() {
   const [venue, setVenue] = React.useState(() => loadVenue())
   const [activeSpotId, setActiveSpotId] = React.useState<string | null>(null)
   const [search, setSearch] = React.useState("")
+  const firstSpotRef = React.useRef<HTMLButtonElement>(null)
 
   const refresh = React.useCallback(() => {
     setVenue(loadVenue())
@@ -148,12 +150,13 @@ export default function VenuePage() {
       }
     >
       <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
-        {venue.spots.map((spot) => {
+        {venue.spots.map((spot, idx) => {
           const order = openOrderForSpot(spot.id)
           const total = orderTotal(order)
           return (
             <button
               key={spot.id}
+              ref={idx === 0 ? firstSpotRef : undefined}
               type="button"
               onClick={() => openSpot(spot)}
               className={cn(
@@ -178,6 +181,14 @@ export default function VenuePage() {
           )
         })}
       </div>
+
+      <CoachMark
+        id="pos-venue-intro"
+        anchorRef={firstSpotRef}
+        title={`Open a ${labels.one.toLowerCase()}`}
+        body={`Tap to seat it, add items, fire them to the prep queue, then take payment. Paying frees the ${labels.one.toLowerCase()} automatically.`}
+        placement="bottom"
+      />
 
       {/* Order panel for the tapped spot */}
       <BottomSheet

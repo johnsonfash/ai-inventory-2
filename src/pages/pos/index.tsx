@@ -61,6 +61,7 @@ import {
 import { loadReceiptSettings } from "@/lib/pos/receipt-settings"
 import { closeOpenOrder, getOpenOrder } from "@/lib/pos/venue"
 import { db } from "@/lib/db/index"
+import { CoachMark } from "@/components/onboarding/coach-mark"
 import type { AuditEntry } from "@/lib/pos/storage"
 import type { Order } from "@/lib/sales/types"
 import { modifiersTotal, variantLabel, variantUnitPrice } from "@/lib/pos/variants"
@@ -162,6 +163,8 @@ export default function PointOfSale() {
   // POS-4: the open order (table/tab) being settled, if we arrived via
   // /pos?orderId=. Cleared (and the spot freed) once the sale completes.
   const [activeOrderId, setActiveOrderId] = React.useState<string | null>(null)
+  // POS-6: first-visit coach mark anchor for the new Tables affordance.
+  const tablesChipRef = React.useRef<HTMLButtonElement>(null)
   // Bumped after a loyalty mutation so the checkout sheet re-reads kv.
   const [, setLoyaltyTick] = React.useState(0)
 
@@ -653,7 +656,7 @@ export default function PointOfSale() {
                 inter-element gaps don't leak product images either. */}
             <div className="hidden md:sticky md:-top-5 md:z-30 md:flex md:flex-col md:gap-4 md:bg-background md:pb-3">
               <div className="flex gap-2 overflow-x-auto py-2 scrollbar-hide">
-                <PosQuickChip Icon={LayoutGrid} label="Tables" onClick={() => navigate("/pos/venue")} />
+                <PosQuickChip Icon={LayoutGrid} label="Tables" onClick={() => navigate("/pos/venue")} anchorRef={tablesChipRef} />
                 <PosQuickChip Icon={Flame} label="Prep" onClick={() => navigate("/pos/prep")} />
                 <PosQuickChip Icon={Layers} label="Drafts" onClick={() => navigate("/pos/drafts")} />
                 <PosQuickChip Icon={ClipboardList} label="Invoices" onClick={() => navigate("/pos/invoices")} />
@@ -1056,6 +1059,15 @@ export default function PointOfSale() {
 
       {/* POS-1: manager-override PIN gate */}
       <ManagerPinDialog request={pinRequest} onClose={() => setPinRequest(null)} />
+
+      {/* POS-6: first-visit hint for table/tab service (desktop) */}
+      <CoachMark
+        id="pos-tables-intro"
+        anchorRef={tablesChipRef}
+        title="New: tables & tabs"
+        body="Run table or counter service — open a tab, fire items to the prep queue, split the bill. Works for restaurants, salons, workshops, and more."
+        placement="bottom"
+      />
     </PageShell>
   )
 }
@@ -1065,14 +1077,17 @@ function PosQuickChip({
   label,
   onClick,
   className,
+  anchorRef,
 }: {
   Icon: React.ElementType
   label: string
   onClick: () => void
   className?: string
+  anchorRef?: React.Ref<HTMLButtonElement>
 }) {
   return (
     <button
+      ref={anchorRef}
       type="button"
       onClick={onClick}
       className={cn(
