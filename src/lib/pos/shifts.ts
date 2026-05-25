@@ -126,6 +126,26 @@ export function buildShiftReport(shift: Shift): ShiftReport {
   return report
 }
 
+// App Wave 4: drop one example shift so a first-time user can see what a
+// closed shift + Z-report looks like before running their own.
+export function seedExampleShift(): Shift {
+  const opened = Date.now() - 1000 * 60 * 60 * 6
+  const example: Shift = {
+    id: genId("shift"),
+    cashier: "Demo Cashier",
+    location: "Lekki Phase 1",
+    openedAt: opened,
+    closedAt: opened + 1000 * 60 * 60 * 5,
+    openingFloat: 200,
+    // A small short, so the variance band is visible in the report.
+    declaredClose: 195,
+    status: "closed",
+    note: "Example shift",
+  }
+  saveShifts([example, ...listShifts()])
+  return example
+}
+
 // Invoices belonging to a shift window — used by the shift detail view.
 export function invoicesForShift(shift: Shift): Invoice[] {
   const to = shift.closedAt ?? Date.now()

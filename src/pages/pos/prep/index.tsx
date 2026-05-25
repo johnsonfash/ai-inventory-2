@@ -1,10 +1,11 @@
 import * as React from "react"
 import { Check, Clock, Flame } from "lucide-react"
 import { PageShell } from "@/components/page-shell"
+import { Button } from "@/components/ui/button"
 import { EmptyState } from "@/components/lists/empty-state"
 import { CoachMark } from "@/components/onboarding/coach-mark"
 import { useRegisterPageRefresh } from "@/hooks/use-pull-to-refresh"
-import { prepQueue, setLinePrepStatus, type PrepStatus, type PrepTicket } from "@/lib/pos/venue"
+import { prepQueue, seedExamplePrep, setLinePrepStatus, type PrepStatus, type PrepTicket } from "@/lib/pos/venue"
 import { cn } from "@/lib/utils"
 
 // Industry-agnostic KDS: a FIFO list of fired items waiting to be made.
@@ -77,6 +78,11 @@ export default function PrepQueuePage() {
           Icon={Flame}
           title="Nothing in the queue"
           description="When you fire items from a table or tab, they show up here in the order they were sent."
+          action={
+            <Button type="button" variant="outline" onClick={() => { seedExamplePrep(); reload() }}>
+              Show me an example
+            </Button>
+          }
         />
       ) : (
         <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">

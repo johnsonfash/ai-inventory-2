@@ -15,6 +15,7 @@ import {
   closeShift,
   listShifts,
   openShift,
+  seedExampleShift,
   type Shift,
   type ShiftReport,
 } from "@/lib/pos/shifts"
@@ -103,7 +104,14 @@ export default function ShiftsPage() {
           Icon={LockKeyhole}
           title="No shifts yet"
           description="Open a shift to start tracking the cash drawer. At close you'll get a Z-report with expected vs counted cash."
-          action={<Button type="button" onClick={() => setOpenSheet(true)}>Open the first shift</Button>}
+          action={
+            <div className="flex flex-wrap items-center justify-center gap-2">
+              <Button type="button" onClick={() => setOpenSheet(true)}>Open the first shift</Button>
+              <Button type="button" variant="outline" onClick={() => { seedExampleShift(); reload() }}>
+                Show me an example
+              </Button>
+            </div>
+          }
         />
       ) : (
         <ul className="space-y-2">

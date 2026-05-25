@@ -194,6 +194,19 @@ export function prepQueue(): PrepTicket[] {
   return tickets.sort((a, b) => (a.line.firedAt ?? 0) - (b.line.firedAt ?? 0))
 }
 
+// App Wave 4: drop a couple of fired tickets so a first-time user can see
+// the prep queue in action before running real orders.
+export function seedExamplePrep() {
+  const order = createOpenOrder({ spotId: "spot-1", label: "Table 1" })
+  const now = Date.now()
+  order.lines.push(
+    { id: genId("line"), sku: "FO-100", name: "Fish and Chips", price: 7.5, qty: 2, firedAt: now - 1000 * 90, prepStatus: "queued" },
+    { id: genId("line"), sku: "DR-210", name: "Iced Coffee", price: 4.2, qty: 1, firedAt: now - 1000 * 30, prepStatus: "in-progress" },
+  )
+  order.events.push({ at: now, type: "fire" })
+  upsertOpenOrder(order)
+}
+
 export function setLinePrepStatus(orderId: string, lineId: string, status: PrepStatus) {
   const list = listOpenOrders()
   const order = list.find((o) => o.id === orderId)
