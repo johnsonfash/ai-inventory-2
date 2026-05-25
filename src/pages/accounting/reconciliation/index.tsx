@@ -29,6 +29,15 @@ import { useRegisterPageRefresh } from "@/hooks/use-pull-to-refresh"
 import { useCurrency } from "@/contexts/currency"
 import { cn } from "@/lib/utils"
 
+import {
+  bankLedgerLines,
+  reconSummary,
+  reconciledThrough,
+  setReconciledThrough,
+  toggleCleared,
+} from "@/lib/accounting/reconcile"
+import { seedExampleLedger } from "@/lib/accounting/ledger"
+
 // Bank reconciliation — match every Pallio journal-entry hit on a
 // bank account against the bank's official statement. Catch the
 // stuff that's in Pallio but not the bank (timing) + stuff in the
@@ -145,6 +154,9 @@ export default function Reconciliation() {
       period={period}
       onPeriodChange={setPeriod}
     >
+      {/* ACCT-4: real reconciliation from the ledger's own bank movements */}
+      <LedgerReconcilePanel />
+
       {/* Account selector header */}
       <Card>
         <CardContent className="p-4">
@@ -471,6 +483,83 @@ function Tile({ label, value, sub, tone }: { label: string; value: string; sub?:
           tone === "danger"  && "text-rose-600 dark:text-rose-400",
         )}>{value}</p>
         {sub && <p className="mt-1 text-[11px] text-muted-foreground">{sub}</p>}
+      </CardContent>
+    </Card>
+  )
+}
+
+// ACCT-4: reconcile the ledger's own bank movements. Tick off each line
+// that appears on the statement; the cleared balance should match the
+// statement's closing balance.
+function LedgerReconcilePanel() {
+  const { formatPrice } = useCurrency()
+  const [version, setVersion] = React.useState(0)
+  const [stmt, setStmt] = React.useState("")
+  React.useEffect(() => { seedExampleLedger() }, [])
+  const lines = React.useMemo(() => bankLedgerLines("1010"), [version])
+  const summary = React.useMemo(() => reconSummary("1010"), [version])
+  const through = reconciledThrough()
+  const stmtNum = Number(stmt) || 0
+  const diff = stmt.trim() ? summary.difference(stmtNum) : summary.bookBalance - summary.clearedBalance
+
+  return (
+    <Card>
+      <CardContent className="p-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="text-sm font-semibold">Reconcile from the ledger · Bank</p>
+            <p className="text-[11px] text-muted-foreground">
+              Tick each movement that shows on your statement. {through ? `Reconciled through ${through}.` : "Not yet reconciled."}
+            </p>
+          </div>
+          <div className="flex items-end gap-2">
+            <label className="text-[11px] text-muted-foreground">
+              Statement balance
+              <input
+                type="number"
+                value={stmt}
+                onChange={(e) => setStmt(e.target.value)}
+                placeholder="0.00"
+                className="mt-1 block h-9 w-32 rounded-lg border border-input bg-background px-2 text-sm outline-none"
+              />
+            </label>
+            <Button
+              size="sm"
+              onClick={() => { setReconciledThrough(new Date().toISOString().slice(0, 10)); setVersion((v) => v + 1) }}
+            >
+              Mark reconciled
+            </Button>
+          </div>
+        </div>
+
+        <div className="mt-3 grid grid-cols-3 gap-2">
+          <Tile label="Book balance" value={formatPrice(summary.bookBalance)} tone="info" />
+          <Tile label="Cleared" value={formatPrice(summary.clearedBalance)} tone="success" sub={`${summary.unclearedCount} uncleared`} />
+          <Tile label="Difference" value={formatPrice(diff)} tone={Math.abs(diff) < 0.01 ? "success" : "warning"} sub={Math.abs(diff) < 0.01 ? "reconciled" : "to clear"} />
+        </div>
+
+        {lines.length > 0 && (
+          <ul className="mt-3 divide-y divide-border rounded-xl border border-border">
+            {lines.map((l) => (
+              <li key={l.key} className="flex items-center gap-3 px-3 py-2">
+                <input
+                  type="checkbox"
+                  checked={l.cleared}
+                  onChange={() => { toggleCleared(l.key); setVersion((v) => v + 1) }}
+                  aria-label={`Clear ${l.memo}`}
+                  className="h-4 w-4 accent-[var(--brand)]"
+                />
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium">{l.memo}</p>
+                  <p className="text-[11px] text-muted-foreground">{l.date}</p>
+                </div>
+                <span className={cn("text-sm font-semibold tabular-nums", l.amount < 0 ? "text-rose-600 dark:text-rose-400" : "")}>
+                  {l.amount < 0 ? "−" : "+"}{formatPrice(Math.abs(l.amount))}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
       </CardContent>
     </Card>
   )
