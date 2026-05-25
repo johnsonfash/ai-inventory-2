@@ -330,6 +330,36 @@ export function balanceSheet(opts?: { to?: string }) {
   }
 }
 
+// ---- VAT / sales-tax summary from the ledger (ACCT-6) ----
+// Output tax = credits to VAT Payable (collected on sales); input tax =
+// debits (reclaimable on purchases). Net payable = the account balance —
+// what you'd remit. Derived from posted entries, so the filing figure
+// equals the books.
+export function vatSummary(opts?: { from?: string; to?: string }): {
+  outputTax: number
+  inputTax: number
+  netPayable: number
+} {
+  const vat = accountByCode("2100")
+  if (!vat) return { outputTax: 0, inputTax: 0, netPayable: 0 }
+  const within = (d: string) => (!opts?.from || d >= opts.from) && (!opts?.to || d <= opts.to)
+  let credits = 0
+  let debits = 0
+  for (const e of listEntries()) {
+    if (!e.posted || !within(e.date)) continue
+    for (const l of e.lines) {
+      if (l.accountId !== vat.id) continue
+      credits += l.credit || 0
+      debits += l.debit || 0
+    }
+  }
+  return {
+    outputTax: round2(credits),
+    inputTax: round2(debits),
+    netPayable: round2(credits - debits),
+  }
+}
+
 // Net balance for one account (debit-positive on its normal side). Used by
 // statements (ACCT-3) and the chart-of-accounts page.
 export function accountBalance(accountId: string): number {

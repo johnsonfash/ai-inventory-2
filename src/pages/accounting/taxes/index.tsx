@@ -11,6 +11,7 @@ import { ConnectionCard } from "@/components/integrations/connection-chip"
 import { useRegisterPageRefresh } from "@/hooks/use-pull-to-refresh"
 import { useCurrency } from "@/contexts/currency"
 import { cn } from "@/lib/utils"
+import { seedExampleLedger, vatSummary } from "@/lib/accounting/ledger"
 
 type FilingStatus = "filed" | "due" | "overdue" | "draft"
 
@@ -53,6 +54,9 @@ export default function Taxes() {
   useRegisterPageRefresh(React.useCallback(async () => { await new Promise((r) => setTimeout(r, 400)) }, []))
   const { formatPrice } = useCurrency()
   const [period, setPeriod] = React.useState<Period>("ytd")
+  // ACCT-6: the real VAT figure, derived from the ledger's VAT Payable
+  // account — output tax collected, input tax reclaimable, net to remit.
+  const vat = React.useMemo(() => { seedExampleLedger(); return vatSummary() }, [])
 
   const due       = FILINGS.filter((f) => f.status === "due" || f.status === "overdue").reduce((s, f) => s + f.taxAmount, 0)
   const filedYtd  = FILINGS.filter((f) => f.status === "filed").reduce((s, f) => s + f.taxAmount, 0)
@@ -85,6 +89,35 @@ export default function Taxes() {
         <Tile label="Drafts"     value={String(draftCount)}      tone="neutral" sub="awaiting review" />
         <Tile label="Compliance"  value="On track"                tone={overdueCount > 0 ? "warning" : "success"} sub="FIRS + LIRS" />
       </section>
+
+      {/* ACCT-6: VAT computed live from the ledger (ties the filing figure
+          to the books — not a separate estimate) */}
+      <Card>
+        <CardContent className="p-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p className="text-sm font-semibold">VAT payable — from your ledger</p>
+              <p className="text-[11px] text-muted-foreground">
+                Output tax collected on sales, less input tax on purchases. This equals your books.
+              </p>
+            </div>
+            <div className="flex items-center gap-5 text-right">
+              <div>
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Output</p>
+                <p className="text-sm font-bold tabular-nums">{formatPrice(vat.outputTax)}</p>
+              </div>
+              <div>
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Input</p>
+                <p className="text-sm font-bold tabular-nums">{formatPrice(vat.inputTax)}</p>
+              </div>
+              <div>
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Net payable</p>
+                <p className="text-lg font-bold tabular-nums text-brand dark:text-primary">{formatPrice(vat.netPayable)}</p>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Filings list */}
       <Card>
