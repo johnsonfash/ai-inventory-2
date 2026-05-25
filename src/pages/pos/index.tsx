@@ -60,6 +60,7 @@ import {
 } from "@/lib/pos/hardware"
 import { loadReceiptSettings } from "@/lib/pos/receipt-settings"
 import { closeOpenOrder, getOpenOrder } from "@/lib/pos/venue"
+import { db } from "@/lib/db/index"
 import type { AuditEntry } from "@/lib/pos/storage"
 import type { Order } from "@/lib/sales/types"
 import { modifiersTotal, variantLabel, variantUnitPrice } from "@/lib/pos/variants"
@@ -528,6 +529,8 @@ export default function PointOfSale() {
       meta: { location, salesperson, channel },
     }
     saveInvoice(invoice)
+    // POS-5: queue for cloud sync (no-op on web; drains when online + backend).
+    void db.enqueue("invoice", invoice)
 
     // Settle the value instruments that were tendered (gift card / store
     // credit) regardless of partial — the customer actually used them.

@@ -58,6 +58,7 @@ export const NAV: NavItem[] = [
       { title: "Tables & Tabs", url: "/pos/venue" },
       { title: "Prep Queue", url: "/pos/prep" },
       { title: "Drafts", url: "/pos/drafts" },
+      { title: "Shifts", url: "/pos/shifts" },
       { title: "Transactions", url: "/pos/transactions" },
       { title: "Invoices", url: "/pos/invoices" },
       { title: "Returns", url: "/pos/returns" },

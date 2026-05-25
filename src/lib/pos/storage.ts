@@ -531,6 +531,27 @@ export function addCatalogItem(
   return stored
 }
 
+// Credit (or debit) on-hand stock for a SKU across every mode's catalog.
+// Used when a return is finalised to put returned units back on the
+// shelf. Skips the UNLIMITED_STOCK (9999) sentinel — services and menu
+// dishes aren't quantity-tracked. POS-5.
+export function adjustStock(sku: string, delta: number) {
+  const modes = ["retail", "restaurant", "services", "auto"] as const
+  for (const mode of modes) {
+    const key = `${CATALOG_KEY}:${mode}`
+    const list = getLS<CatalogItem[] | null>(key, null)
+    if (!list) continue
+    let changed = false
+    for (const it of list) {
+      if (it.sku === sku && typeof it.stock === "number" && it.stock < 9999) {
+        it.stock = Math.max(0, it.stock + delta)
+        changed = true
+      }
+    }
+    if (changed) setLS(key, list)
+  }
+}
+
 // -------------- Drafts --------------
 export function saveDraft(draft: Draft) {
   const drafts = listDrafts()

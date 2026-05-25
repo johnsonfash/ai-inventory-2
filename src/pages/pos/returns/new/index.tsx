@@ -20,6 +20,7 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { StatusBadge } from "@/components/lists/status-badge"
 import {
+  adjustStock,
   getInvoiceById,
   getInvoiceByNumber,
   genId,
@@ -30,6 +31,7 @@ import {
   type ReturnReason,
   type ReturnRecord,
 } from "@/lib/pos/storage"
+import { db } from "@/lib/db/index"
 import { useCurrency } from "@/contexts/currency"
 import { cn } from "@/lib/utils"
 
@@ -219,6 +221,9 @@ export default function NewReturnPage() {
       reasonNote: reason === "other" ? reasonNote.trim() || undefined : undefined,
     }
     saveReturn(rec)
+    // POS-5: credit returned units back to stock + queue the return for sync.
+    for (const it of rec.items) adjustStock(it.sku, it.qty)
+    void db.enqueue("return", rec)
     toast.success(`Return ${rec.number} created · ${formatPrice(totalRefund)} refunded.`)
     navigate(`/pos/returns/${rec.id}`)
   }

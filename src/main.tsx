@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client"
 import App from "./App"
 import { kv } from "./lib/storage/kv"
 import { isTauriMobile, isTauriDesktop } from "./lib/platform"
+import { startSyncWorker } from "./lib/pos/sync"
 import "./index.css"
 
 // On Tauri mobile (iOS / Android), the OS LaunchScreen / Splash
@@ -22,6 +23,10 @@ if (MOBILE_NATIVE) {
 // an empty initial read (drafts simply look empty for ~1 frame), and
 // hydration completes well before any user-driven write.
 kv.hydrate()
+
+// POS-5: start the offline-sync worker. Drains the sync_outbox when
+// online + a backend is configured; a safe no-op otherwise.
+startSyncWorker()
 
 // Dev-mode cleanup: vite-plugin-pwa used to be enabled in dev (Wave
 // 15 default), which left a Workbox SW behind that CacheFirst'd

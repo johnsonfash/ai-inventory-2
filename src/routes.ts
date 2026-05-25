@@ -110,6 +110,7 @@ export const routes: RouteObject[] = [
   { path: "/pos", Component: page(() => import("./pages/pos")) },
   { path: "/pos/venue", Component: page(() => import("./pages/pos/venue")) },
   { path: "/pos/prep", Component: page(() => import("./pages/pos/prep")) },
+  { path: "/pos/shifts", Component: page(() => import("./pages/pos/shifts")) },
   { path: "/pos/drafts", Component: page(() => import("./pages/pos/drafts")) },
   { path: "/pos/invoices", Component: page(() => import("./pages/pos/invoices")) },
   { path: "/pos/invoices/:id", Component: page(() => import("./pages/pos/invoices/[id]")) },

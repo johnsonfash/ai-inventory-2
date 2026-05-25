@@ -108,4 +108,39 @@ export const db = {
       return 0
     }
   },
+
+  /** Drain the outbox: hand each queued op to `push`, deleting it on
+   *  success and recording the error + bumping `tries` on failure. The
+   *  POS-5 sync worker (lib/pos/sync.ts) supplies `push`. No-op on web. */
+  async drainOutbox(
+    push: (kind: string, payload: unknown) => Promise<void>,
+    batch = 50,
+  ): Promise<{ sent: number; failed: number }> {
+    if (!isTauri()) return { sent: 0, failed: 0 }
+    let sent = 0
+    let failed = 0
+    try {
+      const d = await getDB()
+      const rows = await d.select<{ id: number; kind: string; payload: string }[]>(
+        "SELECT id, kind, payload FROM sync_outbox ORDER BY queued_at ASC LIMIT $1",
+        [batch],
+      )
+      for (const r of rows) {
+        try {
+          await push(r.kind, JSON.parse(r.payload))
+          await d.execute("DELETE FROM sync_outbox WHERE id = $1", [r.id])
+          sent++
+        } catch (err) {
+          failed++
+          await d.execute("UPDATE sync_outbox SET tries = tries + 1, last_error = $1 WHERE id = $2", [
+            String(err),
+            r.id,
+          ])
+        }
+      }
+    } catch (err) {
+      console.warn("[db.drainOutbox] failed", err)
+    }
+    return { sent, failed }
+  },
 }
