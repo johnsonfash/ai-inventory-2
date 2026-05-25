@@ -41,14 +41,25 @@ import {
   type PaymentLine,
 } from "@/lib/pos/storage"
 import { loadPosSettings, type VoidEntry, type VoidReason } from "@/lib/pos/settings"
+import {
+  createGiftCard,
+  earnPoints,
+  loyaltyIdFor,
+  redeemGiftCard,
+  redeemPointsForCredit,
+  useStoreCredit,
+} from "@/lib/pos/loyalty"
+import { SellGiftCardDialog } from "@/components/pos/sell-gift-card-dialog"
 import { modifiersTotal, variantLabel, variantUnitPrice } from "@/lib/pos/variants"
 import { cn } from "@/lib/utils"
+import { toast } from "sonner"
 import {
   Barcode,
   CheckCircle2,
   ChevronRight,
   ClipboardList,
   FileText,
+  Gift,
   Layers,
   Printer,
   RotateCcw,
@@ -118,6 +129,9 @@ export default function PointOfSale() {
   const [voidTarget, setVoidTarget] = React.useState<VoidTarget | null>(null)
   // POS-2: item with variants/modifiers awaiting an options pick.
   const [optionsItem, setOptionsItem] = React.useState<CatalogItem | null>(null)
+  const [sellGiftCardOpen, setSellGiftCardOpen] = React.useState(false)
+  // Bumped after a loyalty mutation so the checkout sheet re-reads kv.
+  const [, setLoyaltyTick] = React.useState(0)
 
   // ----- Restore draft if `?draftId=...` was passed in -----
   React.useEffect(() => {
@@ -229,6 +243,22 @@ export default function PointOfSale() {
         // Items saved to the catalog become real products; only mark the
         // throwaway ones as custom so reporting can tell them apart.
         custom: !draft.saveToCatalog,
+      },
+      ...prev,
+    ])
+  }
+
+  // ----- Sell a gift card (POS-2). Card issued on sale completion. -----
+  const addGiftCardLine = (amount: number) => {
+    setCart((prev) => [
+      {
+        id: genId("gc"),
+        sku: "GIFTCARD",
+        name: "Gift card",
+        price: amount,
+        taxRate: 0,
+        qty: 1,
+        giftCard: true,
       },
       ...prev,
     ])
@@ -399,11 +429,42 @@ export default function PointOfSale() {
       meta: { location, salesperson, channel },
     }
     saveInvoice(invoice)
+
+    // POS-2: settle value instruments + accrue loyalty on the real sale.
+    for (const p of augmented) {
+      if (p.method === "gift-card" && p.reference) redeemGiftCard(p.reference, p.amount)
+      if (p.method === "store-credit") {
+        const id = loyaltyIdFor(customer)
+        if (id) useStoreCredit(id, p.amount)
+      }
+    }
+    const earned = earnPoints(customer, grandTotal)
+    if (earned > 0) toast.success(`${customer.name || "Customer"} earned ${earned} points.`)
+
+    // POS-2: issue any gift cards that were sold on this ticket.
+    const issued: string[] = []
+    for (const line of cart) {
+      if (!line.giftCard) continue
+      for (let i = 0; i < line.qty; i++) {
+        issued.push(createGiftCard({ amount: line.price, customer }).code)
+      }
+    }
+    if (issued.length) toast.success(`Gift card${issued.length > 1 ? "s" : ""} issued: ${issued.join(", ")}`)
+
     setLastInvoice(invoice)
     setCheckoutOpen(false)
     setCartOpen(false)
     setReceiptOpen(true)
     clearCart()
+  }
+
+  // POS-2: convert a customer's points into store credit at the till.
+  const onRedeemPoints = (id: string, points: number) => {
+    const { credit } = redeemPointsForCredit(id, points)
+    if (credit > 0) {
+      setLoyaltyTick((t) => t + 1)
+      toast.success(`Redeemed ${points} points for ${formatPrice(credit)} store credit.`)
+    }
   }
 
   const va = findVirtualAccount(location, cashier)
@@ -473,6 +534,7 @@ export default function PointOfSale() {
                 <PosQuickChip Icon={Layers} label="Drafts" onClick={() => navigate("/pos/drafts")} />
                 <PosQuickChip Icon={ClipboardList} label="Invoices" onClick={() => navigate("/pos/invoices")} />
                 <PosQuickChip Icon={RotateCcw} label="Returns" onClick={() => navigate("/pos/returns")} />
+                <PosQuickChip Icon={Gift} label="Gift card" onClick={() => setSellGiftCardOpen(true)} />
                 <PosQuickChip Icon={Settings2} label={`${mode} · ${location}`} onClick={() => setSettingsOpen(true)} />
               </div>
 
@@ -612,6 +674,7 @@ export default function PointOfSale() {
             { Icon: Layers, label: "Drafts", hint: "Held carts you can resume.", onClick: () => { setMobileOverflowOpen(false); navigate("/pos/drafts") } },
             { Icon: ClipboardList, label: "Invoices", hint: "Past sales + receipts.", onClick: () => { setMobileOverflowOpen(false); navigate("/pos/invoices") } },
             { Icon: RotateCcw, label: "Returns", hint: "Process refunds + exchanges.", onClick: () => { setMobileOverflowOpen(false); navigate("/pos/returns") } },
+            { Icon: Gift, label: "Sell gift card", hint: "Issue a prepaid card.", onClick: () => { setMobileOverflowOpen(false); setSellGiftCardOpen(true) } },
             { Icon: Settings2, label: `Settings · ${mode}`, hint: location, onClick: () => { setMobileOverflowOpen(false); setSettingsOpen(true) } },
             { Icon: FileText, label: "Invoice preview", hint: cart.length === 0 ? "Add items first." : "Preview before charging.", onClick: () => { if (cart.length > 0) { setMobileOverflowOpen(false); setPreviewOpen(true) } } },
           ].map((a) => (
@@ -677,6 +740,8 @@ export default function PointOfSale() {
         onUpdatePayment={updatePayment}
         onConfirm={onConfirmPayment}
         virtualAccount={va ?? null}
+        customer={customer}
+        onRedeemPoints={onRedeemPoints}
       />
 
       <PosSettingsSheet
@@ -815,6 +880,13 @@ export default function PointOfSale() {
 
       {/* POS-1: void-with-reason */}
       <VoidLineDialog target={voidTarget} onConfirm={confirmVoid} onClose={() => setVoidTarget(null)} />
+
+      {/* POS-2: sell a gift card */}
+      <SellGiftCardDialog
+        open={sellGiftCardOpen}
+        onClose={() => setSellGiftCardOpen(false)}
+        onConfirm={addGiftCardLine}
+      />
 
       {/* POS-1: manager-override PIN gate */}
       <ManagerPinDialog request={pinRequest} onClose={() => setPinRequest(null)} />

@@ -45,6 +45,9 @@ export type CartItem = {
   variantSku?: string
   variantLabel?: string
   modifiers?: SelectedModifier[]
+  /** This line sells a gift card for `price`; on sale a card is issued.
+   *  Non-taxable, doesn't touch stock. POS-2. */
+  giftCard?: boolean
 }
 
 // Two cart lines merge only when they're the same product AND the same
@@ -80,7 +83,9 @@ export function lineNet(i: CartItem): number {
 }
 
 export type PaymentLine = {
-  method: "cash" | "card" | "paypal" | "stripe" | "other"
+  // gift-card + store-credit added in POS-2. Loyalty points are redeemed
+  // into store credit rather than being a tender of their own.
+  method: "cash" | "card" | "paypal" | "stripe" | "gift-card" | "store-credit" | "other"
   amount: number
   reference?: string
 }

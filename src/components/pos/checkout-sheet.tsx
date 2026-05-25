@@ -4,13 +4,17 @@ import {
   Building2,
   CheckCircle2,
   CreditCard,
+  Gift,
   HandCoins,
   Plus,
   Smartphone,
+  Sparkles,
+  Wallet,
   X,
   type LucideIcon,
 } from "lucide-react"
 import type { PaymentLine } from "@/lib/pos/storage"
+import { getGiftCard, getLoyalty, loyaltyIdFor } from "@/lib/pos/loyalty"
 import { BottomSheet } from "@/components/mobile/bottom-sheet"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -22,6 +26,8 @@ type PaymentMethod = PaymentLine["method"]
 const METHODS: { value: PaymentMethod; label: string; Icon: LucideIcon }[] = [
   { value: "cash", label: "Cash", Icon: Banknote },
   { value: "card", label: "Card", Icon: CreditCard },
+  { value: "gift-card", label: "Gift card", Icon: Gift },
+  { value: "store-credit", label: "Store credit", Icon: Wallet },
   { value: "paypal", label: "PayPal", Icon: Smartphone },
   { value: "stripe", label: "Stripe", Icon: Smartphone },
   { value: "other", label: "Other", Icon: Building2 },
@@ -51,6 +57,10 @@ type Props = {
   onConfirm: () => void
   /** Optional virtual-account display info (bank + account number). */
   virtualAccount?: { bank: string; accountNumber: string; accountName: string } | null
+  /** Attached customer — drives store-credit + loyalty (POS-2). */
+  customer?: { name?: string; email?: string; phone?: string }
+  /** Redeem the customer's points into store credit. POS-2. */
+  onRedeemPoints?: (id: string, points: number) => void
 }
 
 export function CheckoutSheet({
@@ -66,11 +76,17 @@ export function CheckoutSheet({
   onUpdatePayment,
   onConfirm,
   virtualAccount,
+  customer,
+  onRedeemPoints,
 }: Props) {
   const { formatPrice, symbol } = useCurrency()
   const grandTotal = Math.round((total + (tip || 0)) * 100) / 100
   const paid = payments.reduce((s, p) => s + (Number.isFinite(p.amount) ? p.amount : 0), 0)
   const remaining = Math.max(0, Math.round((grandTotal - paid) * 100) / 100)
+  // Loyalty / store-credit for the attached customer (re-read each render
+  // so a points redemption reflects immediately).
+  const loyaltyId = loyaltyIdFor(customer)
+  const account = loyaltyId ? getLoyalty(loyaltyId) : undefined
   const change = Math.max(0, Math.round((paid - grandTotal) * 100) / 100)
   const fullyPaid = paid >= grandTotal
 
@@ -121,6 +137,32 @@ export function CheckoutSheet({
       }
     >
       <div className="flex flex-col gap-4">
+        {/* Loyalty — only when a known customer is attached */}
+        {account && (
+          <div className="flex items-center justify-between gap-2 rounded-xl border border-brand/30 bg-brand-soft/50 p-3 dark:bg-primary/10">
+            <div className="flex items-center gap-2">
+              <Sparkles className="h-4 w-4 text-brand dark:text-primary" />
+              <div className="text-xs">
+                <p className="font-semibold">{account.name || account.id}</p>
+                <p className="text-muted-foreground">
+                  {account.points} pts
+                  {account.storeCredit > 0 && <> · {formatPrice(account.storeCredit)} credit</>}
+                </p>
+              </div>
+            </div>
+            {onRedeemPoints && account.points > 0 && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => onRedeemPoints(account.id, account.points)}
+              >
+                Redeem points
+              </Button>
+            )}
+          </div>
+        )}
+
         {/* Tip / gratuity */}
         {showTipBlock ? (
           <div>
@@ -220,7 +262,12 @@ export function CheckoutSheet({
             </button>
           </div>
           <ul className="space-y-2">
-            {payments.map((p, idx) => (
+            {payments.map((p, idx) => {
+              // What still needs covering if this line were emptied —
+              // used to cap gift-card / store-credit applications.
+              const others = paid - (Number.isFinite(p.amount) ? p.amount : 0)
+              const outstanding = Math.max(0, Math.round((grandTotal - others) * 100) / 100)
+              return (
               <li key={idx} className="rounded-xl border border-border bg-background p-3">
                 {/* Method pills */}
                 <div className="flex flex-wrap gap-1.5">
@@ -231,7 +278,7 @@ export function CheckoutSheet({
                       <button
                         key={m.value}
                         type="button"
-                        onClick={() => onUpdatePayment(idx, { method: m.value })}
+                        onClick={() => onUpdatePayment(idx, { method: m.value, amount: 0, reference: "" })}
                         className={cn(
                           "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium transition-colors",
                           active
@@ -244,36 +291,65 @@ export function CheckoutSheet({
                     )
                   })}
                 </div>
-                <div className="mt-2 flex items-center gap-2">
-                  <div className="flex h-10 flex-1 items-center rounded-lg border border-input bg-background pl-3">
-                    <span className="text-sm text-muted-foreground">{symbol}</span>
-                    <input
-                      type="number"
-                      value={p.amount === 0 ? "" : p.amount}
-                      onChange={(e) => onUpdatePayment(idx, { amount: e.target.value === "" ? 0 : Number(e.target.value) || 0 })}
-                      placeholder="0.00"
-                      className="h-full w-full bg-transparent px-2 text-sm outline-none"
-                    />
-                  </div>
-                  <Input
-                    placeholder="Reference (opt)"
-                    value={p.reference || ""}
-                    onChange={(e) => onUpdatePayment(idx, { reference: e.target.value })}
-                    className="hidden flex-1 sm:block"
+
+                {p.method === "gift-card" ? (
+                  <GiftCardTender
+                    code={p.reference || ""}
+                    amount={p.amount}
+                    outstanding={outstanding}
+                    onChange={(part) => onUpdatePayment(idx, part)}
                   />
-                  {payments.length > 1 && (
-                    <button
-                      type="button"
-                      onClick={() => onRemovePayment(idx)}
-                      aria-label="Remove split"
-                      className="inline-flex h-9 w-9 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground"
-                    >
-                      <X className="h-4 w-4" />
-                    </button>
-                  )}
-                </div>
+                ) : p.method === "store-credit" ? (
+                  <StoreCreditTender
+                    available={account?.storeCredit ?? 0}
+                    hasCustomer={!!loyaltyId}
+                    amount={p.amount}
+                    outstanding={outstanding}
+                    onApply={(amt) => onUpdatePayment(idx, { amount: amt, reference: "Store credit" })}
+                  />
+                ) : (
+                  <div className="mt-2 flex items-center gap-2">
+                    <div className="flex h-10 flex-1 items-center rounded-lg border border-input bg-background pl-3">
+                      <span className="text-sm text-muted-foreground">{symbol}</span>
+                      <input
+                        type="number"
+                        value={p.amount === 0 ? "" : p.amount}
+                        onChange={(e) => onUpdatePayment(idx, { amount: e.target.value === "" ? 0 : Number(e.target.value) || 0 })}
+                        placeholder="0.00"
+                        className="h-full w-full bg-transparent px-2 text-sm outline-none"
+                      />
+                    </div>
+                    <Input
+                      placeholder="Reference (opt)"
+                      value={p.reference || ""}
+                      onChange={(e) => onUpdatePayment(idx, { reference: e.target.value })}
+                      className="hidden flex-1 sm:block"
+                    />
+                    {payments.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => onRemovePayment(idx)}
+                        aria-label="Remove split"
+                        className="inline-flex h-9 w-9 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    )}
+                  </div>
+                )}
+
+                {(p.method === "gift-card" || p.method === "store-credit") && payments.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => onRemovePayment(idx)}
+                    className="mt-2 text-[11px] font-medium text-muted-foreground hover:text-foreground"
+                  >
+                    Remove this split
+                  </button>
+                )}
               </li>
-            ))}
+              )
+            })}
           </ul>
         </div>
 
@@ -288,5 +364,97 @@ export function CheckoutSheet({
         )}
       </div>
     </BottomSheet>
+  )
+}
+
+// Gift-card tender: type the code, Apply pulls the live balance and
+// fills the amount (capped to what's still owed). The actual deduction
+// happens at sale confirmation, not here. POS-2.
+function GiftCardTender({
+  code,
+  amount,
+  outstanding,
+  onChange,
+}: {
+  code: string
+  amount: number
+  outstanding: number
+  onChange: (part: Partial<PaymentLine>) => void
+}) {
+  const { formatPrice } = useCurrency()
+  const card = code.trim() ? getGiftCard(code) : undefined
+  const apply = () => {
+    if (!card || card.status === "void") return
+    onChange({ amount: Math.min(card.currentBalance, outstanding) })
+  }
+  return (
+    <div className="mt-2 flex flex-col gap-2">
+      <div className="flex gap-2">
+        <Input
+          placeholder="Gift card code"
+          value={code}
+          onChange={(e) => onChange({ reference: e.target.value, amount: 0 })}
+          className="flex-1 font-mono"
+        />
+        <Button type="button" variant="outline" onClick={apply} disabled={!card || card.status === "void"}>
+          Apply
+        </Button>
+      </div>
+      {code.trim() && !card && (
+        <p className="text-[11px] font-medium text-rose-600 dark:text-rose-400">No card with that code.</p>
+      )}
+      {card && (
+        <p className="text-[11px] text-muted-foreground">
+          Balance {formatPrice(card.currentBalance)}
+          {card.status === "void" && " · voided"}
+          {amount > 0 && (
+            <span className="ml-1 font-semibold text-emerald-600 dark:text-emerald-400">
+              · applying {formatPrice(amount)}
+            </span>
+          )}
+        </p>
+      )}
+    </div>
+  )
+}
+
+// Store-credit tender: shows the attached customer's balance and applies
+// as much as is owed. POS-2.
+function StoreCreditTender({
+  available,
+  hasCustomer,
+  amount,
+  outstanding,
+  onApply,
+}: {
+  available: number
+  hasCustomer: boolean
+  amount: number
+  outstanding: number
+  onApply: (amt: number) => void
+}) {
+  const { formatPrice } = useCurrency()
+  if (!hasCustomer) {
+    return (
+      <p className="mt-2 text-[11px] text-muted-foreground">
+        Attach a customer (with email or phone) to use store credit.
+      </p>
+    )
+  }
+  const usable = Math.min(available, outstanding)
+  return (
+    <div className="mt-2 flex items-center justify-between gap-2">
+      <p className="text-[11px] text-muted-foreground">
+        Available {formatPrice(available)}
+        {amount > 0 && (
+          <span className="ml-1 font-semibold text-emerald-600 dark:text-emerald-400">
+            · using {formatPrice(amount)}
+          </span>
+        )}
+      </p>
+      <Button type="button" variant="outline" size="sm" disabled={usable <= 0} onClick={() => onApply(usable)}>
+        Use {formatPrice(usable)}
+      </Button>
+    </div>
   )
 }
