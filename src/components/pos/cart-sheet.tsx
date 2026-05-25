@@ -77,6 +77,7 @@ export function CartSheet({
     <BottomSheet
       open={open}
       onClose={onClose}
+      drawerBreakpoint={1024}
       title={`Cart · ${cart.reduce((s, c) => s + c.qty, 0)} items`}
       headerRight={
         cart.length > 0 ? (

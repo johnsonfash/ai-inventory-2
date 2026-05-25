@@ -85,6 +85,7 @@ export function ItemOptionsSheet({ item, onClose, onConfirm }: Props) {
     <BottomSheet
       open={!!item}
       onClose={onClose}
+      drawerBreakpoint={1024}
       title={item.name}
       description={chosenVariant ? variantLabel(chosenVariant, axes) : "Choose options"}
       maxHeightVh={86}

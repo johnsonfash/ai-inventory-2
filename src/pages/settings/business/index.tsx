@@ -1,7 +1,10 @@
 import * as React from "react"
-import { Building2, FileText, Globe, MapPin, Phone } from "lucide-react"
+import { useNavigate } from "react-router-dom"
+import { Building2, FileText, Globe, MapPin, Phone, Sparkles, Wand2 } from "lucide-react"
+import { toast } from "sonner"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
+import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { FormShell } from "@/components/forms/form-shell"
 import { FormSection } from "@/components/forms/form-section"
@@ -10,10 +13,32 @@ import { FormField } from "@/components/forms/form-field"
 import { FormFooter } from "@/components/forms/form-footer"
 import { FormAside } from "@/components/forms/form-aside"
 import { useAutoMarkStep } from "@/hooks/use-auto-mark-step"
+import {
+  INDUSTRIES,
+  loadBusinessProfile,
+  saveBusinessProfile,
+  type IndustryKey,
+  type SellsKind,
+} from "@/lib/profile/business-profile"
+import { resetFirstRun } from "@/components/onboarding/first-run-modal"
 
 export default function BusinessSettings() {
   useAutoMarkStep("business")
+  const navigate = useNavigate()
   const [submitting, setSubmitting] = React.useState(false)
+
+  // Business profile — the "What do you run?" answer from first-run. Editable
+  // here so it's reachable again after the modal is skipped (its only other
+  // entry point). Seed from the saved profile, fall back to neutral defaults.
+  const saved = React.useMemo(() => loadBusinessProfile(), [])
+  const [industry, setIndustry] = React.useState<IndustryKey>(saved?.industry ?? "retail")
+  const [sells, setSells] = React.useState<SellsKind>(saved?.sells ?? "products")
+
+  const replayTour = async () => {
+    await resetFirstRun()
+    toast.success("Setup tour reset", { description: "The welcome guide will open on your dashboard." })
+    navigate("/dashboard")
+  }
 
   return (
     <FormShell
@@ -30,7 +55,14 @@ export default function BusinessSettings() {
       backHref="/settings"
       onSubmit={() => {
         setSubmitting(true)
-        setTimeout(() => setSubmitting(false), 500)
+        // Persist the business profile (industry + what you sell). The rest
+        // of this form is still mock until the backend lands, but the
+        // profile is real — it drives onboarding emphasis + smart defaults.
+        saveBusinessProfile({ industry, sells })
+        setTimeout(() => {
+          setSubmitting(false)
+          toast.success("Business details saved")
+        }, 500)
       }}
       aside={
         <FormAside
@@ -67,18 +99,28 @@ export default function BusinessSettings() {
             <Input placeholder="Funke Apparel" />
           </FormField>
           <FormField
-            label="Industry"
-            tooltip="Pallio uses this to pre-fill smart defaults — for example, restaurants get table management, services get bookings, retail gets a barcode-friendly POS."
+            label="What you run"
+            tooltip="Your answer to the first-run “What do you run?” question. Pallio uses it to order your setup steps and pre-fill smart defaults — nothing is ever hidden, and you can change it any time."
           >
-            <Select defaultValue="retail">
+            <Select value={industry} onValueChange={(v) => setIndustry(v as IndustryKey)}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="retail">Retail</SelectItem>
-                <SelectItem value="wholesale">Wholesale</SelectItem>
-                <SelectItem value="restaurant">Restaurant / hospitality</SelectItem>
-                <SelectItem value="services">Services / salon</SelectItem>
-                <SelectItem value="auto">Auto / parts</SelectItem>
-                <SelectItem value="other">Other</SelectItem>
+                {INDUSTRIES.map((ind) => (
+                  <SelectItem key={ind.key} value={ind.key}>{ind.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </FormField>
+          <FormField
+            label="You mostly sell"
+            tooltip="Whether you sell physical products, services (time/appointments), or both. Tunes which setup steps come first — e.g. a salon leads with services, a shop leads with stock."
+          >
+            <Select value={sells} onValueChange={(v) => setSells(v as SellsKind)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="products">Products</SelectItem>
+                <SelectItem value="services">Services</SelectItem>
+                <SelectItem value="both">Both</SelectItem>
               </SelectContent>
             </Select>
           </FormField>
@@ -184,6 +226,24 @@ export default function BusinessSettings() {
             </Select>
           </FormField>
         </FormGrid>
+      </FormSection>
+
+      <FormSection
+        title="Guided setup"
+        description="Replay the welcome walkthrough any time"
+        Icon={Sparkles}
+      >
+        <div className="flex flex-col gap-3 rounded-xl border border-border bg-muted/30 p-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0">
+            <p className="text-sm font-medium">Setup tour</p>
+            <p className="mt-0.5 text-sm text-muted-foreground">
+              Re-open the “What do you run?” welcome guide and onboarding checklist on your dashboard. Handy if you skipped it the first time.
+            </p>
+          </div>
+          <Button type="button" variant="outline" onClick={replayTour} className="shrink-0">
+            <Wand2 className="h-4 w-4" /> Replay setup tour
+          </Button>
+        </div>
       </FormSection>
     </FormShell>
   )

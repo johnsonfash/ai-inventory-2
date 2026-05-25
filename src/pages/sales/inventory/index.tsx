@@ -1,6 +1,7 @@
 import * as React from "react"
 import { Boxes, Package, PackageX, Search } from "lucide-react"
 import { PageShell } from "@/components/page-shell"
+import { ProductThumb } from "@/components/product-thumb"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useRegisterPageRefresh } from "@/hooks/use-pull-to-refresh"
@@ -118,12 +119,12 @@ export default function SalesInventoryPage() {
               return (
                 <div key={it.id} className="overflow-hidden rounded-2xl border border-border bg-card">
                   <div className="relative aspect-square overflow-hidden bg-muted">
-                    <img
-                      src={it.image || "/placeholder.svg"}
-                      alt={it.name}
-                      loading="lazy"
-                      crossOrigin="anonymous"
-                      className="absolute inset-0 h-full w-full object-cover"
+                    <ProductThumb
+                      name={it.name}
+                      image={it.image}
+                      seed={it.sku}
+                      className="absolute inset-0 h-full w-full"
+                      textClassName="text-3xl"
                     />
                     <span className="absolute right-2 top-2"><StatusBadge tone={s.tone} withDot>{s.label}</StatusBadge></span>
                   </div>

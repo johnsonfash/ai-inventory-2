@@ -172,8 +172,15 @@ export default function Appointments() {
             </div>
           </div>
 
-          {/* Selected day list */}
-          <div className="flex flex-col gap-3">
+          {/* Selected day list.
+              Desktop: sticky so the day's bookings stay in view while you
+              scroll the calendar (rather than scrolling away). `self-start`
+              keeps the column content-height so sticky has room to travel;
+              max-h + overflow lets a busy day scroll inside the panel.
+              Mobile: this stacks directly under the (short) calendar, so
+              the tapped day's list is already a thumb-flick away — no
+              overlay needed here. */}
+          <div className="flex flex-col gap-3 lg:sticky lg:top-0 lg:max-h-[calc(100dvh-7.5rem)] lg:self-start lg:overflow-y-auto lg:pb-1">
             <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
               {new Date(selected).toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" })}
             </p>

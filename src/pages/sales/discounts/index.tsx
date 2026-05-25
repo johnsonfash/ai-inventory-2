@@ -2,6 +2,7 @@ import * as React from "react"
 import { Link } from "react-router-dom"
 import { ChevronRight, Plus, Search, TicketPercent } from "lucide-react"
 import { PageShell } from "@/components/page-shell"
+import { MobileFab } from "@/components/mobile/mobile-fab"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -10,6 +11,7 @@ import { useRegisterPageRefresh } from "@/hooks/use-pull-to-refresh"
 import { StatusBadge, type StatusTone } from "@/components/lists/status-badge"
 import { EmptyState } from "@/components/lists/empty-state"
 import { SummaryStrip } from "@/components/lists/summary-strip"
+import { AddDiscountDialog, type QuickDiscount } from "@/components/dialogs/add-discount-dialog"
 
 type Row = {
   code: string
@@ -20,7 +22,7 @@ type Row = {
   status: "active" | "scheduled" | "expired"
 }
 
-const rows: Row[] = [
+const SEED_DISCOUNTS: Row[] = [
   { code: "SUMMER20", type: "percent", value: 20, uses: 142, cap: 500, status: "active" },
   { code: "WELCOME10", type: "percent", value: 10, uses: 412, status: "active" },
   { code: "BLACKFRI", type: "percent", value: 30, uses: 0, cap: 1000, status: "scheduled" },
@@ -34,13 +36,20 @@ export default function Discounts() {
   const isMobile = useIsMobile()
   const [query, setQuery] = React.useState("")
 
+  const [rows, setRows] = React.useState<Row[]>(SEED_DISCOUNTS)
+  const [addOpen, setAddOpen] = React.useState(false)
+
+  const handleCreate = (d: QuickDiscount) => {
+    setRows((prev) => [{ ...d, uses: 0, status: "active" }, ...prev])
+  }
+
   useRegisterPageRefresh(React.useCallback(async () => { await new Promise((r) => setTimeout(r, 400)) }, []))
 
   const filtered = React.useMemo(() => {
     const q = query.trim().toLowerCase()
     if (!q) return rows
     return rows.filter((r) => r.code.toLowerCase().includes(q))
-  }, [query])
+  }, [query, rows])
 
   const active = rows.filter((r) => r.status === "active").length
   const totalUses = rows.reduce((s, r) => s + r.uses, 0)
@@ -74,14 +83,19 @@ export default function Discounts() {
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search by code…" className="pl-9" />
           </div>
-          <Link to="/sales/discounts/new" className="hidden md:inline-flex">
-            <Button><Plus className="h-4 w-4" /> New discount</Button>
-          </Link>
+          <Button className="hidden md:inline-flex" onClick={() => setAddOpen(true)}>
+            <Plus className="h-4 w-4" /> New discount
+          </Button>
         </div>
 
         {filtered.length === 0 ? (
           <Card><CardContent className="p-0">
-            <EmptyState Icon={TicketPercent} title="No codes match" description="Try a different code prefix." />
+            <EmptyState
+              Icon={TicketPercent}
+              title="No codes match"
+              description="Try a different code prefix or create a new one."
+              action={<Button onClick={() => setAddOpen(true)}><Plus className="h-4 w-4" /> New discount</Button>}
+            />
           </CardContent></Card>
         ) : isMobile ? (
           <ul className="space-y-2">
@@ -135,6 +149,10 @@ export default function Discounts() {
           </div>
         )}
       </div>
+
+      <MobileFab onClick={() => setAddOpen(true)} label="New discount" Icon={Plus} />
+
+      <AddDiscountDialog open={addOpen} onClose={() => setAddOpen(false)} onCreate={handleCreate} />
     </PageShell>
   )
 }

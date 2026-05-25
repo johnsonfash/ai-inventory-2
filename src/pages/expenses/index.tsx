@@ -11,11 +11,12 @@ import { useRegisterPageRefresh } from "@/hooks/use-pull-to-refresh"
 import { EmptyState } from "@/components/lists/empty-state"
 import { StatusBadge, type StatusTone } from "@/components/lists/status-badge"
 import { SummaryStrip } from "@/components/lists/summary-strip"
+import { AddExpenseDialog, type QuickExpense } from "@/components/dialogs/add-expense-dialog"
 import { useCurrency } from "@/contexts/currency"
 
 type Row = { id: string; category: string; vendor: string; amount: number; date: string; method: "card" | "cash" | "transfer" }
 
-const rows: Row[] = [
+const SEED_EXPENSES: Row[] = [
   { id: "EXP-1042", category: "Logistics", vendor: "DHL", amount: 482, date: "2026-05-19", method: "card" },
   { id: "EXP-1041", category: "Marketing", vendor: "Meta Ads", amount: 1240, date: "2026-05-18", method: "card" },
   { id: "EXP-1040", category: "Rent", vendor: "WeWork", amount: 4200, date: "2026-05-17", method: "transfer" },
@@ -42,6 +43,17 @@ export default function Expenses() {
 
   const { formatPrice } = useCurrency()
 
+  // Seed from the mock list, keep in state so a quick-log shows instantly.
+  const [rows, setRows] = React.useState<Row[]>(SEED_EXPENSES)
+  const [addOpen, setAddOpen] = React.useState(false)
+
+  const handleCreate = (e: QuickExpense) => {
+    setRows((prev) => [
+      { id: `EXP-${Math.floor(1000 + Math.random() * 9000)}`, ...e },
+      ...prev,
+    ])
+  }
+
   useRegisterPageRefresh(React.useCallback(async () => { await new Promise((r) => setTimeout(r, 400)) }, []))
 
   const filtered = React.useMemo(() => {
@@ -56,7 +68,7 @@ export default function Expenses() {
     }
     if (category !== "All") list = list.filter((r) => r.category === category)
     return list
-  }, [query, category])
+  }, [query, category, rows])
 
   const total = rows.reduce((s, r) => s + r.amount, 0)
   const largest = rows.reduce((a, b) => (a.amount > b.amount ? a : b))
@@ -90,9 +102,9 @@ export default function Expenses() {
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search by ID, vendor, or category…" className="pl-9" />
           </div>
-          <Link to="/expenses/new" className="hidden md:inline-flex">
-            <Button><Plus className="h-4 w-4" /> Log expense</Button>
-          </Link>
+          <Button className="hidden md:inline-flex" onClick={() => setAddOpen(true)}>
+            <Plus className="h-4 w-4" /> Log expense
+          </Button>
         </div>
 
         {/* Category pills */}
@@ -120,7 +132,7 @@ export default function Expenses() {
               Icon={Receipt}
               title="No expenses match"
               description="Adjust filters or log a new expense."
-              action={<Link to="/expenses/new"><Button><Plus className="h-4 w-4" /> Log expense</Button></Link>}
+              action={<Button onClick={() => setAddOpen(true)}><Plus className="h-4 w-4" /> Log expense</Button>}
             />
           </CardContent></Card>
         ) : isMobile ? (
@@ -193,7 +205,9 @@ export default function Expenses() {
         )}
       </div>
 
-      <MobileFab href="/expenses/new" label="Add expense" />
+      <MobileFab onClick={() => setAddOpen(true)} label="Add expense" />
+
+      <AddExpenseDialog open={addOpen} onClose={() => setAddOpen(false)} onCreate={handleCreate} />
     </PageShell>
   )
 }

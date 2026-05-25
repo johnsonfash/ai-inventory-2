@@ -20,6 +20,7 @@ import { StatusBadge, type StatusTone } from "@/components/lists/status-badge"
 import { EmptyState } from "@/components/lists/empty-state"
 import { SwipeableRow } from "@/components/mobile/swipeable-row"
 import { Avatar } from "@/components/avatar"
+import { AddCustomerDialog, type QuickCustomer } from "@/components/dialogs/add-customer-dialog"
 import { useCurrency } from "@/contexts/currency"
 
 type Customer = {
@@ -63,6 +64,19 @@ export default function Customers() {
   const [query, setQuery] = React.useState("")
   const { formatPrice } = useCurrency()
 
+  // Seed from the mock catalogue, then keep it in state so a quick-add
+  // shows up immediately. The backend will own this list later; until
+  // then new rows live for the session (same as the rest of the mock).
+  const [rows, setRows] = React.useState<Customer[]>(customers)
+  const [addOpen, setAddOpen] = React.useState(false)
+
+  const handleCreate = (c: QuickCustomer) => {
+    setRows((prev) => [
+      { name: c.name, email: c.email, phone: c.phone, orders: 0, lifetimeSpend: 0, tier: "new" },
+      ...prev,
+    ])
+  }
+
   useRegisterPageRefresh(
     React.useCallback(async () => {
       await new Promise((r) => setTimeout(r, 400))
@@ -71,11 +85,11 @@ export default function Customers() {
 
   const filtered = React.useMemo(() => {
     const q = query.trim().toLowerCase()
-    if (!q) return customers
-    return customers.filter(
+    if (!q) return rows
+    return rows.filter(
       (c) => c.name.toLowerCase().includes(q) || c.email.toLowerCase().includes(q),
     )
-  }, [query])
+  }, [query, rows])
 
   const groups = React.useMemo(() => {
     const m = new Map<string, Customer[]>()
@@ -89,10 +103,10 @@ export default function Customers() {
     return Array.from(m.entries()).sort(([a], [b]) => a.localeCompare(b))
   }, [filtered])
 
-  const vipCount = customers.filter((c) => c.tier === "vip").length
-  const newCount = customers.filter((c) => c.tier === "new").length
-  const lapsedCount = customers.filter((c) => c.tier === "lapsed").length
-  const ltv = customers.reduce((s, c) => s + c.lifetimeSpend, 0)
+  const vipCount = rows.filter((c) => c.tier === "vip").length
+  const newCount = rows.filter((c) => c.tier === "new").length
+  const lapsedCount = rows.filter((c) => c.tier === "lapsed").length
+  const ltv = rows.reduce((s, c) => s + c.lifetimeSpend, 0)
 
   return (
     <PageShell
@@ -110,7 +124,7 @@ export default function Customers() {
       <div className="flex flex-col gap-4">
         <div className="-mx-4 flex gap-2.5 overflow-x-auto px-4 pb-1 scrollbar-hide snap-x snap-mandatory md:mx-0 md:grid md:grid-cols-4 md:gap-3 md:overflow-visible md:px-0">
           {[
-            { label: "Customers", value: customers.length.toLocaleString(), tone: "brand" as StatusTone },
+            { label: "Customers", value: rows.length.toLocaleString(), tone: "brand" as StatusTone },
             { label: "VIPs", value: String(vipCount), tone: "info" as StatusTone },
             { label: "New (30d)", value: String(newCount), tone: "success" as StatusTone },
             { label: "Lifetime spend", value: formatPrice(ltv), tone: "warning" as StatusTone },
@@ -140,11 +154,9 @@ export default function Customers() {
               className="pl-9"
             />
           </div>
-          <Link to="/sales/customers/new" className="hidden md:inline-flex">
-            <Button>
-              <Plus className="h-4 w-4" /> Add customer
-            </Button>
-          </Link>
+          <Button className="hidden md:inline-flex" onClick={() => setAddOpen(true)}>
+            <Plus className="h-4 w-4" /> Add customer
+          </Button>
         </div>
 
         {lapsedCount > 0 && (
@@ -161,11 +173,9 @@ export default function Customers() {
                 title="No customers match"
                 description="Try a different name or email."
                 action={
-                  <Link to="/sales/customers/new">
-                    <Button>
-                      <UserPlus className="h-4 w-4" /> Add customer
-                    </Button>
-                  </Link>
+                  <Button onClick={() => setAddOpen(true)}>
+                    <UserPlus className="h-4 w-4" /> Add customer
+                  </Button>
                 }
               />
             </CardContent>
@@ -270,7 +280,9 @@ export default function Customers() {
         )}
       </div>
 
-      <MobileFab href="/sales/customers/new" label="Add customer" />
+      <MobileFab onClick={() => setAddOpen(true)} label="Add customer" />
+
+      <AddCustomerDialog open={addOpen} onClose={() => setAddOpen(false)} onCreate={handleCreate} />
     </PageShell>
   )
 }

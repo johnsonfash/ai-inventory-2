@@ -10,6 +10,7 @@ import { EmptyState } from "@/components/lists/empty-state"
 import { StatusBadge, type StatusTone } from "@/components/lists/status-badge"
 import { SummaryStrip } from "@/components/lists/summary-strip"
 import { InfoTooltip } from "@/components/info-tooltip"
+import { AddTaxRateDialog, type QuickTaxRate } from "@/components/dialogs/add-tax-rate-dialog"
 import { useAutoMarkStep } from "@/hooks/use-auto-mark-step"
 
 type Row = {
@@ -22,7 +23,7 @@ type Row = {
   active: boolean
 }
 
-const rows: Row[] = [
+const SEED_TAX_RATES: Row[] = [
   { id: "TX-1", name: "Nigerian VAT",     rate: 7.5,  scope: "global",   appliesTo: "All taxable items",       default: true,  active: true },
   { id: "TX-2", name: "Zero-rated",       rate: 0,    scope: "category", appliesTo: "Basic food · Books",      default: false, active: true },
   { id: "TX-3", name: "WHT — Services",   rate: 5,    scope: "category", appliesTo: "Professional services",   default: false, active: true },
@@ -41,6 +42,17 @@ export default function TaxRates() {
   const isMobile = useIsMobile()
   const [query, setQuery] = React.useState("")
 
+  const [rows, setRows] = React.useState<Row[]>(SEED_TAX_RATES)
+  const [addOpen, setAddOpen] = React.useState(false)
+
+  const handleCreate = (r: QuickTaxRate) => {
+    setRows((prev) => {
+      // Only one rate can be the default — clear the others if this one claims it.
+      const base = r.default ? prev.map((x) => ({ ...x, default: false })) : prev
+      return [{ id: `TX-${Math.floor(100 + Math.random() * 900)}`, ...r, active: true }, ...base]
+    })
+  }
+
   useRegisterPageRefresh(React.useCallback(async () => { await new Promise((r) => setTimeout(r, 400)) }, []))
 
   const filtered = React.useMemo(() => {
@@ -50,7 +62,7 @@ export default function TaxRates() {
       r.name.toLowerCase().includes(q) ||
       r.appliesTo.toLowerCase().includes(q),
     )
-  }, [query])
+  }, [query, rows])
 
   const active = rows.filter((r) => r.active).length
   const defaultRate = rows.find((r) => r.default)?.rate ?? 0
@@ -103,7 +115,7 @@ export default function TaxRates() {
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search rates or scope…" className="pl-9" />
           </div>
-          <Button className="hidden md:inline-flex"><Plus className="h-4 w-4" /> Add rate</Button>
+          <Button onClick={() => setAddOpen(true)}><Plus className="h-4 w-4" /> Add rate</Button>
         </div>
 
         {filtered.length === 0 ? (
@@ -196,6 +208,8 @@ export default function TaxRates() {
           </div>
         )}
       </div>
+
+      <AddTaxRateDialog open={addOpen} onClose={() => setAddOpen(false)} onCreate={handleCreate} />
     </PageShell>
   )
 }

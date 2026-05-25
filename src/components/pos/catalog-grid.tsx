@@ -2,6 +2,7 @@ import * as React from "react"
 import { Barcode, MoreHorizontal, Pencil, Plus, Search } from "lucide-react"
 import type { CartItem, CatalogItem } from "@/lib/pos/storage"
 import { Input } from "@/components/ui/input"
+import { ProductThumb } from "@/components/product-thumb"
 import { useCurrency } from "@/contexts/currency"
 import { cn } from "@/lib/utils"
 
@@ -141,20 +142,13 @@ export function CatalogGrid({ catalog, onAdd, cart, onScanRequest, onOverflowReq
                   inCart > 0 && "border-brand/40 ring-1 ring-brand/20 dark:ring-primary/20",
                 )}
               >
-                <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-muted">
-                  <img
-                    src={p.image || "/placeholder.svg"}
-                    alt={p.name}
-                    loading="lazy"
-                    crossOrigin="anonymous"
-                    onError={(e) => {
-                      const img = e.currentTarget
-                      if (img.src.endsWith("/placeholder.svg")) return
-                      img.src = "/placeholder.svg"
-                    }}
-                    className="absolute inset-0 h-full w-full object-cover"
-                  />
-                </div>
+                <ProductThumb
+                  name={p.name}
+                  image={p.image}
+                  seed={p.sku}
+                  className="h-16 w-16 shrink-0 rounded-xl"
+                  textClassName="text-base"
+                />
                 <div className="flex min-w-0 flex-1 flex-col gap-0.5">
                   <span className="truncate text-sm font-semibold">{p.name}</span>
                   <span className="truncate text-[11px] text-muted-foreground">
@@ -223,12 +217,12 @@ export function CatalogGrid({ catalog, onAdd, cart, onScanRequest, onOverflowReq
               )}
             >
               <div className="relative aspect-square overflow-hidden bg-muted">
-                <img
-                  src={p.image || "/placeholder.svg"}
-                  alt={p.name}
-                  loading="lazy"
-                  crossOrigin="anonymous"
-                  className="absolute inset-0 h-full w-full object-cover transition-transform group-hover:scale-105"
+                <ProductThumb
+                  name={p.name}
+                  image={p.image}
+                  seed={p.sku}
+                  className="absolute inset-0 h-full w-full"
+                  textClassName="text-3xl"
                 />
                 {inCart > 0 && (
                   <span className="absolute right-2 top-2 inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-brand px-1.5 text-[11px] font-bold tabular-nums text-brand-foreground shadow-sm shadow-brand/30 dark:bg-primary dark:text-primary-foreground">

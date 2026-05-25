@@ -24,6 +24,7 @@ import {
   FilterSection,
   FilterSheet,
 } from "@/components/lists/filter-sheet"
+import { ProductThumb } from "@/components/product-thumb"
 import { SwipeableRow } from "@/components/mobile/swipeable-row"
 import { OnboardingNudge } from "@/components/onboarding/onboarding-nudge"
 import { MobileFab } from "@/components/mobile/mobile-fab"
@@ -35,7 +36,7 @@ import { deriveUnit, deriveWarranty } from "@/lib/inventory/derive"
 type Item = {
   sku: string
   name: string
-  image: string
+  image?: string
   category: string
   brand: string
   unit: string
@@ -93,7 +94,7 @@ const items: Item[] = [
   .map((c) => ({
     sku: c.sku,
     name: c.name,
-    image: c.image ?? "/placeholder.svg",
+    image: c.image,
     category: c.category ?? "Uncategorised",
     brand: c.brand ?? "—",
     unit: deriveUnit(c),
@@ -422,12 +423,12 @@ function MobileItemList({ items, formatPrice }: { items: Item[]; formatPrice: (n
               ]}
             >
               <div className="flex items-center gap-3 p-3">
-                <img
-                  src={it.image}
-                  alt=""
-                  loading="lazy"
-                  crossOrigin="anonymous"
-                  className="h-12 w-12 shrink-0 rounded-lg border border-border bg-muted object-cover"
+                <ProductThumb
+                  name={it.name}
+                  image={it.image}
+                  seed={it.sku}
+                  className="h-12 w-12 shrink-0 rounded-lg border border-border"
+                  textClassName="text-sm"
                 />
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center justify-between gap-2">
@@ -492,12 +493,12 @@ function DesktopItemTable({ items, formatPrice }: { items: Item[]; formatPrice: 
               <tr key={it.sku} className="transition-colors hover:bg-accent/30">
                 <td className="px-3 py-2.5">
                   <div className="flex items-center gap-3">
-                    <img
-                      src={it.image}
-                      alt=""
-                      loading="lazy"
-                      crossOrigin="anonymous"
-                      className="h-9 w-9 rounded-md border border-border bg-muted object-cover"
+                    <ProductThumb
+                      name={it.name}
+                      image={it.image}
+                      seed={it.sku}
+                      className="h-9 w-9 rounded-md border border-border"
+                      textClassName="text-[11px]"
                     />
                     <div className="min-w-0">
                       <div className="truncate font-medium">{it.name}</div>

@@ -123,6 +123,7 @@ export function CheckoutSheet({
     <BottomSheet
       open={open}
       onClose={onClose}
+      drawerBreakpoint={1024}
       title="Checkout"
       description={tip > 0 ? `Total ${formatPrice(grandTotal)} (incl. ${formatPrice(tip)} tip)` : `Total ${formatPrice(grandTotal)}`}
       maxHeightVh={92}

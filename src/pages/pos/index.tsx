@@ -755,6 +755,7 @@ export default function PointOfSale() {
       <BottomSheet
         open={mobileScanOpen}
         onClose={() => setMobileScanOpen(false)}
+        drawerBreakpoint={1024}
         title="Scan or type"
         description="Point your camera at a barcode or type a SKU."
         maxHeightVh={60}
@@ -812,6 +813,7 @@ export default function PointOfSale() {
       <BottomSheet
         open={mobileOverflowOpen}
         onClose={() => setMobileOverflowOpen(false)}
+        drawerBreakpoint={1024}
         title="POS actions"
         description={`Mode: ${mode} · ${location}`}
         maxHeightVh={60}

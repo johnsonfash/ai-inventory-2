@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { StatusBadge, type StatusTone } from "@/components/lists/status-badge"
 import { ConnectionCard } from "@/components/integrations/connection-chip"
+import { useIsMobile } from "@/hooks/use-mobile"
 import { useRegisterPageRefresh } from "@/hooks/use-pull-to-refresh"
 import { useCurrency } from "@/contexts/currency"
 import { cn } from "@/lib/utils"
@@ -53,6 +54,7 @@ const RATES = [
 export default function Taxes() {
   useRegisterPageRefresh(React.useCallback(async () => { await new Promise((r) => setTimeout(r, 400)) }, []))
   const { formatPrice } = useCurrency()
+  const isMobile = useIsMobile()
   const [period, setPeriod] = React.useState<Period>("ytd")
   // ACCT-6: the real VAT figure, derived from the ledger's VAT Payable
   // account — output tax collected, input tax reclaimable, net to remit.
@@ -131,49 +133,84 @@ export default function Taxes() {
               <Download className="h-3.5 w-3.5" /> Export
             </Button>
           </div>
-          <div className="overflow-x-auto border-t border-border">
-            <table className="w-full text-sm">
-              <thead className="bg-muted/40 text-left text-[10px] uppercase tracking-wider text-muted-foreground">
-                <tr>
-                  <th className="px-3 py-2.5 font-medium">Filing</th>
-                  <th className="px-3 py-2.5 font-medium">Kind</th>
-                  <th className="px-3 py-2.5 font-medium">Period</th>
-                  <th className="px-3 py-2.5 font-medium">Due</th>
-                  <th className="px-3 py-2.5 text-right font-medium">Taxable</th>
-                  <th className="px-3 py-2.5 text-right font-medium">Tax</th>
-                  <th className="px-3 py-2.5 font-medium">Status</th>
-                  <th className="px-3 py-2.5 font-medium" />
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {FILINGS.map((f) => (
-                  <tr key={f.id} className="transition-colors hover:bg-accent/30">
-                    <td className="px-3 py-2.5">
-                      <p className="font-mono text-xs font-bold">{f.id}</p>
+          {isMobile ? (
+            /* Mobile: card per filing — an 8-column table would scroll
+               sideways off a phone. Same data, stacked. */
+            <ul className="divide-y divide-border border-t border-border">
+              {FILINGS.map((f) => (
+                <li key={f.id} className="p-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <span className="rounded bg-muted px-1.5 py-0.5 font-mono text-[10px] font-bold">{f.kind}</span>
+                        <p className="truncate font-mono text-xs font-bold">{f.id}</p>
+                      </div>
+                      <p className="mt-0.5 text-[11px] text-muted-foreground">{f.period} · due {f.due}</p>
                       {f.reference && <p className="text-[10px] text-muted-foreground">Ref · <span className="font-mono">{f.reference}</span></p>}
-                    </td>
-                    <td className="px-3 py-2.5">
-                      <span className="rounded bg-muted px-1.5 py-0.5 font-mono text-[10px] font-bold">{f.kind}</span>
-                    </td>
-                    <td className="px-3 py-2.5 text-xs">{f.period}</td>
-                    <td className="px-3 py-2.5 text-xs text-muted-foreground">{f.due}</td>
-                    <td className="px-3 py-2.5 text-right text-xs tabular-nums">{formatPrice(f.taxable)}</td>
-                    <td className="px-3 py-2.5 text-right text-xs font-bold tabular-nums">{formatPrice(f.taxAmount)}</td>
-                    <td className="px-3 py-2.5"><StatusBadge tone={STATUS_TONE[f.status]} withDot>{f.status}</StatusBadge></td>
-                    <td className="px-3 py-2.5 text-right">
-                      <Button
-                        size="sm"
-                        variant={f.status === "filed" ? "ghost" : "outline"}
-                        onClick={() => toast.success(f.status === "filed" ? `Downloaded ${f.id} certificate.` : `${f.id} marked filed — Pallio will send the receipt.`)}
-                      >
-                        {f.status === "filed" ? "Receipt" : f.status === "draft" ? "Review" : "File now"}
-                      </Button>
-                    </td>
+                    </div>
+                    <StatusBadge tone={STATUS_TONE[f.status]} withDot>{f.status}</StatusBadge>
+                  </div>
+                  <div className="mt-2 flex items-end justify-between gap-2">
+                    <div className="text-[11px] text-muted-foreground">
+                      <span className="tabular-nums">{formatPrice(f.taxable)}</span> taxable ·{" "}
+                      <span className="font-bold tabular-nums text-foreground">{formatPrice(f.taxAmount)}</span> tax
+                    </div>
+                    <Button
+                      size="sm"
+                      variant={f.status === "filed" ? "ghost" : "outline"}
+                      onClick={() => toast.success(f.status === "filed" ? `Downloaded ${f.id} certificate.` : `${f.id} marked filed — Pallio will send the receipt.`)}
+                    >
+                      {f.status === "filed" ? "Receipt" : f.status === "draft" ? "Review" : "File now"}
+                    </Button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <div className="overflow-x-auto border-t border-border">
+              <table className="w-full text-sm">
+                <thead className="bg-muted/40 text-left text-[10px] uppercase tracking-wider text-muted-foreground">
+                  <tr>
+                    <th className="px-3 py-2.5 font-medium">Filing</th>
+                    <th className="px-3 py-2.5 font-medium">Kind</th>
+                    <th className="px-3 py-2.5 font-medium">Period</th>
+                    <th className="px-3 py-2.5 font-medium">Due</th>
+                    <th className="px-3 py-2.5 text-right font-medium">Taxable</th>
+                    <th className="px-3 py-2.5 text-right font-medium">Tax</th>
+                    <th className="px-3 py-2.5 font-medium">Status</th>
+                    <th className="px-3 py-2.5 font-medium" />
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {FILINGS.map((f) => (
+                    <tr key={f.id} className="transition-colors hover:bg-accent/30">
+                      <td className="px-3 py-2.5">
+                        <p className="font-mono text-xs font-bold">{f.id}</p>
+                        {f.reference && <p className="text-[10px] text-muted-foreground">Ref · <span className="font-mono">{f.reference}</span></p>}
+                      </td>
+                      <td className="px-3 py-2.5">
+                        <span className="rounded bg-muted px-1.5 py-0.5 font-mono text-[10px] font-bold">{f.kind}</span>
+                      </td>
+                      <td className="px-3 py-2.5 text-xs">{f.period}</td>
+                      <td className="px-3 py-2.5 text-xs text-muted-foreground">{f.due}</td>
+                      <td className="px-3 py-2.5 text-right text-xs tabular-nums">{formatPrice(f.taxable)}</td>
+                      <td className="px-3 py-2.5 text-right text-xs font-bold tabular-nums">{formatPrice(f.taxAmount)}</td>
+                      <td className="px-3 py-2.5"><StatusBadge tone={STATUS_TONE[f.status]} withDot>{f.status}</StatusBadge></td>
+                      <td className="px-3 py-2.5 text-right">
+                        <Button
+                          size="sm"
+                          variant={f.status === "filed" ? "ghost" : "outline"}
+                          onClick={() => toast.success(f.status === "filed" ? `Downloaded ${f.id} certificate.` : `${f.id} marked filed — Pallio will send the receipt.`)}
+                        >
+                          {f.status === "filed" ? "Receipt" : f.status === "draft" ? "Review" : "File now"}
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </CardContent>
       </Card>
 

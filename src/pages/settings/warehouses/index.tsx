@@ -10,6 +10,7 @@ import { useRegisterPageRefresh } from "@/hooks/use-pull-to-refresh"
 import { EmptyState } from "@/components/lists/empty-state"
 import { StatusBadge, type StatusTone } from "@/components/lists/status-badge"
 import { SummaryStrip } from "@/components/lists/summary-strip"
+import { AddWarehouseDialog, type QuickWarehouse } from "@/components/dialogs/add-warehouse-dialog"
 import { useAutoMarkStep } from "@/hooks/use-auto-mark-step"
 
 type Row = {
@@ -22,7 +23,7 @@ type Row = {
   status: "active" | "maintenance" | "archived"
 }
 
-const rows: Row[] = [
+const SEED_WAREHOUSES: Row[] = [
   { code: "WH-A", name: "Main Warehouse", location: "Austin, TX", manager: "Mia Chen", utilizationPct: 78, skus: 642, status: "active" },
   { code: "WH-B", name: "East DC", location: "Atlanta, GA", manager: "Alex Larson", utilizationPct: 64, skus: 412, status: "active" },
   { code: "WH-C", name: "West Hub", location: "Portland, OR", manager: "Priya Patel", utilizationPct: 92, skus: 218, status: "active" },
@@ -40,6 +41,13 @@ export default function Warehouses() {
   const isMobile = useIsMobile()
   const [query, setQuery] = React.useState("")
 
+  const [rows, setRows] = React.useState<Row[]>(SEED_WAREHOUSES)
+  const [addOpen, setAddOpen] = React.useState(false)
+
+  const handleCreate = (w: QuickWarehouse) => {
+    setRows((prev) => [{ ...w, utilizationPct: 0, skus: 0, status: "active" }, ...prev])
+  }
+
   useRegisterPageRefresh(React.useCallback(async () => { await new Promise((r) => setTimeout(r, 400)) }, []))
 
   const filtered = React.useMemo(() => {
@@ -50,7 +58,7 @@ export default function Warehouses() {
       r.name.toLowerCase().includes(q) ||
       r.location.toLowerCase().includes(q),
     )
-  }, [query])
+  }, [query, rows])
 
   const totalSkus = rows.reduce((s, r) => s + r.skus, 0)
   const activeCount = rows.filter((r) => r.status === "active").length
@@ -86,9 +94,7 @@ export default function Warehouses() {
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search by code, name, or city…" className="pl-9" />
           </div>
-          <Link to="/settings/warehouses/new" className="hidden md:inline-flex">
-            <Button><Plus className="h-4 w-4" /> Add warehouse</Button>
-          </Link>
+          <Button onClick={() => setAddOpen(true)}><Plus className="h-4 w-4" /> Add warehouse</Button>
         </div>
 
         {filtered.length === 0 ? (
@@ -97,7 +103,7 @@ export default function Warehouses() {
               Icon={Warehouse}
               title="No warehouses match"
               description="Try a different code or city name."
-              action={<Link to="/settings/warehouses/new"><Button><Plus className="h-4 w-4" /> Add warehouse</Button></Link>}
+              action={<Button onClick={() => setAddOpen(true)}><Plus className="h-4 w-4" /> Add warehouse</Button>}
             />
           </CardContent></Card>
         ) : isMobile ? (
@@ -194,6 +200,7 @@ export default function Warehouses() {
           </div>
         )}
       </div>
+      <AddWarehouseDialog open={addOpen} onClose={() => setAddOpen(false)} onCreate={handleCreate} />
     </PageShell>
   )
 }
