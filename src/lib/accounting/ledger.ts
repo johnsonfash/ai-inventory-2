@@ -51,6 +51,20 @@ export type JournalEntry = {
 
 const ACCOUNTS_KEY = "acct:accounts:v1"
 const ENTRIES_KEY = "acct:journal:v1"
+const LOCK_KEY = "acct:period-lock:v1"
+
+// ---- Period lock (ACCT-5) ----
+// Once a period is closed, no entry dated on/before the lock may be
+// posted — corrections after close go in as adjusting/reversing entries
+// dated in the open period. This is the rule that lets an accountant
+// trust that last month's numbers won't silently change.
+export function periodLock(): string | undefined {
+  if (typeof window === "undefined") return undefined
+  return kvJson.get<string>(LOCK_KEY) || undefined
+}
+export function setPeriodLock(date: string) {
+  void kvJson.set(LOCK_KEY, date)
+}
 
 // ---- Normal side helper ----
 export function normalSideFor(type: AccountType): Side {
@@ -153,9 +167,14 @@ export function postEntry(input: {
   if (!isBalanced({ lines: input.lines })) {
     throw new Error("Journal entry does not balance (debits must equal credits).")
   }
+  const date = input.date ?? new Date().toISOString().slice(0, 10)
+  const lock = periodLock()
+  if (lock && date <= lock) {
+    throw new Error(`Period is closed through ${lock}. Post into an open period instead.`)
+  }
   const entry: JournalEntry = {
     id: genEntryId(),
-    date: input.date ?? new Date().toISOString().slice(0, 10),
+    date,
     memo: input.memo,
     lines: input.lines.map((l) => ({ accountId: l.accountId, debit: round2(l.debit || 0), credit: round2(l.credit || 0) })),
     source: input.source ?? "manual",

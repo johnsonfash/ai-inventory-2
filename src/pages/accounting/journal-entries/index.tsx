@@ -29,9 +29,11 @@ import {
   isBalanced,
   listEntries,
   loadAccounts,
+  periodLock,
   postEntry,
   reverseEntry,
   seedExampleLedger,
+  setPeriodLock,
 } from "@/lib/accounting/ledger"
 
 type EntryStatus = "posted" | "draft" | "void"
@@ -188,6 +190,19 @@ export default function JournalEntries() {
         <div className="flex flex-wrap items-center gap-2">
           <Button size="sm" variant="outline" onClick={() => toast.success("Journal export started — CSV ready in your downloads.")}>
             <Download className="h-3.5 w-3.5" /> Export
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => {
+              const today = new Date().toISOString().slice(0, 10)
+              setPeriodLock(today)
+              toast.success(`Books locked through ${today}. New entries must be dated after.`)
+              reload()
+            }}
+            title={periodLock() ? `Locked through ${periodLock()}` : "Lock the books up to today"}
+          >
+            <CheckCircle2 className="h-3.5 w-3.5" /> {periodLock() ? `Locked · ${periodLock()}` : "Close period"}
           </Button>
           <Button size="sm" onClick={() => setFormOpen(true)}>
             <Plus className="h-3.5 w-3.5" /> Manual entry
