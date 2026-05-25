@@ -57,6 +57,8 @@ type Props = {
   onConfirm: () => void
   /** Save as a layaway / partial sale with a balance owed (POS-2). */
   onSavePartial?: () => void
+  /** Append a pre-filled payment line for an even split share (POS-4). */
+  onAddShare?: (amount: number) => void
   /** Optional virtual-account display info (bank + account number). */
   virtualAccount?: { bank: string; accountNumber: string; accountName: string } | null
   /** Attached customer — drives store-credit + loyalty (POS-2). */
@@ -78,10 +80,12 @@ export function CheckoutSheet({
   onUpdatePayment,
   onConfirm,
   onSavePartial,
+  onAddShare,
   virtualAccount,
   customer,
   onRedeemPoints,
 }: Props) {
+  const [splitWays, setSplitWays] = React.useState(1)
   const { formatPrice, symbol } = useCurrency()
   const grandTotal = Math.round((total + (tip || 0)) * 100) / 100
   const paid = payments.reduce((s, p) => s + (Number.isFinite(p.amount) ? p.amount : 0), 0)
@@ -256,6 +260,56 @@ export function CheckoutSheet({
             </button>
           </div>
         </div>
+
+        {/* Split bill — even split into N shares (POS-4) */}
+        {onAddShare && (
+          <div className="rounded-xl border border-border bg-background p-3">
+            <div className="flex items-center justify-between">
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                Split evenly
+              </p>
+              <div className="inline-flex items-center gap-1 rounded-md border border-input">
+                <button
+                  type="button"
+                  onClick={() => setSplitWays((n) => Math.max(1, n - 1))}
+                  className="h-7 w-7 text-muted-foreground hover:bg-accent"
+                  aria-label="Fewer ways"
+                >
+                  −
+                </button>
+                <span className="w-8 text-center text-sm font-semibold tabular-nums">{splitWays}</span>
+                <button
+                  type="button"
+                  onClick={() => setSplitWays((n) => Math.min(12, n + 1))}
+                  className="h-7 w-7 text-muted-foreground hover:bg-accent"
+                  aria-label="More ways"
+                >
+                  +
+                </button>
+              </div>
+            </div>
+            {splitWays > 1 && (
+              <div className="mt-2 flex items-center justify-between gap-2">
+                <span className="text-xs text-muted-foreground">
+                  {formatPrice(Math.round((grandTotal / splitWays) * 100) / 100)} each
+                </span>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={remaining <= 0}
+                  onClick={() =>
+                    onAddShare(
+                      Math.min(remaining, Math.round((grandTotal / splitWays) * 100) / 100),
+                    )
+                  }
+                >
+                  Add a share
+                </Button>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Payment lines */}
         <div>

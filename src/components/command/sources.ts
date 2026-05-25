@@ -107,6 +107,8 @@ const QUICK_ACTIONS: CommandItem[] = [
 const NAVIGATE: CommandItem[] = [
   { id: "nav-dashboard",      group: "Navigate", title: "Dashboard",            subtitle: "/dashboard",                Icon: BarChart3,    href: "/dashboard",                  searchTerms: "dashboard home overview today" },
   { id: "nav-pos",            group: "Navigate", title: "POS",                  subtitle: "/pos",                      Icon: CreditCard,   href: "/pos",                        searchTerms: "pos point of sale register checkout" },
+  { id: "nav-pos-venue",      group: "Navigate", title: "Tables & Tabs",        subtitle: "/pos/venue",                Icon: CreditCard,   href: "/pos/venue",                  searchTerms: "tables tabs venue spots chairs bays floor seating open orders" },
+  { id: "nav-pos-prep",       group: "Navigate", title: "Prep Queue",           subtitle: "/pos/prep",                 Icon: Layers,       href: "/pos/prep",                   searchTerms: "prep queue kitchen kds display tickets stylist service" },
   { id: "nav-pos-drafts",     group: "Navigate", title: "POS drafts",           subtitle: "/pos/drafts",               Icon: Layers,       href: "/pos/drafts",                 searchTerms: "drafts holds suspended sales pos" },
   { id: "nav-pos-tx",         group: "Navigate", title: "POS transactions",     subtitle: "/pos/transactions",         Icon: Receipt,      href: "/pos/transactions",           searchTerms: "transactions tape day pos history" },
   { id: "nav-inventory",      group: "Navigate", title: "Inventory",            subtitle: "/inventory",                Icon: Package2,     href: "/inventory",                  searchTerms: "inventory items stock" },

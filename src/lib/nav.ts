@@ -55,6 +55,8 @@ export const NAV: NavItem[] = [
     icon: CreditCard,
     sub: [
       { title: "Current Sale", url: "/pos" },
+      { title: "Tables & Tabs", url: "/pos/venue" },
+      { title: "Prep Queue", url: "/pos/prep" },
       { title: "Drafts", url: "/pos/drafts" },
       { title: "Transactions", url: "/pos/transactions" },
       { title: "Invoices", url: "/pos/invoices" },

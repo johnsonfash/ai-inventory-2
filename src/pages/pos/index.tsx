@@ -59,6 +59,7 @@ import {
   scanWithCamera,
 } from "@/lib/pos/hardware"
 import { loadReceiptSettings } from "@/lib/pos/receipt-settings"
+import { closeOpenOrder, getOpenOrder } from "@/lib/pos/venue"
 import type { AuditEntry } from "@/lib/pos/storage"
 import type { Order } from "@/lib/sales/types"
 import { modifiersTotal, variantLabel, variantUnitPrice } from "@/lib/pos/variants"
@@ -70,8 +71,10 @@ import {
   ChevronRight,
   ClipboardList,
   FileText,
+  Flame,
   Gift,
   Layers,
+  LayoutGrid,
   Printer,
   RotateCcw,
   Settings2
@@ -86,6 +89,7 @@ export default function PointOfSale() {
   const navigate = useNavigate()
   const [search] = useSearchParams()
   const draftIdFromUrl = search.get("draftId")
+  const orderIdFromUrl = search.get("orderId")
   const isMobile = useIsMobile(1024);
   const { formatPrice } = useCurrency()
 
@@ -154,6 +158,9 @@ export default function PointOfSale() {
   const [optionsItem, setOptionsItem] = React.useState<CatalogItem | null>(null)
   const [sellGiftCardOpen, setSellGiftCardOpen] = React.useState(false)
   const [recallOpen, setRecallOpen] = React.useState(false)
+  // POS-4: the open order (table/tab) being settled, if we arrived via
+  // /pos?orderId=. Cleared (and the spot freed) once the sale completes.
+  const [activeOrderId, setActiveOrderId] = React.useState<string | null>(null)
   // Bumped after a loyalty mutation so the checkout sheet re-reads kv.
   const [, setLoyaltyTick] = React.useState(0)
 
@@ -174,6 +181,17 @@ export default function PointOfSale() {
     if (d.meta?.channel) setChannel(d.meta.channel)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [draftIdFromUrl])
+
+  // ----- Settle an open order (table/tab) passed via `?orderId=...` -----
+  React.useEffect(() => {
+    if (!orderIdFromUrl) return
+    const o = getOpenOrder(orderIdFromUrl)
+    if (!o) return
+    setCart(o.lines.map((l) => ({ ...l })))
+    setCustomer(o.customer || {})
+    setActiveOrderId(o.id)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [orderIdFromUrl])
 
   // ----- Cart mutations -----
   // A line is identified by its `id`. Lines merge only when product +
@@ -456,6 +474,8 @@ export default function PointOfSale() {
 
   // ----- Payment helpers -----
   const addPayment = () => setPayments((ps) => [...ps, { method: "card", amount: 0 }])
+  // POS-4: append a pre-filled payment line for an even-split share.
+  const addShare = (amount: number) => setPayments((ps) => [...ps, { method: "cash", amount }])
   const removePayment = (idx: number) => setPayments((ps) => ps.filter((_, i) => i !== idx))
   const updatePayment = (idx: number, part: Partial<PaymentLine>) =>
     setPayments((ps) =>
@@ -538,6 +558,12 @@ export default function PointOfSale() {
     // POS-3: kick the cash drawer after a cash sale (no-op on web).
     if (loadReceiptSettings().autoKickDrawer && augmented.some((p) => p.method === "cash" && p.amount > 0)) {
       void openCashDrawer()
+    }
+
+    // POS-4: a fully-paid open order (table/tab) is closed and its spot freed.
+    if (!partial && activeOrderId) {
+      closeOpenOrder(activeOrderId)
+      setActiveOrderId(null)
     }
 
     setGiftReceipt(false)
@@ -624,6 +650,8 @@ export default function PointOfSale() {
                 inter-element gaps don't leak product images either. */}
             <div className="hidden md:sticky md:-top-5 md:z-30 md:flex md:flex-col md:gap-4 md:bg-background md:pb-3">
               <div className="flex gap-2 overflow-x-auto py-2 scrollbar-hide">
+                <PosQuickChip Icon={LayoutGrid} label="Tables" onClick={() => navigate("/pos/venue")} />
+                <PosQuickChip Icon={Flame} label="Prep" onClick={() => navigate("/pos/prep")} />
                 <PosQuickChip Icon={Layers} label="Drafts" onClick={() => navigate("/pos/drafts")} />
                 <PosQuickChip Icon={ClipboardList} label="Invoices" onClick={() => navigate("/pos/invoices")} />
                 <PosQuickChip Icon={RotateCcw} label="Returns" onClick={() => navigate("/pos/returns")} />
@@ -780,6 +808,8 @@ export default function PointOfSale() {
       >
         <ul className="mb-3 divide-y divide-border rounded-xl border border-border bg-card">
           {[
+            { Icon: LayoutGrid, label: "Tables & tabs", hint: "Open orders by table / chair / bay.", onClick: () => { setMobileOverflowOpen(false); navigate("/pos/venue") } },
+            { Icon: Flame, label: "Prep queue", hint: "Fired items waiting to be made.", onClick: () => { setMobileOverflowOpen(false); navigate("/pos/prep") } },
             { Icon: Layers, label: "Drafts", hint: "Held carts you can resume.", onClick: () => { setMobileOverflowOpen(false); navigate("/pos/drafts") } },
             { Icon: ClipboardList, label: "Invoices", hint: "Past sales + receipts.", onClick: () => { setMobileOverflowOpen(false); navigate("/pos/invoices") } },
             { Icon: RotateCcw, label: "Returns", hint: "Process refunds + exchanges.", onClick: () => { setMobileOverflowOpen(false); navigate("/pos/returns") } },
@@ -850,6 +880,7 @@ export default function PointOfSale() {
         onUpdatePayment={updatePayment}
         onConfirm={onConfirmPayment}
         onSavePartial={onSavePartial}
+        onAddShare={addShare}
         virtualAccount={va ?? null}
         customer={customer}
         onRedeemPoints={onRedeemPoints}
