@@ -270,6 +270,47 @@ export function seedExampleLedger() {
   })
 }
 
+// ---- Statements derived from the ledger (ACCT-3) ----
+// These compute FROM the trial balance, so they can never disagree with
+// the journal. The balance sheet balances because it folds the period's
+// net profit into equity (income/expense are temporary accounts).
+
+export type StatementLine = { account: Account; amount: number }
+
+export function profitAndLoss(opts?: { from?: string; to?: string }) {
+  const { rows } = trialBalance(opts)
+  const income: StatementLine[] = rows.filter((r) => r.account.type === "income").map((r) => ({ account: r.account, amount: r.balance }))
+  const expense: StatementLine[] = rows.filter((r) => r.account.type === "expense").map((r) => ({ account: r.account, amount: r.balance }))
+  const totalIncome = round2(income.reduce((s, l) => s + l.amount, 0))
+  const totalExpense = round2(expense.reduce((s, l) => s + l.amount, 0))
+  return { income, expense, totalIncome, totalExpense, netProfit: round2(totalIncome - totalExpense) }
+}
+
+export function balanceSheet(opts?: { to?: string }) {
+  const { rows } = trialBalance({ to: opts?.to })
+  const pick = (t: AccountType): StatementLine[] =>
+    rows.filter((r) => r.account.type === t).map((r) => ({ account: r.account, amount: r.balance }))
+  const assets = pick("asset")
+  const liabilities = pick("liability")
+  const equityAccounts = pick("equity")
+  const { netProfit } = profitAndLoss({ to: opts?.to })
+  const totalAssets = round2(assets.reduce((s, l) => s + l.amount, 0))
+  const totalLiabilities = round2(liabilities.reduce((s, l) => s + l.amount, 0))
+  const equityFromAccounts = round2(equityAccounts.reduce((s, l) => s + l.amount, 0))
+  // Current-period earnings live in equity until closed at year end.
+  const totalEquity = round2(equityFromAccounts + netProfit)
+  return {
+    assets,
+    liabilities,
+    equity: equityAccounts,
+    retainedEarningsThisPeriod: netProfit,
+    totalAssets,
+    totalLiabilities,
+    totalEquity,
+    balanced: Math.abs(totalAssets - (totalLiabilities + totalEquity)) < 0.01,
+  }
+}
+
 // Net balance for one account (debit-positive on its normal side). Used by
 // statements (ACCT-3) and the chart-of-accounts page.
 export function accountBalance(accountId: string): number {

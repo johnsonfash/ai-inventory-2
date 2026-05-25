@@ -10,35 +10,9 @@ import { ConnectionCard } from "@/components/integrations/connection-chip"
 import { useRegisterPageRefresh } from "@/hooks/use-pull-to-refresh"
 import { useCurrency } from "@/contexts/currency"
 import { cn } from "@/lib/utils"
+import { profitAndLoss, seedExampleLedger } from "@/lib/accounting/ledger"
 
 type Row = { name: string; amount: number; sub?: string; prev?: number }
-
-const REVENUE: Row[] = [
-  { name: "Product sales · POS",     amount: 8_240_000, prev: 7_320_000 },
-  { name: "Product sales · Online",  amount: 4_180_000, prev: 3_140_000 },
-  { name: "Wholesale",                amount: 2_640_000, prev: 2_180_000 },
-  { name: "Service fees",             amount:   384_000, prev:   412_000 },
-  { name: "Affiliate commissions",    amount:    98_000, prev:    84_000 },
-]
-const COGS: Row[] = [
-  { name: "Cost of goods sold",       amount: 6_320_000, prev: 5_980_000 },
-  { name: "Freight + inbound",        amount:   180_000, prev:   164_000 },
-  { name: "Packaging",                amount:    96_000, prev:    88_000 },
-]
-const OPEX: Row[] = [
-  { name: "Salaries + wages",         amount: 1_840_000, prev: 1_720_000 },
-  { name: "Rent",                     amount:   620_000, prev:   620_000 },
-  { name: "Marketing + ads",          amount:   840_000, prev:   620_000 },
-  { name: "Software + tools",         amount:   124_000, prev:   118_000 },
-  { name: "Utilities",                amount:    96_000, prev:    88_000 },
-  { name: "Bank + payment fees",      amount:   148_000, prev:   124_000 },
-  { name: "Other admin",              amount:    72_000, prev:    64_000 },
-]
-const OTHER: Row[] = [
-  { name: "Interest income",          amount:    18_000, prev:    14_000 },
-  { name: "Interest expense",         amount:   -22_000, prev:   -18_000 },
-  { name: "FX gains / losses",        amount:    -8_000, prev:    12_000 },
-]
 
 const TREND = [
   { m: "Jun",  rev: 9_840_000, exp: 7_120_000 },
@@ -59,9 +33,24 @@ const sum = (xs: Row[]) => xs.reduce((s, x) => s + x.amount, 0)
 const sumPrev = (xs: Row[]) => xs.reduce((s, x) => s + (x.prev ?? 0), 0)
 
 export default function ProfitLoss() {
-  useRegisterPageRefresh(React.useCallback(async () => { await new Promise((r) => setTimeout(r, 400)) }, []))
+  const [version, setVersion] = React.useState(0)
+  useRegisterPageRefresh(React.useCallback(async () => { setVersion((v) => v + 1); await new Promise((r) => setTimeout(r, 300)) }, []))
   const { formatPrice, formatCompact } = useCurrency()
   const [period, setPeriod] = React.useState<Period>("ytd")
+
+  // Real P&L derived from the ledger (lib/accounting/ledger). COGS is the
+  // 5000 account; everything else expense is operating. ACCT-3.
+  const { REVENUE, COGS, OPEX, OTHER } = React.useMemo(() => {
+    seedExampleLedger()
+    const pl = profitAndLoss()
+    return {
+      REVENUE: pl.income.map((l) => ({ name: l.account.name, amount: l.amount })) as Row[],
+      COGS: pl.expense.filter((l) => l.account.code === "5000").map((l) => ({ name: l.account.name, amount: l.amount })) as Row[],
+      OPEX: pl.expense.filter((l) => l.account.code !== "5000").map((l) => ({ name: l.account.name, amount: l.amount })) as Row[],
+      OTHER: [] as Row[],
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [version])
 
   const revenue   = sum(REVENUE)
   const cogs      = sum(COGS)

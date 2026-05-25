@@ -6,33 +6,32 @@ import { useRegisterPageRefresh } from "@/hooks/use-pull-to-refresh"
 import { type Period } from "@/components/reports/period-chips"
 import { ConnectionCard } from "@/components/integrations/connection-chip"
 import { useCurrency } from "@/contexts/currency"
+import { balanceSheet, seedExampleLedger } from "@/lib/accounting/ledger"
 
-const assets: { name: string; amount: number; sub: string }[] = [
-  { name: "Cash", amount: 120000, sub: "Operating + savings" },
-  { name: "Accounts receivable", amount: 48200, sub: "Open invoices to customers" },
-  { name: "Inventory (at cost)", amount: 182000, sub: "Stock value across warehouses" },
-  { name: "Prepaid expenses", amount: 6400, sub: "Rent + insurance" },
-  { name: "Equipment (net)", amount: 32000, sub: "POS hardware + delivery vans" },
-]
-
-const liabilities: { name: string; amount: number; sub: string }[] = [
-  { name: "Accounts payable", amount: 28400, sub: "Open bills to vendors" },
-  { name: "Accrued payroll", amount: 14200, sub: "Pending payroll runs" },
-  { name: "Sales tax payable", amount: 8420, sub: "Collected, not yet remitted" },
-  { name: "Loans (current portion)", amount: 18000, sub: "Bank loan + LoC draws" },
-]
-
-const equity: { name: string; amount: number; sub: string }[] = [
-  { name: "Owner's equity", amount: 220000, sub: "Initial capital + retained" },
-  { name: "Retained earnings", amount: 99580, sub: "Year-to-date profit" },
-]
-
+type Line = { name: string; amount: number; sub: string }
 const sum = (xs: { amount: number }[]) => xs.reduce((s, x) => s + x.amount, 0)
 
 export default function BalanceSheet() {
   const [period, setPeriod] = React.useState<Period>("ytd")
   const { formatPrice } = useCurrency()
-  useRegisterPageRefresh(React.useCallback(async () => { await new Promise((r) => setTimeout(r, 400)) }, []))
+  const [version, setVersion] = React.useState(0)
+  useRegisterPageRefresh(React.useCallback(async () => { setVersion((v) => v + 1); await new Promise((r) => setTimeout(r, 300)) }, []))
+
+  // Real balance sheet derived from the ledger. Current-period earnings
+  // sit in equity (income/expense haven't been closed). ACCT-3.
+  const { assets, liabilities, equity } = React.useMemo(() => {
+    seedExampleLedger()
+    const bs = balanceSheet()
+    return {
+      assets: bs.assets.map((l): Line => ({ name: l.account.name, amount: l.amount, sub: l.account.code })),
+      liabilities: bs.liabilities.map((l): Line => ({ name: l.account.name, amount: l.amount, sub: l.account.code })),
+      equity: [
+        ...bs.equity.map((l): Line => ({ name: l.account.name, amount: l.amount, sub: l.account.code })),
+        { name: "Retained earnings (this period)", amount: bs.retainedEarningsThisPeriod, sub: "Income − expenses, not yet closed" } as Line,
+      ],
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [version])
 
   const totalAssets = sum(assets)
   const totalLiab = sum(liabilities)
