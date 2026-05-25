@@ -9,16 +9,32 @@ import { useRegisterPageRefresh } from "@/hooks/use-pull-to-refresh"
 import { EmptyState } from "@/components/lists/empty-state"
 import { SummaryStrip } from "@/components/lists/summary-strip"
 import { useCurrency } from "@/contexts/currency"
+import { loadAllCatalog } from "@/lib/pos/storage"
 
-type Row = { name: string; supplier: string; skus: number; revenue: number }
+type Row = { name: string; category: string; skus: number; revenue: number }
 
-const rows: Row[] = [
-  { name: "Cobalt", supplier: "Cobalt Distributors", skus: 84, revenue: 18420 },
-  { name: "Delta", supplier: "Delta Apparel", skus: 142, revenue: 24600 },
-  { name: "Acme", supplier: "Acme Supplies", skus: 56, revenue: 9420 },
-  { name: "Porcel", supplier: "Porcel Ceramics", skus: 48, revenue: 5210 },
-  { name: "Glow Co", supplier: "Glow Co", skus: 32, revenue: 7180 },
-]
+// Derived from the POS catalog (single source of truth) — grouped by
+// brand. "Revenue" here is on-hand stock value (price × tracked stock).
+function deriveBrands(): Row[] {
+  const map = new Map<string, { skus: number; revenue: number; cats: Record<string, number> }>()
+  for (const c of loadAllCatalog()) {
+    const name = c.brand?.trim() || "Unbranded"
+    const rec = map.get(name) || { skus: 0, revenue: 0, cats: {} }
+    rec.skus += 1
+    const stock = typeof c.stock === "number" && c.stock < 9999 ? c.stock : 0
+    rec.revenue += c.price * stock
+    if (c.category) rec.cats[c.category] = (rec.cats[c.category] ?? 0) + 1
+    map.set(name, rec)
+  }
+  return Array.from(map.entries())
+    .map(([name, r]) => ({
+      name,
+      skus: r.skus,
+      revenue: Math.round(r.revenue * 100) / 100,
+      category: Object.entries(r.cats).sort((a, b) => b[1] - a[1])[0]?.[0] ?? "—",
+    }))
+    .sort((a, b) => b.skus - a.skus)
+}
 
 function initialsOf(name: string) {
   return name.split(/\s+/).slice(0, 2).map((s) => s[0]!.toUpperCase()).join("")
@@ -41,17 +57,18 @@ function avatarTint(name: string) {
 export default function Brands() {
   const [query, setQuery] = React.useState("")
   const { formatPrice } = useCurrency()
+  const [rows, setRows] = React.useState<Row[]>(() => deriveBrands())
 
-  useRegisterPageRefresh(React.useCallback(async () => { await new Promise((r) => setTimeout(r, 400)) }, []))
+  useRegisterPageRefresh(React.useCallback(async () => { setRows(deriveBrands()); await new Promise((r) => setTimeout(r, 300)) }, []))
 
   const filtered = React.useMemo(() => {
     const q = query.trim().toLowerCase()
     if (!q) return rows
-    return rows.filter((r) => r.name.toLowerCase().includes(q) || r.supplier.toLowerCase().includes(q))
-  }, [query])
+    return rows.filter((r) => r.name.toLowerCase().includes(q) || r.category.toLowerCase().includes(q))
+  }, [query, rows])
 
   const totalSkus = rows.reduce((s, r) => s + r.skus, 0)
-  const top = [...rows].sort((a, b) => b.revenue - a.revenue)[0]!
+  const top = [...rows].sort((a, b) => b.revenue - a.revenue)[0] ?? { name: "—", revenue: 0 }
 
   return (
     <PageShell
@@ -72,7 +89,7 @@ export default function Brands() {
             { label: "Brands", value: String(rows.length), tone: "brand", hint: "tracked" },
             { label: "SKUs", value: totalSkus.toLocaleString(), tone: "info", hint: "all brands" },
             { label: "Top brand", value: top.name, tone: "success", hint: formatPrice(top.revenue) },
-            { label: "Suppliers", value: String(new Set(rows.map((r) => r.supplier)).size), tone: "warning", hint: "linked" },
+            { label: "Categories", value: String(new Set(rows.map((r) => r.category)).size), tone: "warning", hint: "represented" },
           ]}
         />
 
@@ -104,7 +121,7 @@ export default function Brands() {
                   </span>
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-semibold">{r.name}</p>
-                    <p className="truncate text-[11px] text-muted-foreground">{r.supplier}</p>
+                    <p className="truncate text-[11px] text-muted-foreground">{r.category}</p>
                   </div>
                 </div>
                 <div className="mt-3 flex items-baseline justify-between">

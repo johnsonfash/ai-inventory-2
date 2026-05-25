@@ -515,6 +515,18 @@ export function loadCatalog(mode: "retail" | "restaurant" | "services" | "auto" 
   return getLS<CatalogItem[]>(key, items)
 }
 
+// Every catalog item across all four modes, deduped by SKU. The single
+// source of truth for inventory sub-pages (brands, units, etc.) so they
+// never drift from the POS catalog. See memory: inventory-catalog-source.
+export function loadAllCatalog(): CatalogItem[] {
+  return [
+    ...loadCatalog("retail"),
+    ...loadCatalog("restaurant"),
+    ...loadCatalog("services"),
+    ...loadCatalog("auto"),
+  ].filter((c, i, arr) => arr.findIndex((x) => x.sku === c.sku) === i)
+}
+
 // Quick-add a new product to the catalog for a given mode. Used by the
 // item-not-found dialog ("scanned a barcode we don't know — add it
 // now?"). Dedupes by SKU. Returns the stored item. POS-1.
