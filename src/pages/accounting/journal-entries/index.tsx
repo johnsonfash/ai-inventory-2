@@ -18,10 +18,21 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { StatusBadge, type StatusTone } from "@/components/lists/status-badge"
+import { Dialog, DialogContent } from "@/components/ui/dialog"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { useRegisterPageRefresh } from "@/hooks/use-pull-to-refresh"
 import { useCurrency } from "@/contexts/currency"
 import { cn } from "@/lib/utils"
+import {
+  getAccount,
+  isBalanced,
+  listEntries,
+  loadAccounts,
+  postEntry,
+  reverseEntry,
+  seedExampleLedger,
+} from "@/lib/accounting/ledger"
 
 type EntryStatus = "posted" | "draft" | "void"
 type EntrySource = "system" | "manual" | "import"
@@ -45,162 +56,25 @@ type Journal = {
   lines: JournalLine[]
 }
 
-const JOURNALS: Journal[] = [
-  {
-    id: "JE-2026-05-001",
-    date: "May 20, 2026",
-    description: "POS sale · SO-7842 · Lekki",
-    reference: "POS-2026-05-7842",
-    source: "system",
-    origin: "POS",
-    status: "posted",
-    postedBy: "Pallio (auto)",
-    lines: [
-      { account: "1040", accountName: "Paystack · settlement", debit:  21_500, credit:      0 },
-      { account: "4000", accountName: "Product sales · POS",   debit:      0, credit: 20_000 },
-      { account: "2200", accountName: "Sales tax payable · VAT", debit:    0, credit:  1_500 },
-    ],
-  },
-  {
-    id: "JE-2026-05-002",
-    date: "May 19, 2026",
-    description: "COGS recognition · SO-7842",
-    reference: "POS-2026-05-7842",
-    source: "system",
-    origin: "POS",
-    status: "posted",
-    postedBy: "Pallio (auto)",
-    lines: [
-      { account: "5000", accountName: "Cost of goods sold", debit: 12_000, credit:      0 },
-      { account: "1300", accountName: "Inventory · at cost", debit:     0, credit: 12_000 },
-    ],
-  },
-  {
-    id: "JE-2026-05-003",
-    date: "May 18, 2026",
-    description: "Storefront online sale · SHOP-7841",
-    reference: "SHOP-7841",
-    source: "system",
-    origin: "Storefront",
-    status: "posted",
-    postedBy: "Pallio (auto)",
-    lines: [
-      { account: "1040", accountName: "Paystack · settlement", debit:  68_687, credit:      0 },
-      { account: "4010", accountName: "Product sales · Online", debit:      0, credit: 63_900 },
-      { account: "2200", accountName: "Sales tax payable · VAT", debit:    0, credit:  4_787 },
-    ],
-  },
-  {
-    id: "JE-2026-05-004",
-    date: "May 15, 2026",
-    description: "Vendor bill · Cobalt Distributors",
-    reference: "BILL-2410",
-    source: "system",
-    origin: "Bills",
-    status: "posted",
-    postedBy: "Aisha Nwosu",
-    lines: [
-      { account: "1300", accountName: "Inventory · at cost",  debit: 420_000, credit:       0 },
-      { account: "2000", accountName: "Accounts payable",      debit:      0, credit: 420_000 },
-    ],
-  },
-  {
-    id: "JE-2026-05-005",
-    date: "May 12, 2026",
-    description: "May payroll · 7 employees",
-    reference: "PR-2026-05",
-    source: "system",
-    origin: "Payroll",
-    status: "posted",
-    postedBy: "Mia Chen",
-    lines: [
-      { account: "5100", accountName: "Salaries + wages",      debit: 2_864_000, credit:         0 },
-      { account: "2100", accountName: "Accrued payroll",       debit:         0, credit: 2_466_000 },
-      { account: "2220", accountName: "PAYE payable",           debit:         0, credit:   230_000 },
-      { account: "2210", accountName: "Withholding tax payable", debit:        0, credit:   142_000 },
-      { account: "2300", accountName: "Loans · current portion", debit:        0, credit:    26_000 },
-    ],
-  },
-  {
-    id: "JE-2026-05-006",
-    date: "May 10, 2026",
-    description: "Manual adjustment · prepaid rent amortisation",
-    source: "manual",
-    origin: "Manual",
-    status: "posted",
-    postedBy: "Aisha Nwosu",
-    lines: [
-      { account: "5200", accountName: "Rent",              debit:  52_000, credit:       0 },
-      { account: "1400", accountName: "Prepaid expenses",  debit:       0, credit:  52_000 },
-    ],
-  },
-  {
-    id: "JE-2026-05-007",
-    date: "May 9, 2026",
-    description: "Affiliate commission accrual · April batch",
-    reference: "COMM-2026-04",
-    source: "system",
-    origin: "Commissions",
-    status: "posted",
-    postedBy: "Pallio (auto)",
-    lines: [
-      { account: "5110", accountName: "Sales commissions", debit: 214_000, credit:       0 },
-      { account: "2400", accountName: "Commissions payable", debit:     0, credit: 214_000 },
-    ],
-  },
-  {
-    id: "JE-2026-05-008",
-    date: "May 8, 2026",
-    description: "Owner draw",
-    source: "manual",
-    origin: "Manual",
-    status: "draft",
-    postedBy: "Aisha Nwosu",
-    lines: [
-      { account: "3000", accountName: "Owner equity",      debit: 300_000, credit:       0 },
-      { account: "1020", accountName: "GTBank · operating", debit:      0, credit: 300_000 },
-    ],
-  },
-  {
-    id: "JE-2026-05-009",
-    date: "May 4, 2026",
-    description: "Depreciation · POS hardware",
-    source: "system",
-    origin: "Schedule",
-    status: "posted",
-    postedBy: "Pallio (auto)",
-    lines: [
-      { account: "5700", accountName: "Depreciation",                  debit: 18_000, credit:      0 },
-      { account: "1530", accountName: "Accumulated depreciation",      debit:      0, credit: 18_000 },
-    ],
-  },
-  {
-    id: "JE-2026-05-010",
-    date: "May 2, 2026",
-    description: "Bank reconciliation · Apr fees",
-    source: "manual",
-    origin: "Reconciliation",
-    status: "posted",
-    postedBy: "Aisha Nwosu",
-    lines: [
-      { account: "5600", accountName: "Bank + payment fees", debit: 8_400, credit:     0 },
-      { account: "1020", accountName: "GTBank · operating",  debit:     0, credit: 8_400 },
-    ],
-  },
-  {
-    id: "JE-2026-04-118",
-    date: "Apr 28, 2026",
-    description: "VOID — duplicate posting",
-    source: "manual",
-    origin: "Manual",
-    status: "void",
-    postedBy: "Aisha Nwosu",
-    lines: [
-      { account: "5500", accountName: "Software + tools",  debit:      0, credit:   24_000 },
-      { account: "1020", accountName: "GTBank · operating", debit:  24_000, credit:        0 },
-    ],
-  },
-]
+// Derive the page's journals from the real ledger (lib/accounting/ledger).
+// Balances + balance-check are now genuine, not mock. ACCT-1.
+function deriveJournals(): Journal[] {
+  seedExampleLedger()
+  return listEntries().map((e) => ({
+    id: e.id,
+    date: new Date(e.date).toLocaleDateString(),
+    description: e.memo,
+    reference: e.sourceRef,
+    source: e.source,
+    origin: e.reverses ? "Reversal" : e.source === "system" ? "Auto" : e.source === "import" ? "Import" : "Manual",
+    status: e.reversedBy ? "void" : "posted",
+    postedBy: e.source === "system" ? "Pallio (auto)" : "You",
+    lines: e.lines.map((l) => {
+      const acct = getAccount(l.accountId)
+      return { account: acct?.code ?? l.accountId, accountName: acct?.name ?? l.accountId, debit: l.debit, credit: l.credit }
+    }),
+  }))
+}
 
 const STATUS_TONE: Record<EntryStatus, StatusTone> = {
   posted: "success",
@@ -217,13 +91,18 @@ const SOURCE_TONE: Record<EntrySource, StatusTone> = {
 type Filter = "all" | EntryStatus | EntrySource
 
 export default function JournalEntries() {
-  useRegisterPageRefresh(React.useCallback(async () => { await new Promise((r) => setTimeout(r, 400)) }, []))
+  const [version, setVersion] = React.useState(0)
+  useRegisterPageRefresh(React.useCallback(async () => { setVersion((v) => v + 1); await new Promise((r) => setTimeout(r, 300)) }, []))
   const isMobile = useIsMobile()
   const { formatPrice } = useCurrency()
   const [period, setPeriod] = React.useState<Period>("30d")
   const [filter, setFilter] = React.useState<Filter>("all")
   const [query, setQuery] = React.useState("")
-  const [expanded, setExpanded] = React.useState<Set<string>>(new Set([JOURNALS[0]!.id]))
+  const [expanded, setExpanded] = React.useState<Set<string>>(new Set())
+  const [formOpen, setFormOpen] = React.useState(false)
+  // Real journal entries, rebuilt on refresh / after posting.
+  const JOURNALS = React.useMemo(() => deriveJournals(), [version])
+  const reload = () => setVersion((v) => v + 1)
 
   const toggle = (id: string) => {
     setExpanded((prev) => {
@@ -250,7 +129,7 @@ export default function JournalEntries() {
         j.lines.some((l) => l.accountName.toLowerCase().includes(q) || l.account.includes(q))
       )
     })
-  }, [filter, query])
+  }, [filter, query, JOURNALS])
 
   const posted = JOURNALS.filter((j) => j.status === "posted")
   const drafts = JOURNALS.filter((j) => j.status === "draft")
@@ -310,7 +189,7 @@ export default function JournalEntries() {
           <Button size="sm" variant="outline" onClick={() => toast.success("Journal export started — CSV ready in your downloads.")}>
             <Download className="h-3.5 w-3.5" /> Export
           </Button>
-          <Button size="sm" onClick={() => toast("Manual journal form arrives with the backend.")}>
+          <Button size="sm" onClick={() => setFormOpen(true)}>
             <Plus className="h-3.5 w-3.5" /> Manual entry
           </Button>
         </div>
@@ -449,13 +328,18 @@ export default function JournalEntries() {
                             </tbody>
                           </table>
                         )}
-                        {j.status === "draft" && (
-                          <div className="mt-3 flex justify-end gap-2">
-                            <Button size="sm" variant="outline" onClick={() => toast("Edit draft arrives with the backend.")}>
-                              Edit
-                            </Button>
-                            <Button size="sm" onClick={() => toast.success(`${j.id} posted to ledger.`)}>
-                              <CheckCircle2 className="h-3.5 w-3.5" /> Post
+                        {j.status === "posted" && (
+                          <div className="mt-3 flex justify-end">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => {
+                                reverseEntry(j.id)
+                                toast.success(`Reversed ${j.description} with a mirror entry.`)
+                                reload()
+                              }}
+                            >
+                              <CheckCircle2 className="h-3.5 w-3.5" /> Reverse
                             </Button>
                           </div>
                         )}
@@ -486,7 +370,100 @@ export default function JournalEntries() {
           </Link>
         ))}
       </div>
+
+      <Dialog open={formOpen} onOpenChange={setFormOpen}>
+        <DialogContent className="max-w-lg">
+          <ManualEntryForm onDone={() => { reload(); setFormOpen(false) }} onCancel={() => setFormOpen(false)} />
+        </DialogContent>
+      </Dialog>
     </ReportShell>
+  )
+}
+
+// The headline ACCT-1 capability: a manual journal that will NOT post
+// unless debits === credits. The ledger enforces it too (postEntry throws),
+// but the form gates the button + shows a live balance so the cashier/
+// bookkeeper sees it before trying.
+function ManualEntryForm({ onDone, onCancel }: { onDone: () => void; onCancel: () => void }) {
+  const { formatPrice } = useCurrency()
+  const accounts = React.useMemo(() => loadAccounts(), [])
+  const [date, setDate] = React.useState(new Date().toISOString().slice(0, 10))
+  const [memo, setMemo] = React.useState("")
+  const [lines, setLines] = React.useState<{ accountId: string; debit: string; credit: string }[]>([
+    { accountId: "", debit: "", credit: "" },
+    { accountId: "", debit: "", credit: "" },
+  ])
+
+  const parsed = lines
+    .filter((l) => l.accountId)
+    .map((l) => ({ accountId: l.accountId, debit: Number(l.debit) || 0, credit: Number(l.credit) || 0 }))
+  const totalDebit = Math.round(parsed.reduce((s, l) => s + l.debit, 0) * 100) / 100
+  const totalCredit = Math.round(parsed.reduce((s, l) => s + l.credit, 0) * 100) / 100
+  const balanced = isBalanced({ lines: parsed })
+  const canPost = balanced && memo.trim().length > 0
+
+  const setLine = (i: number, part: Partial<{ accountId: string; debit: string; credit: string }>) =>
+    setLines((prev) => prev.map((l, idx) => (idx === i ? { ...l, ...part } : l)))
+
+  const post = () => {
+    if (!canPost) return
+    postEntry({ date, memo: memo.trim(), lines: parsed, source: "manual" })
+    onDone()
+  }
+
+  return (
+    <div>
+      <p className="text-base font-semibold">New journal entry</p>
+      <p className="mt-0.5 text-[11px] text-muted-foreground">
+        Won't post until debits equal credits — that's the rule that keeps the books trustworthy.
+      </p>
+      <div className="mt-4 grid grid-cols-2 gap-3">
+        <label className="block">
+          <span className="mb-1 block text-xs font-medium text-muted-foreground">Date</span>
+          <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+        </label>
+        <label className="block">
+          <span className="mb-1 block text-xs font-medium text-muted-foreground">Memo</span>
+          <Input value={memo} onChange={(e) => setMemo(e.target.value)} placeholder="What is this for?" />
+        </label>
+      </div>
+
+      <div className="mt-3 space-y-2">
+        {lines.map((l, i) => (
+          <div key={i} className="grid grid-cols-[1fr_auto_auto] items-center gap-2">
+            <Select value={l.accountId} onValueChange={(v) => setLine(i, { accountId: v })}>
+              <SelectTrigger className="h-9"><SelectValue placeholder="Account" /></SelectTrigger>
+              <SelectContent>
+                {accounts.map((a) => (
+                  <SelectItem key={a.id} value={a.id}>{a.code} · {a.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Input className="h-9 w-24 text-right" type="number" placeholder="Debit" value={l.debit} onChange={(e) => setLine(i, { debit: e.target.value, credit: "" })} />
+            <Input className="h-9 w-24 text-right" type="number" placeholder="Credit" value={l.credit} onChange={(e) => setLine(i, { credit: e.target.value, debit: "" })} />
+          </div>
+        ))}
+        <button
+          type="button"
+          onClick={() => setLines((p) => [...p, { accountId: "", debit: "", credit: "" }])}
+          className="text-xs font-medium text-brand hover:underline dark:text-primary"
+        >
+          + Add line
+        </button>
+      </div>
+
+      <div className="mt-3 flex items-center justify-between rounded-lg bg-muted/40 px-3 py-2 text-sm">
+        <span className="text-muted-foreground">Debits {formatPrice(totalDebit)} · Credits {formatPrice(totalCredit)}</span>
+        <span className={cn("font-semibold", balanced ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400")}>
+          {balanced ? "Balanced" : `Off by ${formatPrice(Math.abs(totalDebit - totalCredit))}`}
+        </span>
+      </div>
+
+      <div className="mt-4 flex justify-end gap-2">
+        <Button variant="outline" onClick={onCancel}>Cancel</Button>
+        <Button onClick={post} disabled={!canPost}>Post entry</Button>
+      </div>
+    </div>
   )
 }
 

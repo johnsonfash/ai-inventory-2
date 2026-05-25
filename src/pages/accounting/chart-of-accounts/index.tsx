@@ -25,9 +25,10 @@ import { StatusBadge, type StatusTone } from "@/components/lists/status-badge"
 import { useRegisterPageRefresh } from "@/hooks/use-pull-to-refresh"
 import { useCurrency } from "@/contexts/currency"
 import { cn } from "@/lib/utils"
+import { accountBalance, loadAccounts, seedExampleLedger } from "@/lib/accounting/ledger"
 
-// Chart of accounts — the canonical list of every account Pallio
-// posts to. Standard Nigerian SMB layout with FIRS-friendly codes.
+// Chart of accounts — now the REAL ledger chart (lib/accounting/ledger),
+// with balances derived from posted journal entries. ACCT-1.
 
 type AccountType = "asset" | "liability" | "equity" | "revenue" | "expense"
 
@@ -40,62 +41,23 @@ type Account = {
   /** Whether transactions can be posted to this account (false for
    *  parent rollup accounts). */
   postable?: boolean
-  /** True if Pallio derives this from another source (e.g. POS) and
-   *  manual entries shouldn't touch it. */
+  /** Control accounts (AR, AP, Inventory) are driven by subledgers. */
   systemOwned?: boolean
 }
 
-const ACCOUNTS: Account[] = [
-  // ASSETS — 1xxx
-  { code: "1000", name: "Cash + bank",             type: "asset", balance: 6_240_000 },
-  { code: "1010", name: "Petty cash · Lekki",      type: "asset", parent: "1000", balance:    180_000, postable: true },
-  { code: "1020", name: "GTBank · operating",      type: "asset", parent: "1000", balance: 4_280_000, postable: true },
-  { code: "1030", name: "Kuda · savings",           type: "asset", parent: "1000", balance: 1_180_000, postable: true },
-  { code: "1040", name: "Paystack · settlement",   type: "asset", parent: "1000", balance:   600_000, postable: true, systemOwned: true },
-
-  { code: "1200", name: "Accounts receivable",     type: "asset", balance:   840_000 },
-  { code: "1210", name: "Customer A/R · POS",       type: "asset", parent: "1200", balance:    240_000, postable: true, systemOwned: true },
-  { code: "1220", name: "Customer A/R · Wholesale", type: "asset", parent: "1200", balance:    600_000, postable: true },
-
-  { code: "1300", name: "Inventory · at cost",     type: "asset", balance: 6_840_000, systemOwned: true },
-  { code: "1400", name: "Prepaid expenses",        type: "asset", balance:   180_000, postable: true },
-  { code: "1500", name: "Fixed assets · net",      type: "asset", balance: 2_840_000 },
-  { code: "1510", name: "POS hardware",             type: "asset", parent: "1500", balance:    320_000, postable: true },
-  { code: "1520", name: "Delivery vehicles",        type: "asset", parent: "1500", balance: 2_400_000, postable: true },
-  { code: "1530", name: "Accumulated depreciation", type: "asset", parent: "1500", balance:   -120_000, postable: true },
-
-  // LIABILITIES — 2xxx
-  { code: "2000", name: "Accounts payable",        type: "liability", balance: 1_240_000, systemOwned: true },
-  { code: "2100", name: "Accrued payroll",         type: "liability", balance:   320_000, systemOwned: true },
-  { code: "2200", name: "Sales tax payable · VAT", type: "liability", balance:   313_680, systemOwned: true },
-  { code: "2210", name: "Withholding tax payable",  type: "liability", balance:    42_000, systemOwned: true },
-  { code: "2220", name: "PAYE payable",             type: "liability", balance:   168_400, systemOwned: true },
-  { code: "2300", name: "Loans · current portion", type: "liability", balance:   560_000, postable: true },
-  { code: "2400", name: "Commissions payable",     type: "liability", balance:   268_000, systemOwned: true },
-
-  // EQUITY — 3xxx
-  { code: "3000", name: "Owner equity",            type: "equity", balance: 4_200_000, postable: true },
-  { code: "3100", name: "Retained earnings",       type: "equity", balance: 9_840_000, systemOwned: true },
-
-  // REVENUE — 4xxx
-  { code: "4000", name: "Product sales · POS",     type: "revenue", balance: 8_240_000, systemOwned: true },
-  { code: "4010", name: "Product sales · Online",  type: "revenue", balance: 4_180_000, systemOwned: true },
-  { code: "4020", name: "Wholesale",                type: "revenue", balance: 2_640_000, systemOwned: true },
-  { code: "4100", name: "Service fees",            type: "revenue", balance:   384_000, postable: true },
-  { code: "4200", name: "Affiliate referral commission", type: "revenue", balance: 98_000, systemOwned: true },
-
-  // EXPENSES — 5xxx
-  { code: "5000", name: "Cost of goods sold",      type: "expense", balance: 6_320_000, systemOwned: true },
-  { code: "5100", name: "Salaries + wages",        type: "expense", balance: 1_840_000, systemOwned: true },
-  { code: "5110", name: "Sales commissions",       type: "expense", balance:   214_000, systemOwned: true },
-  { code: "5200", name: "Rent",                     type: "expense", balance:   620_000, postable: true },
-  { code: "5300", name: "Marketing + ads",         type: "expense", balance:   840_000, systemOwned: true },
-  { code: "5400", name: "Utilities",                type: "expense", balance:    96_000, postable: true },
-  { code: "5500", name: "Software + tools",        type: "expense", balance:   124_000, postable: true },
-  { code: "5600", name: "Bank + payment fees",     type: "expense", balance:   148_000, systemOwned: true },
-  { code: "5700", name: "Depreciation",             type: "expense", balance:   180_000, postable: true },
-  { code: "5900", name: "Other admin",              type: "expense", balance:    72_000, postable: true },
-]
+// Derive the page's account rows from the live ledger. Balances come from
+// posted entries via accountBalance(), so they can't drift from the books.
+function deriveAccounts(): Account[] {
+  seedExampleLedger() // idempotent — gives first-time books some data
+  return loadAccounts().map((a) => ({
+    code: a.code,
+    name: a.name,
+    type: a.type === "income" ? "revenue" : a.type,
+    balance: accountBalance(a.id),
+    postable: !a.isControl,
+    systemOwned: a.isControl,
+  }))
+}
 
 const TYPE_META: Record<AccountType, { label: string; icon: typeof Wallet; tone: "info" | "warning" | "brand" | "success" | "danger" }> = {
   asset:     { label: "Assets",      icon: Wallet,    tone: "info"    },
@@ -113,8 +75,11 @@ const STATUS_TONE: Record<"system" | "manual", StatusTone> = {
 type Filter = "all" | AccountType | "system" | "manual"
 
 export default function ChartOfAccounts() {
-  useRegisterPageRefresh(React.useCallback(async () => { await new Promise((r) => setTimeout(r, 400)) }, []))
+  const [version, setVersion] = React.useState(0)
+  useRegisterPageRefresh(React.useCallback(async () => { setVersion((v) => v + 1); await new Promise((r) => setTimeout(r, 300)) }, []))
   const { formatPrice } = useCurrency()
+  // Real chart, derived from the ledger (rebuilt on refresh).
+  const ACCOUNTS = React.useMemo(() => deriveAccounts(), [version])
   const [period, setPeriod] = React.useState<Period>("ytd")
   const [filter, setFilter] = React.useState<Filter>("all")
   const [query, setQuery] = React.useState("")
@@ -142,7 +107,7 @@ export default function ChartOfAccounts() {
       if (!q) return true
       return a.code.includes(q) || a.name.toLowerCase().includes(q)
     })
-  }, [filter, query])
+  }, [filter, query, ACCOUNTS])
 
   const groupedByType = React.useMemo(() => {
     const groups: Record<AccountType, Account[]> = { asset: [], liability: [], equity: [], revenue: [], expense: [] }
@@ -154,7 +119,7 @@ export default function ChartOfAccounts() {
     const t: Record<AccountType, number> = { asset: 0, liability: 0, equity: 0, revenue: 0, expense: 0 }
     for (const a of ACCOUNTS) if (!a.parent) t[a.type] += a.balance
     return t
-  }, [])
+  }, [ACCOUNTS])
 
   const counts: Record<Filter, number> = {
     all:        ACCOUNTS.length,
