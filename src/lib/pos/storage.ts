@@ -543,6 +543,47 @@ export function addCatalogItem(
   return stored
 }
 
+// ---- Stock movement log (powers adjustments / transfers / receive) ----
+// Every on-hand change is recorded here so inventory has an auditable
+// history, not just a current number. Generic across industries.
+export type StockMovementKind =
+  | "receive"
+  | "adjustment"
+  | "transfer-out"
+  | "transfer-in"
+  | "sale"
+  | "return"
+
+export type StockMovement = {
+  id: string
+  sku: string
+  name?: string
+  /** Signed: positive adds stock, negative removes it. */
+  delta: number
+  kind: StockMovementKind
+  at: number
+  location?: string
+  /** Destination location for transfers. */
+  toLocation?: string
+  reason?: string
+  /** Linked document — PO number, invoice number, etc. */
+  ref?: string
+}
+
+const MOVEMENTS_KEY = "pos:stock-movements:v1"
+
+export function listStockMovements(): StockMovement[] {
+  return getLS<StockMovement[]>(MOVEMENTS_KEY, [])
+}
+
+// Record a movement AND apply it to on-hand stock in one call.
+export function recordStockMovement(m: Omit<StockMovement, "id" | "at"> & { id?: string; at?: number }): StockMovement {
+  const entry: StockMovement = { id: m.id ?? genId("mv"), at: m.at ?? Date.now(), ...m }
+  setLS(MOVEMENTS_KEY, [entry, ...listStockMovements()])
+  if (entry.delta !== 0) adjustStock(entry.sku, entry.delta)
+  return entry
+}
+
 // Credit (or debit) on-hand stock for a SKU across every mode's catalog.
 // Used when a return is finalised to put returned units back on the
 // shelf. Skips the UNLIMITED_STOCK (9999) sentinel — services and menu
