@@ -19,10 +19,13 @@ import { FormFooter } from "@/components/forms/form-footer"
 import { FormAside } from "@/components/forms/form-aside"
 import { SwitchField } from "@/components/forms/switch-field"
 import { InputAddon } from "@/components/forms/input-addon"
+import { CoachMark } from "@/components/onboarding/coach-mark"
 import { useAutoMarkStep } from "@/hooks/use-auto-mark-step"
 
 export default function NewItemPage() {
   useAutoMarkStep("first-item")
+  // App Wave 5: first-visit hint pointing at the SKU field.
+  const skuRef = React.useRef<HTMLInputElement>(null)
   const [suppliers, setSuppliers] = React.useState(["Cobalt Distributors", "Delta Apparel", "Glow Co"])
   const [supplier, setSupplier] = React.useState<string>("Cobalt Distributors")
   const [trackInventory, setTrackInventory] = React.useState(true)
@@ -81,7 +84,7 @@ export default function NewItemPage() {
               </>
             }
           >
-            <Input id="sku" placeholder="EL-2109" required />
+            <Input id="sku" ref={skuRef} placeholder="EL-2109" required />
           </FormField>
           <FormField label="Category" required tooltip="Groups items together in reports and on the storefront — e.g. Electronics, Apparel, Beauty.">
             <Select defaultValue="electronics">
@@ -312,6 +315,14 @@ export default function NewItemPage() {
           />
         </div>
       </FormSection>
+
+      <CoachMark
+        id="inv-new-sku"
+        anchorRef={skuRef}
+        title="The SKU is for life"
+        body="A SKU is the unique code you'll scan and search by. Pick a readable pattern (EL-2109) and never reuse it — name and price can change later, the SKU shouldn't."
+        placement="top"
+      />
     </FormShell>
   )
 }

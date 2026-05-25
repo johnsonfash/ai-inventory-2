@@ -7,6 +7,7 @@ import { StatusBadge } from "@/components/lists/status-badge"
 import { useRegisterPageRefresh } from "@/hooks/use-pull-to-refresh"
 import { type Period } from "@/components/reports/period-chips"
 import { useCurrency, formatPriceFor } from "@/contexts/currency"
+import { GlossaryLink } from "@/components/help/glossary-link"
 import { buildShiftReport, listShifts } from "@/lib/pos/shifts"
 
 type Row = {
@@ -79,8 +80,10 @@ export default function CashDrawerReport() {
       titleTooltip={
         <>
           Every cashier shift with its opening float, sales, expected cash, and what was
-          actually counted at close. A negative variance means the drawer was <strong>short</strong>;
-          positive means <strong>over</strong>. Persistent shorts on one cashier are worth a look.
+          actually counted at close. A negative{" "}
+          <GlossaryLink termId="register-variance">variance</GlossaryLink> means the drawer was
+          <strong> short</strong>; positive means <strong>over</strong>. Persistent shorts on one
+          cashier are worth a look.
         </>
       }
       period={period}
