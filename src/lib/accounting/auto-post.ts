@@ -1,5 +1,5 @@
 import { accountByCode, listEntries, postEntry, type JournalLine } from "@/lib/accounting/ledger"
-import type { Invoice } from "@/lib/pos/storage"
+import type { Invoice, ReturnRecord } from "@/lib/pos/storage"
 
 // ACCT-2 — auto-posting. Turns operational activity into balanced journal
 // entries so the books reflect real life without anyone touching the
@@ -68,6 +68,109 @@ export function postInvoiceToLedger(invoice: Invoice): boolean {
     return true
   } catch {
     // postEntry throws if it somehow doesn't balance — never corrupt books.
+    return false
+  }
+}
+
+/**
+ * Post a return/refund: it partly reverses a sale. Debit Sales for the
+ * goods + VAT Payable for the tax (reducing both), credit the tender the
+ * money went back through. Idempotent by return number.
+ */
+export function postReturnToLedger(ret: ReturnRecord): boolean {
+  const ref = ret.number
+  if (alreadyPosted(ref)) return false
+  const sales = accountByCode("4000")
+  const vat = accountByCode("2100")
+  const tender = accountByCode(tenderAccountCode(ret.method))
+  if (!sales || !vat || !tender) return false
+  const goods = Math.round(ret.subtotal * 100) / 100
+  const tax = Math.round(ret.tax * 100) / 100
+  const lines: JournalLine[] = []
+  if (goods > 0) lines.push({ accountId: sales.id, debit: goods, credit: 0 })
+  if (tax > 0) lines.push({ accountId: vat.id, debit: tax, credit: 0 })
+  lines.push({ accountId: tender.id, debit: 0, credit: Math.round(ret.totalRefund * 100) / 100 })
+  try {
+    postEntry({
+      date: new Date(ret.createdAt).toISOString().slice(0, 10),
+      memo: `Refund ${ret.number}`,
+      lines,
+      source: "system",
+      sourceRef: ref,
+    })
+    return true
+  } catch {
+    return false
+  }
+}
+
+// ---- Ready-to-wire posters for the other operational sources ----
+// These follow the same balanced + idempotent pattern; wire them from the
+// purchasing / payroll / expense create flows as those persist at runtime.
+
+/** A supplier bill: DR Inventory (or an expense), CR Accounts Payable. */
+export function postBillToLedger(bill: { id: string; date?: string; amount: number; toInventory?: boolean; expenseCode?: string }): boolean {
+  if (alreadyPosted(bill.id)) return false
+  const ap = accountByCode("2000")
+  const debitAcct = accountByCode(bill.toInventory === false ? bill.expenseCode ?? "5900" : "1200")
+  if (!ap || !debitAcct || bill.amount <= 0) return false
+  try {
+    postEntry({
+      date: bill.date ?? new Date().toISOString().slice(0, 10),
+      memo: `Bill ${bill.id}`,
+      lines: [
+        { accountId: debitAcct.id, debit: bill.amount, credit: 0 },
+        { accountId: ap.id, debit: 0, credit: bill.amount },
+      ],
+      source: "system",
+      sourceRef: bill.id,
+    })
+    return true
+  } catch {
+    return false
+  }
+}
+
+/** An expense paid from cash/bank: DR expense account, CR Cash/Bank. */
+export function postExpenseToLedger(exp: { id: string; date?: string; amount: number; expenseCode: string; fromCash?: boolean }): boolean {
+  if (alreadyPosted(exp.id)) return false
+  const expenseAcct = accountByCode(exp.expenseCode)
+  const cashAcct = accountByCode(exp.fromCash ? "1000" : "1010")
+  if (!expenseAcct || !cashAcct || exp.amount <= 0) return false
+  try {
+    postEntry({
+      date: exp.date ?? new Date().toISOString().slice(0, 10),
+      memo: `Expense ${exp.id}`,
+      lines: [
+        { accountId: expenseAcct.id, debit: exp.amount, credit: 0 },
+        { accountId: cashAcct.id, debit: 0, credit: exp.amount },
+      ],
+      source: "system",
+      sourceRef: exp.id,
+    })
+    return true
+  } catch {
+    return false
+  }
+}
+
+/** A payroll run: DR Wages, CR Wages Payable + tax payables. */
+export function postPayrollToLedger(run: { id: string; date?: string; gross: number; paye?: number; otherDeductions?: number }): boolean {
+  if (alreadyPosted(run.id)) return false
+  const wages = accountByCode("5100")
+  const wagesPayable = accountByCode("2200")
+  const vat = accountByCode("2100") // PAYE folded into a payable; reuse VAT-style payable if no PAYE acct
+  if (!wages || !wagesPayable || run.gross <= 0) return false
+  const paye = Math.round((run.paye ?? 0) * 100) / 100
+  const net = Math.round((run.gross - paye - (run.otherDeductions ?? 0)) * 100) / 100
+  const lines: JournalLine[] = [{ accountId: wages.id, debit: run.gross, credit: 0 }]
+  if (net > 0) lines.push({ accountId: wagesPayable.id, debit: 0, credit: net })
+  if (paye > 0 && vat) lines.push({ accountId: vat.id, debit: 0, credit: paye })
+  if ((run.otherDeductions ?? 0) > 0) lines.push({ accountId: wagesPayable.id, debit: 0, credit: Math.round((run.otherDeductions ?? 0) * 100) / 100 })
+  try {
+    postEntry({ date: run.date ?? new Date().toISOString().slice(0, 10), memo: `Payroll ${run.id}`, lines, source: "system", sourceRef: run.id })
+    return true
+  } catch {
     return false
   }
 }

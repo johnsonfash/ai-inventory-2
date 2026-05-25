@@ -32,6 +32,7 @@ import {
   type ReturnRecord,
 } from "@/lib/pos/storage"
 import { db } from "@/lib/db/index"
+import { postReturnToLedger } from "@/lib/accounting/auto-post"
 import { useCurrency } from "@/contexts/currency"
 import { cn } from "@/lib/utils"
 
@@ -224,6 +225,8 @@ export default function NewReturnPage() {
     // POS-5: credit returned units back to stock + queue the return for sync.
     for (const it of rec.items) adjustStock(it.sku, it.qty)
     void db.enqueue("return", rec)
+    // ACCT-2: post the refund to the ledger (reverses part of the sale).
+    postReturnToLedger(rec)
     toast.success(`Return ${rec.number} created · ${formatPrice(totalRefund)} refunded.`)
     navigate(`/pos/returns/${rec.id}`)
   }
