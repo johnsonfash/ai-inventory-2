@@ -188,7 +188,28 @@ export default function JournalEntries() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-[11px] text-muted-foreground">{filtered.length} entries · {filtered.flatMap((j) => j.lines).length} line items</p>
         <div className="flex flex-wrap items-center gap-2">
-          <Button size="sm" variant="outline" onClick={() => toast.success("Journal export started — CSV ready in your downloads.")}>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => {
+              // ACCT-7: real general-ledger CSV export — every posted line,
+              // ready to hand to an accountant or import elsewhere.
+              if (exportRows.length === 0) return
+              const headers = Object.keys(exportRows[0]!)
+              const esc = (c: unknown) => `"${String(c).replace(/"/g, '""')}"`
+              const csv = [
+                headers.map(esc).join(","),
+                ...exportRows.map((r) => headers.map((h) => esc((r as Record<string, unknown>)[h])).join(",")),
+              ].join("\n")
+              const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }))
+              const a = document.createElement("a")
+              a.href = url
+              a.download = `pallio-general-ledger-${new Date().toISOString().slice(0, 10)}.csv`
+              a.click()
+              URL.revokeObjectURL(url)
+              toast.success(`Exported ${exportRows.length} ledger lines to CSV.`)
+            }}
+          >
             <Download className="h-3.5 w-3.5" /> Export
           </Button>
           <Button
