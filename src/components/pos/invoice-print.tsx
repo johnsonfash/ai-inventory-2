@@ -190,6 +190,20 @@ export function ReceiptPreview({ invoice }: { invoice: Invoice }) {
               {formatPriceFor(invoice.total)}
             </td>
           </tr>
+          {invoice.status === "partial" ? (
+            <>
+              <tr className="totals">
+                <td />
+                <td className="right">{"Paid"}</td>
+                <td className="right">{formatPriceFor(invoice.paid ?? 0)}</td>
+              </tr>
+              <tr className="totals">
+                <td />
+                <td className="right" style={{ fontWeight: 700 }}>{"Balance due"}</td>
+                <td className="right" style={{ fontWeight: 700 }}>{formatPriceFor(invoice.balance ?? 0)}</td>
+              </tr>
+            </>
+          ) : null}
         </tbody>
       </table>
       <div style={{ marginTop: 8 }} className="muted">
@@ -200,6 +214,11 @@ export function ReceiptPreview({ invoice }: { invoice: Invoice }) {
           </span>
         ))}
       </div>
+      {invoice.status === "partial" && (
+        <div style={{ marginTop: 8 }}>
+          <span className="badge">{`Layaway — ${formatPriceFor(invoice.balance ?? 0)} balance owed`}</span>
+        </div>
+      )}
     </div>
   )
 }

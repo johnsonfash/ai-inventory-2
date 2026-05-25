@@ -50,8 +50,10 @@ import {
   useStoreCredit,
 } from "@/lib/pos/loyalty"
 import { SellGiftCardDialog } from "@/components/pos/sell-gift-card-dialog"
+import { RecallQuoteDialog } from "@/components/pos/recall-quote-dialog"
 import { loadTiers, tierMultiplier } from "@/lib/pos/pricing-tiers"
 import type { AuditEntry } from "@/lib/pos/storage"
+import type { Order } from "@/lib/sales/types"
 import { modifiersTotal, variantLabel, variantUnitPrice } from "@/lib/pos/variants"
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"
@@ -143,6 +145,7 @@ export default function PointOfSale() {
   // POS-2: item with variants/modifiers awaiting an options pick.
   const [optionsItem, setOptionsItem] = React.useState<CatalogItem | null>(null)
   const [sellGiftCardOpen, setSellGiftCardOpen] = React.useState(false)
+  const [recallOpen, setRecallOpen] = React.useState(false)
   // Bumped after a loyalty mutation so the checkout sheet re-reads kv.
   const [, setLoyaltyTick] = React.useState(0)
 
@@ -279,6 +282,24 @@ export default function PointOfSale() {
       },
       ...prev,
     ])
+  }
+
+  // ----- Recall a quote/order into the cart (POS-2). -----
+  const recallQuote = (order: Order) => {
+    setCart(
+      order.lines.map((l) => ({
+        id: genId("line"),
+        sku: l.sku,
+        name: l.name,
+        price: l.unitPriceUsd,
+        listPrice: l.unitPriceUsd,
+        taxRate: l.taxRate,
+        qty: l.qty,
+      })),
+    )
+    setCustomer({ name: order.customer.name, email: order.customer.email })
+    logAudit("recall", order.number)
+    toast.success(`Loaded ${order.number} into the cart.`)
   }
 
   // ----- Sell a gift card (POS-2). Card issued on sale completion. -----
@@ -592,6 +613,7 @@ export default function PointOfSale() {
                 <PosQuickChip Icon={Layers} label="Drafts" onClick={() => navigate("/pos/drafts")} />
                 <PosQuickChip Icon={ClipboardList} label="Invoices" onClick={() => navigate("/pos/invoices")} />
                 <PosQuickChip Icon={RotateCcw} label="Returns" onClick={() => navigate("/pos/returns")} />
+                <PosQuickChip Icon={FileText} label="Recall quote" onClick={() => setRecallOpen(true)} />
                 <PosQuickChip Icon={Gift} label="Gift card" onClick={() => setSellGiftCardOpen(true)} />
                 <PosQuickChip Icon={Settings2} label={`${mode} · ${location}`} onClick={() => setSettingsOpen(true)} />
               </div>
@@ -732,6 +754,7 @@ export default function PointOfSale() {
             { Icon: Layers, label: "Drafts", hint: "Held carts you can resume.", onClick: () => { setMobileOverflowOpen(false); navigate("/pos/drafts") } },
             { Icon: ClipboardList, label: "Invoices", hint: "Past sales + receipts.", onClick: () => { setMobileOverflowOpen(false); navigate("/pos/invoices") } },
             { Icon: RotateCcw, label: "Returns", hint: "Process refunds + exchanges.", onClick: () => { setMobileOverflowOpen(false); navigate("/pos/returns") } },
+            { Icon: FileText, label: "Recall quote", hint: "Load a saved quote / order.", onClick: () => { setMobileOverflowOpen(false); setRecallOpen(true) } },
             { Icon: Gift, label: "Sell gift card", hint: "Issue a prepaid card.", onClick: () => { setMobileOverflowOpen(false); setSellGiftCardOpen(true) } },
             { Icon: Settings2, label: `Settings · ${mode}`, hint: location, onClick: () => { setMobileOverflowOpen(false); setSettingsOpen(true) } },
             { Icon: FileText, label: "Invoice preview", hint: cart.length === 0 ? "Add items first." : "Preview before charging.", onClick: () => { if (cart.length > 0) { setMobileOverflowOpen(false); setPreviewOpen(true) } } },
@@ -949,6 +972,9 @@ export default function PointOfSale() {
         onClose={() => setSellGiftCardOpen(false)}
         onConfirm={addGiftCardLine}
       />
+
+      {/* POS-2: recall a quote/order into the cart */}
+      <RecallQuoteDialog open={recallOpen} onClose={() => setRecallOpen(false)} onRecall={recallQuote} />
 
       {/* POS-1: manager-override PIN gate */}
       <ManagerPinDialog request={pinRequest} onClose={() => setPinRequest(null)} />
