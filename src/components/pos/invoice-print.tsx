@@ -1,4 +1,5 @@
 import { lineDiscountValue, lineNet, type Invoice } from "@/lib/pos/storage"
+import { loadReceiptSettings } from "@/lib/pos/receipt-settings"
 import { formatPriceFor } from "@/contexts/currency"
 
 export function printInvoiceNode(node: HTMLElement) {
@@ -149,12 +150,19 @@ export function InvoicePreview({ invoice }: { invoice: Invoice }) {
   )
 }
 
-export function ReceiptPreview({ invoice }: { invoice: Invoice }) {
+export function ReceiptPreview({ invoice, gift }: { invoice: Invoice; gift?: boolean }) {
   const d = new Date(invoice.createdAt)
+  const s = loadReceiptSettings()
+  const returnBy = new Date(invoice.createdAt + s.giftReturnDays * 86_400_000)
   return (
     <div>
-      <div className="title">
-        {"Receipt "}
+      {s.logoDataUrl && (
+        <img src={s.logoDataUrl} alt="" style={{ maxHeight: 56, marginBottom: 6 }} />
+      )}
+      <div className="title">{s.businessName || "Pallio"}</div>
+      {s.address && <div className="muted">{s.address}</div>}
+      <div className="muted">
+        {gift ? "GIFT RECEIPT · " : "Receipt "}
         {invoice.number}
       </div>
       <div className="muted">{d.toLocaleString()}</div>
@@ -163,34 +171,36 @@ export function ReceiptPreview({ invoice }: { invoice: Invoice }) {
           <tr>
             <th>{"Item"}</th>
             <th className="right">{"Qty"}</th>
-            <th className="right">{"Line"}</th>
+            {!gift && <th className="right">{"Line"}</th>}
           </tr>
         </thead>
         <tbody>
           {invoice.items.map((it) => (
             <tr key={it.sku}>
-              <td>{it.name}</td>
+              <td>{it.name}{it.variantLabel ? ` (${it.variantLabel})` : ""}</td>
               <td className="right">{it.qty}</td>
-              <td className="right">{formatPriceFor(lineNet(it))}</td>
+              {!gift && <td className="right">{formatPriceFor(lineNet(it))}</td>}
             </tr>
           ))}
-          {invoice.tip ? (
+          {!gift && invoice.tip ? (
             <tr className="totals">
               <td />
               <td className="right">{"Tip"}</td>
               <td className="right">{formatPriceFor(invoice.tip)}</td>
             </tr>
           ) : null}
-          <tr className="totals">
-            <td />
-            <td className="right" style={{ fontWeight: 700 }}>
-              {"Total"}
-            </td>
-            <td className="right" style={{ fontWeight: 700 }}>
-              {formatPriceFor(invoice.total)}
-            </td>
-          </tr>
-          {invoice.status === "partial" ? (
+          {!gift && (
+            <tr className="totals">
+              <td />
+              <td className="right" style={{ fontWeight: 700 }}>
+                {"Total"}
+              </td>
+              <td className="right" style={{ fontWeight: 700 }}>
+                {formatPriceFor(invoice.total)}
+              </td>
+            </tr>
+          )}
+          {!gift && invoice.status === "partial" ? (
             <>
               <tr className="totals">
                 <td />
@@ -206,19 +216,29 @@ export function ReceiptPreview({ invoice }: { invoice: Invoice }) {
           ) : null}
         </tbody>
       </table>
-      <div style={{ marginTop: 8 }} className="muted">
-        {"Payments: "}
-        {invoice.payments.map((p, i) => (
-          <span key={i} className="badge" style={{ marginRight: 6 }}>
-            {p.method.toUpperCase()} {formatPriceFor(p.amount)}
-          </span>
-        ))}
-      </div>
-      {invoice.status === "partial" && (
-        <div style={{ marginTop: 8 }}>
-          <span className="badge">{`Layaway — ${formatPriceFor(invoice.balance ?? 0)} balance owed`}</span>
+      {gift ? (
+        <div style={{ marginTop: 8 }} className="muted">
+          {`Returnable with this receipt until ${returnBy.toLocaleDateString()}.`}
         </div>
+      ) : (
+        <>
+          <div style={{ marginTop: 8 }} className="muted">
+            {"Payments: "}
+            {invoice.payments.map((p, i) => (
+              <span key={i} className="badge" style={{ marginRight: 6 }}>
+                {p.method.toUpperCase()} {formatPriceFor(p.amount)}
+              </span>
+            ))}
+          </div>
+          {invoice.status === "partial" && (
+            <div style={{ marginTop: 8 }}>
+              <span className="badge">{`Layaway — ${formatPriceFor(invoice.balance ?? 0)} balance owed`}</span>
+            </div>
+          )}
+        </>
       )}
+      {s.footer && <div style={{ marginTop: 8 }} className="muted">{s.footer}</div>}
+      {s.social && <div className="muted">{s.social}</div>}
     </div>
   )
 }

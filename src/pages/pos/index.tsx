@@ -52,6 +52,13 @@ import {
 import { SellGiftCardDialog } from "@/components/pos/sell-gift-card-dialog"
 import { RecallQuoteDialog } from "@/components/pos/recall-quote-dialog"
 import { loadTiers, tierMultiplier } from "@/lib/pos/pricing-tiers"
+import {
+  canCameraScan,
+  openCashDrawer,
+  printInvoiceThermal,
+  scanWithCamera,
+} from "@/lib/pos/hardware"
+import { loadReceiptSettings } from "@/lib/pos/receipt-settings"
 import type { AuditEntry } from "@/lib/pos/storage"
 import type { Order } from "@/lib/sales/types"
 import { modifiersTotal, variantLabel, variantUnitPrice } from "@/lib/pos/variants"
@@ -136,6 +143,7 @@ export default function PointOfSale() {
   const [previewOpen, setPreviewOpen] = React.useState(false)
   const [receiptOpen, setReceiptOpen] = React.useState(false)
   const [lastInvoice, setLastInvoice] = React.useState<Invoice | null>(null)
+  const [giftReceipt, setGiftReceipt] = React.useState(false)
 
   // ----- POS-1 dialogs: manager PIN, custom item, item-not-found, void -----
   const [pinRequest, setPinRequest] = React.useState<PinRequest | null>(null)
@@ -527,6 +535,12 @@ export default function PointOfSale() {
       toast.success(`Saved — ${formatPrice(balance)} balance owed on ${invoice.number}.`)
     }
 
+    // POS-3: kick the cash drawer after a cash sale (no-op on web).
+    if (loadReceiptSettings().autoKickDrawer && augmented.some((p) => p.method === "cash" && p.amount > 0)) {
+      void openCashDrawer()
+    }
+
+    setGiftReceipt(false)
     setLastInvoice(invoice)
     setCheckoutOpen(false)
     setCartOpen(false)
@@ -708,6 +722,21 @@ export default function PointOfSale() {
         maxHeightVh={60}
       >
         <div className="flex flex-col gap-3 pb-3">
+          {canCameraScan() && (
+            <Button
+              type="button"
+              className="w-full"
+              onClick={async () => {
+                const code = await scanWithCamera()
+                if (code) {
+                  addByBarcode(code)
+                  setMobileScanOpen(false)
+                }
+              }}
+            >
+              <Barcode className="h-4 w-4" /> Scan with camera
+            </Button>
+          )}
           <div className="flex items-center gap-2 rounded-2xl border border-border bg-card p-3">
             <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-soft text-brand dark:bg-primary/15 dark:text-primary">
               <Barcode className="h-4 w-4" />
@@ -918,16 +947,31 @@ export default function PointOfSale() {
           </div>
           {lastInvoice ? (
             <div id="receipt-root">
-              <ReceiptPreview invoice={lastInvoice} />
+              <ReceiptPreview invoice={lastInvoice} gift={giftReceipt} />
             </div>
           ) : (
             <div className="text-sm text-muted-foreground">No receipt to show.</div>
           )}
+          <label className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
+            <input
+              type="checkbox"
+              checked={giftReceipt}
+              onChange={(e) => setGiftReceipt(e.target.checked)}
+              className="h-4 w-4 accent-[var(--brand)]"
+            />
+            Gift receipt (hide prices, show return-by date)
+          </label>
           <div className="mt-3 flex justify-end gap-2">
             <Button
               type="button"
               variant="outline"
-              onClick={() => {
+              onClick={async () => {
+                // Try the thermal printer first; fall back to the browser
+                // print dialog when there's no printer / on web.
+                if (lastInvoice) {
+                  const ok = await printInvoiceThermal(lastInvoice, { gift: giftReceipt })
+                  if (ok) return
+                }
                 const node = document.getElementById("receipt-root")
                 if (node) printInvoiceNode(node)
               }}

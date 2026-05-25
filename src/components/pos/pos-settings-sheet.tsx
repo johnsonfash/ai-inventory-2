@@ -5,6 +5,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { SwitchField } from "@/components/forms/switch-field"
 import { loadPosSettings, savePosSettings, type PosSettings } from "@/lib/pos/settings"
 import type { PriceTier } from "@/lib/pos/pricing-tiers"
+import {
+  loadReceiptSettings,
+  saveReceiptSettings,
+  type ReceiptSettings,
+} from "@/lib/pos/receipt-settings"
+import { canThermalPrint, listPrinters, openCashDrawer } from "@/lib/pos/hardware"
+import { Button } from "@/components/ui/button"
+import { toast } from "sonner"
 
 type Mode = "retail" | "restaurant" | "services" | "auto"
 
@@ -58,6 +66,24 @@ export function PosSettingsSheet({
   const patchPos = (part: Partial<PosSettings>) => {
     setPos((p) => ({ ...p, ...part }))
     savePosSettings(part)
+  }
+
+  // Receipt + printer customization (POS-3).
+  const [receipt, setReceipt] = React.useState<ReceiptSettings>(() => loadReceiptSettings())
+  const patchReceipt = (part: Partial<ReceiptSettings>) => {
+    setReceipt((r) => ({ ...r, ...part }))
+    saveReceiptSettings(part)
+  }
+  const [printers, setPrinters] = React.useState<{ name: string }[]>([])
+  React.useEffect(() => {
+    if (open && canThermalPrint()) listPrinters().then(setPrinters)
+  }, [open])
+
+  const onLogoFile = (file?: File) => {
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = () => patchReceipt({ logoDataUrl: String(reader.result) })
+    reader.readAsDataURL(file)
   }
 
   return (
@@ -184,6 +210,122 @@ export function PosSettingsSheet({
               checked={pos.requireVoidReason}
               onCheckedChange={(v) => patchPos({ requireVoidReason: v })}
             />
+          </div>
+        </div>
+
+        {/* Receipt + printer (POS-3) */}
+        <div className="mt-2 rounded-xl border border-border bg-muted/30 p-3">
+          <p className="text-xs font-semibold">Receipt &amp; printer</p>
+          <p className="mb-3 text-[11px] text-muted-foreground">
+            What prints on the receipt header + footer, and which printer it goes to.
+          </p>
+          <div className="flex flex-col gap-3">
+            <FieldRow label="Business name">
+              <Input
+                value={receipt.businessName}
+                onChange={(e) => patchReceipt({ businessName: e.target.value })}
+                placeholder="Shown at the top (defaults to Pallio)"
+              />
+            </FieldRow>
+            <FieldRow label="Address">
+              <Input
+                value={receipt.address}
+                onChange={(e) => patchReceipt({ address: e.target.value })}
+                placeholder="Street, city"
+              />
+            </FieldRow>
+            <FieldRow label="Footer / return policy">
+              <Input
+                value={receipt.footer}
+                onChange={(e) => patchReceipt({ footer: e.target.value })}
+                placeholder="Thanks! Returns within 30 days with receipt."
+              />
+            </FieldRow>
+            <FieldRow label="Social / website">
+              <Input
+                value={receipt.social}
+                onChange={(e) => patchReceipt({ social: e.target.value })}
+                placeholder="@yourshop · yourshop.pallio.shop"
+              />
+            </FieldRow>
+            <FieldRow label="Logo">
+              <div className="flex items-center gap-2">
+                {receipt.logoDataUrl && (
+                  <img src={receipt.logoDataUrl} alt="" className="h-9 w-9 rounded object-contain" />
+                )}
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => onLogoFile(e.target.files?.[0])}
+                  className="text-xs"
+                />
+                {receipt.logoDataUrl && (
+                  <button
+                    type="button"
+                    onClick={() => patchReceipt({ logoDataUrl: undefined })}
+                    className="text-[11px] text-muted-foreground hover:text-foreground"
+                  >
+                    Remove
+                  </button>
+                )}
+              </div>
+            </FieldRow>
+            <FieldRow label="Paper width">
+              <Select value={receipt.paperSize} onValueChange={(v) => v && patchReceipt({ paperSize: v as ReceiptSettings["paperSize"] })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Mm80">80mm</SelectItem>
+                  <SelectItem value="Mm58">58mm</SelectItem>
+                </SelectContent>
+              </Select>
+            </FieldRow>
+            <FieldRow label="Gift receipt return window (days)">
+              <Input
+                type="number"
+                min={0}
+                value={receipt.giftReturnDays}
+                onChange={(e) => patchReceipt({ giftReturnDays: Math.max(0, Number(e.target.value) || 0) })}
+              />
+            </FieldRow>
+
+            {canThermalPrint() ? (
+              <>
+                <FieldRow label="Thermal printer">
+                  <Select
+                    value={receipt.printerName ?? ""}
+                    onValueChange={(v) => v && patchReceipt({ printerName: v })}
+                  >
+                    <SelectTrigger><SelectValue placeholder={printers.length ? "Choose a printer" : "No printers found"} /></SelectTrigger>
+                    <SelectContent>
+                      {printers.map((p) => (
+                        <SelectItem key={p.name} value={p.name}>{p.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </FieldRow>
+                <SwitchField
+                  label="Open cash drawer on cash sales"
+                  description="Sends a drawer-kick to the receipt printer after a cash payment."
+                  checked={receipt.autoKickDrawer}
+                  onCheckedChange={(v) => patchReceipt({ autoKickDrawer: v })}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={async () => {
+                    const ok = await openCashDrawer()
+                    toast[ok ? "success" : "error"](ok ? "Drawer opened." : "No drawer / printer connected.")
+                  }}
+                >
+                  Open drawer
+                </Button>
+              </>
+            ) : (
+              <p className="text-[11px] text-muted-foreground">
+                Thermal printing + cash drawer are available in the desktop and Android apps.
+                On the web the browser print dialog is used.
+              </p>
+            )}
           </div>
         </div>
       </div>
