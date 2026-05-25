@@ -48,6 +48,17 @@ export type CartItem = {
   /** This line sells a gift card for `price`; on sale a card is issued.
    *  Non-taxable, doesn't touch stock. POS-2. */
   giftCard?: boolean
+  /** Pre-tier unit price (variant + modifiers, before the price-tier
+   *  multiplier). Kept so switching tier can reprice the line. POS-2. */
+  listPrice?: number
+}
+
+// Per-line stamp for the cashier audit trail (POS-2): who did what, when.
+export type AuditEntry = {
+  at: number
+  by: string
+  action: "add" | "discount" | "void" | "tier" | "partial" | "recall"
+  detail?: string
 }
 
 // Two cart lines merge only when they're the same product AND the same
@@ -127,6 +138,16 @@ export type Invoice = {
   tip?: number
   total: number
   payments: PaymentLine[]
+  /** Settlement state. Layaway/partial sales open as `partial` with a
+   *  balance owed. POS-2. */
+  status?: "paid" | "partial" | "refunded" | "void"
+  /** Amount paid so far + balance still owed (for `partial`). POS-2. */
+  paid?: number
+  balance?: number
+  /** Price tier applied to this sale (e.g. "Wholesale"). POS-2. */
+  tierName?: string
+  /** Cashier audit trail — who added/discounted/voided. POS-2. */
+  audit?: AuditEntry[]
   meta?: {
     location?: string
     salesperson?: string

@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { SwitchField } from "@/components/forms/switch-field"
 import { loadPosSettings, savePosSettings, type PosSettings } from "@/lib/pos/settings"
+import type { PriceTier } from "@/lib/pos/pricing-tiers"
 
 type Mode = "retail" | "restaurant" | "services" | "auto"
 
@@ -12,6 +13,10 @@ type Props = {
   onClose: () => void
   mode: Mode
   onModeChange: (m: Mode) => void
+  /** Price tier for this sale (POS-2). */
+  tier?: string
+  tiers?: PriceTier[]
+  onTierChange?: (id: string) => void
   salesperson: string
   onSalespersonChange: (s: string) => void
   channel: string
@@ -31,6 +36,9 @@ export function PosSettingsSheet({
   onClose,
   mode,
   onModeChange,
+  tier,
+  tiers,
+  onTierChange,
   salesperson,
   onSalespersonChange,
   channel,
@@ -71,6 +79,22 @@ export function PosSettingsSheet({
             </SelectContent>
           </Select>
         </FieldRow>
+
+        {tiers && onTierChange && (
+          <FieldRow label="Price tier">
+            <Select value={tier} onValueChange={(v) => v && onTierChange(v)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {tiers.map((t) => (
+                  <SelectItem key={t.id} value={t.id}>
+                    {t.name}
+                    {t.adjustPercent !== 0 ? ` (${t.adjustPercent > 0 ? "+" : ""}${t.adjustPercent}%)` : ""}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </FieldRow>
+        )}
 
         <FieldRow label="Location">
           <Select value={location} onValueChange={(v) => v && onLocationChange(v)}>

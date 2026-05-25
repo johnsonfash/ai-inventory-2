@@ -55,6 +55,8 @@ type Props = {
   onRemovePayment: (idx: number) => void
   onUpdatePayment: (idx: number, part: Partial<PaymentLine>) => void
   onConfirm: () => void
+  /** Save as a layaway / partial sale with a balance owed (POS-2). */
+  onSavePartial?: () => void
   /** Optional virtual-account display info (bank + account number). */
   virtualAccount?: { bank: string; accountNumber: string; accountName: string } | null
   /** Attached customer — drives store-credit + loyalty (POS-2). */
@@ -75,6 +77,7 @@ export function CheckoutSheet({
   onRemovePayment,
   onUpdatePayment,
   onConfirm,
+  onSavePartial,
   virtualAccount,
   customer,
   onRedeemPoints,
@@ -133,6 +136,13 @@ export function CheckoutSheet({
             <CheckCircle2 className="h-4 w-4" />
             {fullyPaid ? "Complete sale" : "Add more payment"}
           </Button>
+          {/* Layaway: take a deposit now, owe the rest. Only offered once
+              something is tendered but the balance isn't fully covered. */}
+          {onSavePartial && !fullyPaid && paid > 0 && (
+            <Button type="button" variant="outline" onClick={onSavePartial} className="w-full">
+              Take {formatPrice(paid)} deposit · owe {formatPrice(remaining)}
+            </Button>
+          )}
         </div>
       }
     >

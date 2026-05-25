@@ -50,6 +50,8 @@ import {
   useStoreCredit,
 } from "@/lib/pos/loyalty"
 import { SellGiftCardDialog } from "@/components/pos/sell-gift-card-dialog"
+import { loadTiers, tierMultiplier } from "@/lib/pos/pricing-tiers"
+import type { AuditEntry } from "@/lib/pos/storage"
 import { modifiersTotal, variantLabel, variantUnitPrice } from "@/lib/pos/variants"
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"
@@ -112,6 +114,17 @@ export default function PointOfSale() {
   // ----- Voids (transaction-scoped audit; not persisted in POS-1) -----
   const [voids, setVoids] = React.useState<VoidEntry[]>([])
 
+  // ----- Price tier (POS-2) + cashier audit trail -----
+  const tiers = React.useMemo(() => loadTiers(), [])
+  const [tierId, setTierId] = React.useState("retail")
+  const activeTier = tiers.find((t) => t.id === tierId)
+  const [audit, setAudit] = React.useState<AuditEntry[]>([])
+  const logAudit = React.useCallback(
+    (action: AuditEntry["action"], detail?: string) =>
+      setAudit((prev) => [...prev, { at: Date.now(), by: cashier || salesperson || "Cashier", action, detail }]),
+    [cashier, salesperson],
+  )
+
   // ----- Sheets / dialogs -----
   const [cartOpen, setCartOpen] = React.useState(false)
   const [mobileScanOpen, setMobileScanOpen] = React.useState(false)
@@ -154,36 +167,55 @@ export default function PointOfSale() {
   // ----- Cart mutations -----
   // A line is identified by its `id`. Lines merge only when product +
   // variant + modifiers all match (cartLineKey). POS-2.
-  const addCartLine = React.useCallback((item: CatalogItem, sel?: ItemSelection, qty = 1) => {
-    const variant = sel?.variant
-    const modifiers = sel?.modifiers && sel.modifiers.length ? sel.modifiers : undefined
-    const unitPrice =
-      Math.round((variantUnitPrice(item.price, variant) + modifiersTotal(modifiers)) * 100) / 100
-    const sku = variant?.sku ?? item.sku
-    const key = cartLineKey(item.sku, variant?.sku, modifiers)
-    setCart((prev) => {
-      const idx = prev.findIndex((p) => cartLineKey(p.sku, p.variantSku, p.modifiers) === key)
-      if (idx === -1) {
-        return [
-          {
-            id: genId("line"),
-            sku,
-            name: item.name,
-            price: unitPrice,
-            taxRate: item.taxRate,
-            qty,
-            variantSku: variant?.sku,
-            variantLabel: variant ? variantLabel(variant, item.variantAxes) : undefined,
-            modifiers,
-          },
-          ...prev,
-        ]
-      }
-      const copy = prev.slice()
-      copy[idx] = { ...copy[idx]!, qty: copy[idx]!.qty + qty }
-      return copy
-    })
-  }, [])
+  const addCartLine = React.useCallback(
+    (item: CatalogItem, sel?: ItemSelection, qty = 1) => {
+      const variant = sel?.variant
+      const modifiers = sel?.modifiers && sel.modifiers.length ? sel.modifiers : undefined
+      // listPrice = pre-tier unit price; the stored price applies the tier.
+      const listPrice =
+        Math.round((variantUnitPrice(item.price, variant) + modifiersTotal(modifiers)) * 100) / 100
+      const unitPrice = Math.round(listPrice * tierMultiplier(activeTier) * 100) / 100
+      const sku = variant?.sku ?? item.sku
+      const key = cartLineKey(item.sku, variant?.sku, modifiers)
+      setCart((prev) => {
+        const idx = prev.findIndex((p) => cartLineKey(p.sku, p.variantSku, p.modifiers) === key)
+        if (idx === -1) {
+          return [
+            {
+              id: genId("line"),
+              sku,
+              name: item.name,
+              price: unitPrice,
+              listPrice,
+              taxRate: item.taxRate,
+              qty,
+              variantSku: variant?.sku,
+              variantLabel: variant ? variantLabel(variant, item.variantAxes) : undefined,
+              modifiers,
+            },
+            ...prev,
+          ]
+        }
+        const copy = prev.slice()
+        copy[idx] = { ...copy[idx]!, qty: copy[idx]!.qty + qty }
+        return copy
+      })
+    },
+    [activeTier],
+  )
+
+  // Switch price tier: reprice every catalogue line from its listPrice.
+  // Custom / gift-card lines (no listPrice) are left alone.
+  const onTierChange = (id: string) => {
+    setTierId(id)
+    const mult = tierMultiplier(tiers.find((t) => t.id === id))
+    setCart((prev) =>
+      prev.map((p) =>
+        p.listPrice != null ? { ...p, price: Math.round(p.listPrice * mult * 100) / 100 } : p,
+      ),
+    )
+    logAudit("tier", tiers.find((t) => t.id === id)?.name)
+  }
 
   // Tap a catalog tile: items with variants/modifiers open the options
   // sheet; everything else drops straight into the cart.
@@ -224,6 +256,7 @@ export default function PointOfSale() {
     setPayments([{ method: "cash", amount: 0 }])
     setCustomer({})
     setVoids([])
+    setAudit([])
   }
 
   // ----- Custom / open item (POS-1) -----
@@ -266,10 +299,13 @@ export default function PointOfSale() {
 
   // ----- Line discount with manager-override gate (POS-1) -----
   const setLineDiscount = (id: string, value: number, type: "flat" | "percent") => {
-    const apply = () =>
+    const line0 = cart.find((p) => p.id === id)
+    const apply = () => {
       setCart((prev) =>
         prev.map((p) => (p.id === id ? { ...p, lineDiscount: value, lineDiscountType: type } : p)),
       )
+      if (value > 0) logAudit("discount", `${line0?.name ?? "line"} · ${value}${type === "percent" ? "%" : ""}`)
+    }
     const settings = loadPosSettings()
     // Gate deep percentage discounts. A flat amount is gated by the share
     // it represents of the line so a "₦5000 off a ₦6000 line" still asks.
@@ -296,6 +332,7 @@ export default function PointOfSale() {
       ...prev,
       { sku: item.sku, name: item.name, qty: item.qty, value: lineNet(item), reason, approvedBy, at: Date.now() },
     ])
+    logAudit("void", `${item.name} · ${reason}${approvedBy ? ` (approved by ${approvedBy})` : ""}`)
     setCart((prev) => prev.filter((p) => p.id !== item.id))
   }
 
@@ -398,17 +435,25 @@ export default function PointOfSale() {
       ),
     )
 
-  // ----- Confirm sale -----
-  const onConfirmPayment = () => {
+  // ----- Finalize a sale (full settle, or layaway/partial). POS-1/2. -----
+  const finalizeSale = (partial: boolean) => {
     const grandTotal = Math.round((total + (tip || 0)) * 100) / 100
-    const paid = payments.reduce((s, p) => s + (Number.isFinite(p.amount) ? p.amount : 0), 0)
-    if (paid < grandTotal) return // button is disabled in this case anyway
-    const change = Math.max(0, Math.round((paid - grandTotal) * 100) / 100)
+    const paidRaw = payments.reduce((s, p) => s + (Number.isFinite(p.amount) ? p.amount : 0), 0)
+    if (partial) {
+      if (paidRaw <= 0) return // a layaway needs a deposit
+    } else if (paidRaw < grandTotal) {
+      return // button is disabled in this case anyway
+    }
+    const change = partial ? 0 : Math.max(0, Math.round((paidRaw - grandTotal) * 100) / 100)
     const augmented: PaymentLine[] = payments.map((p) => ({ ...p }))
     if (change > 0) {
       const cashIdx = augmented.findIndex((p) => p.method === "cash")
       if (cashIdx >= 0) augmented[cashIdx]!.reference = `Change: ${formatPrice(change)}`
     }
+    const paid = partial ? Math.round(paidRaw * 100) / 100 : grandTotal
+    const balance = partial ? Math.max(0, Math.round((grandTotal - paidRaw) * 100) / 100) : 0
+    if (partial) logAudit("partial", `Deposit ${formatPrice(paid)}, balance ${formatPrice(balance)}`)
+
     const invoice: Invoice = {
       id: genId("inv"),
       number: genInvoiceNumber(),
@@ -426,11 +471,17 @@ export default function PointOfSale() {
       tip: tip || 0,
       total: grandTotal,
       payments: augmented,
+      status: partial ? "partial" : "paid",
+      paid,
+      balance,
+      tierName: activeTier && activeTier.id !== "retail" ? activeTier.name : undefined,
+      audit: audit.length ? audit : undefined,
       meta: { location, salesperson, channel },
     }
     saveInvoice(invoice)
 
-    // POS-2: settle value instruments + accrue loyalty on the real sale.
+    // Settle the value instruments that were tendered (gift card / store
+    // credit) regardless of partial — the customer actually used them.
     for (const p of augmented) {
       if (p.method === "gift-card" && p.reference) redeemGiftCard(p.reference, p.amount)
       if (p.method === "store-credit") {
@@ -438,18 +489,22 @@ export default function PointOfSale() {
         if (id) useStoreCredit(id, p.amount)
       }
     }
-    const earned = earnPoints(customer, grandTotal)
-    if (earned > 0) toast.success(`${customer.name || "Customer"} earned ${earned} points.`)
 
-    // POS-2: issue any gift cards that were sold on this ticket.
-    const issued: string[] = []
-    for (const line of cart) {
-      if (!line.giftCard) continue
-      for (let i = 0; i < line.qty; i++) {
-        issued.push(createGiftCard({ amount: line.price, customer }).code)
+    // Points + issued gift cards only land once the sale is paid in full.
+    if (!partial) {
+      const earned = earnPoints(customer, grandTotal)
+      if (earned > 0) toast.success(`${customer.name || "Customer"} earned ${earned} points.`)
+      const issued: string[] = []
+      for (const line of cart) {
+        if (!line.giftCard) continue
+        for (let i = 0; i < line.qty; i++) {
+          issued.push(createGiftCard({ amount: line.price, customer }).code)
+        }
       }
+      if (issued.length) toast.success(`Gift card${issued.length > 1 ? "s" : ""} issued: ${issued.join(", ")}`)
+    } else {
+      toast.success(`Saved — ${formatPrice(balance)} balance owed on ${invoice.number}.`)
     }
-    if (issued.length) toast.success(`Gift card${issued.length > 1 ? "s" : ""} issued: ${issued.join(", ")}`)
 
     setLastInvoice(invoice)
     setCheckoutOpen(false)
@@ -457,6 +512,9 @@ export default function PointOfSale() {
     setReceiptOpen(true)
     clearCart()
   }
+
+  const onConfirmPayment = () => finalizeSale(false)
+  const onSavePartial = () => finalizeSale(true)
 
   // POS-2: convert a customer's points into store credit at the till.
   const onRedeemPoints = (id: string, points: number) => {
@@ -739,6 +797,7 @@ export default function PointOfSale() {
         onRemovePayment={removePayment}
         onUpdatePayment={updatePayment}
         onConfirm={onConfirmPayment}
+        onSavePartial={onSavePartial}
         virtualAccount={va ?? null}
         customer={customer}
         onRedeemPoints={onRedeemPoints}
@@ -749,6 +808,9 @@ export default function PointOfSale() {
         onClose={() => setSettingsOpen(false)}
         mode={mode}
         onModeChange={setMode}
+        tier={tierId}
+        tiers={tiers}
+        onTierChange={onTierChange}
         salesperson={salesperson}
         onSalespersonChange={setSalesperson}
         channel={channel}
