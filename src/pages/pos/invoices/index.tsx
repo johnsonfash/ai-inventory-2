@@ -1,6 +1,7 @@
 import * as React from "react"
 import { Link, useNavigate } from "react-router-dom"
-import { ChevronRight, FileText, Printer, ReceiptText, Search, ShoppingCart } from "lucide-react"
+import { ChevronRight, Download, FileText, Mail, Printer, ReceiptText, Search, ShoppingCart, X } from "lucide-react"
+import { toast } from "sonner"
 import { PageShell } from "@/components/page-shell"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -42,6 +43,14 @@ export default function POSInvoicesPage() {
   const [query, setQuery] = React.useState("")
   const [method, setMethod] = React.useState<"all" | MethodKey>("all")
   const [invoices, setInvoices] = React.useState(() => listInvoices())
+  // Bulk selection (desktop back-office). Keyed by invoice id.
+  const [selected, setSelected] = React.useState<Set<string>>(new Set())
+  const toggleSel = (id: string) =>
+    setSelected((prev) => {
+      const next = new Set(prev)
+      next.has(id) ? next.delete(id) : next.add(id)
+      return next
+    })
 
   useRegisterPageRefresh(
     React.useCallback(async () => {
@@ -73,6 +82,50 @@ export default function POSInvoicesPage() {
   const todayRevenue = todayList.reduce((s, i) => s + i.total, 0)
   const totalRevenue = invoices.reduce((s, i) => s + i.total, 0)
   const avgTicket = invoices.length === 0 ? 0 : Math.round((totalRevenue / invoices.length) * 100) / 100
+
+  // ---- Bulk actions (POS-5) ----
+  const allSelected = filtered.length > 0 && filtered.every((i) => selected.has(i.id))
+  const toggleAll = () => setSelected(allSelected ? new Set() : new Set(filtered.map((i) => i.id)))
+  const selectedInvoices = invoices.filter((i) => selected.has(i.id))
+
+  const bulkExportCsv = () => {
+    const header = ["Number", "Date", "Customer", "Method", "Total"]
+    const esc = (c: unknown) => `"${String(c).replace(/"/g, '""')}"`
+    const body = selectedInvoices.map((i) =>
+      [i.number, new Date(i.createdAt).toISOString(), i.customer?.name || "Walk-in", i.payments[0]?.method || "—", i.total]
+        .map(esc)
+        .join(","),
+    )
+    const csv = [header.map(esc).join(","), ...body].join("\n")
+    const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }))
+    const a = document.createElement("a")
+    a.href = url
+    a.download = `pallio-invoices-${new Date().toISOString().slice(0, 10)}.csv`
+    a.click()
+    URL.revokeObjectURL(url)
+    toast.success(`Exported ${selectedInvoices.length} invoice${selectedInvoices.length === 1 ? "" : "s"} to CSV.`)
+  }
+
+  const bulkPrint = () => {
+    const win = window.open("", "_blank", "width=720,height=900")
+    if (!win) return
+    const rows = selectedInvoices
+      .map(
+        (i) =>
+          `<tr><td>${i.number}</td><td>${new Date(i.createdAt).toLocaleString()}</td><td>${i.customer?.name || "Walk-in"}</td><td style="text-align:right">${formatPrice(i.total)}</td></tr>`,
+      )
+      .join("")
+    win.document.write(
+      `<html><head><title>Invoices</title><style>body{font-family:system-ui,sans-serif;padding:16px}table{width:100%;border-collapse:collapse}td,th{border-bottom:1px solid #eee;padding:6px 8px;font-size:13px;text-align:left}</style></head><body><h3>Invoices (${selectedInvoices.length})</h3><table><thead><tr><th>Number</th><th>Date</th><th>Customer</th><th style="text-align:right">Total</th></tr></thead><tbody>${rows}</tbody></table></body></html>`,
+    )
+    win.document.close()
+    win.focus()
+    win.print()
+    setTimeout(() => win.close(), 300)
+  }
+
+  const bulkEmail = () =>
+    toast.success(`Queued ${selectedInvoices.length} receipt${selectedInvoices.length === 1 ? "" : "s"} to email when the backend is connected.`)
 
   const counts: Record<"all" | MethodKey, number> = {
     all: invoices.length,
@@ -140,6 +193,18 @@ export default function POSInvoicesPage() {
           </div>
         </div>
 
+        {/* Bulk action bar (POS-5) */}
+        {selected.size > 0 && (
+          <div className="flex flex-wrap items-center gap-2 rounded-xl border border-brand/30 bg-brand-soft/50 px-3 py-2 dark:bg-primary/10">
+            <span className="text-sm font-semibold">{selected.size} selected</span>
+            <div className="flex-1" />
+            <Button size="sm" variant="outline" onClick={bulkExportCsv}><Download className="h-3.5 w-3.5" /> Export CSV</Button>
+            <Button size="sm" variant="outline" onClick={bulkPrint}><Printer className="h-3.5 w-3.5" /> Print</Button>
+            <Button size="sm" variant="outline" onClick={bulkEmail}><Mail className="h-3.5 w-3.5" /> Email</Button>
+            <Button size="sm" variant="ghost" onClick={() => setSelected(new Set())}><X className="h-3.5 w-3.5" /> Clear</Button>
+          </div>
+        )}
+
         {filtered.length === 0 ? (
           <EmptyState
             Icon={FileText}
@@ -195,6 +260,15 @@ export default function POSInvoicesPage() {
                 <table className="w-full text-sm">
                   <thead className="bg-muted/40 text-left text-[10px] uppercase tracking-wider text-muted-foreground">
                     <tr>
+                      <th className="px-3 py-2.5">
+                        <input
+                          type="checkbox"
+                          checked={allSelected}
+                          onChange={toggleAll}
+                          aria-label="Select all"
+                          className="h-4 w-4 accent-[var(--brand)]"
+                        />
+                      </th>
                       <th className="px-3 py-2.5 font-medium">Number</th>
                       <th className="px-3 py-2.5 font-medium">Date</th>
                       <th className="px-3 py-2.5 font-medium">Customer</th>
@@ -207,7 +281,16 @@ export default function POSInvoicesPage() {
                     {filtered.map((i) => {
                       const m = (i.payments[0]?.method ?? "—") as MethodKey
                       return (
-                        <tr key={i.id} className="transition-colors hover:bg-accent/30">
+                        <tr key={i.id} className={cn("transition-colors hover:bg-accent/30", selected.has(i.id) && "bg-brand-soft/40 dark:bg-primary/10")}>
+                          <td className="px-3 py-2.5">
+                            <input
+                              type="checkbox"
+                              checked={selected.has(i.id)}
+                              onChange={() => toggleSel(i.id)}
+                              aria-label={`Select ${i.number}`}
+                              className="h-4 w-4 accent-[var(--brand)]"
+                            />
+                          </td>
                           <td className="px-3 py-2.5">
                             <Link to={`/pos/invoices/${i.id}`} className="font-mono text-xs font-bold text-brand hover:underline dark:text-primary">
                               {i.number}
