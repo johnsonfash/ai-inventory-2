@@ -3,6 +3,7 @@ import { BottomSheet } from "@/components/mobile/bottom-sheet"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { SwitchField } from "@/components/forms/switch-field"
+import { loadPosSettings, savePosSettings, type PosSettings } from "@/lib/pos/settings"
 
 type Mode = "retail" | "restaurant" | "services" | "auto"
 
@@ -43,6 +44,14 @@ export function PosSettingsSheet({
   globalScan,
   onGlobalScanChange,
 }: Props) {
+  // Manager-override rules persist across sessions (lib/pos/settings).
+  // Local mirror so edits feel instant; each change writes through.
+  const [pos, setPos] = React.useState<PosSettings>(() => loadPosSettings())
+  const patchPos = (part: Partial<PosSettings>) => {
+    setPos((p) => ({ ...p, ...part }))
+    savePosSettings(part)
+  }
+
   return (
     <BottomSheet
       open={open}
@@ -111,6 +120,47 @@ export function PosSettingsSheet({
             checked={globalScan}
             onCheckedChange={onGlobalScanChange}
           />
+        </div>
+
+        {/* Manager overrides — when the till asks for a manager's PIN. */}
+        <div className="mt-2 rounded-xl border border-border bg-muted/30 p-3">
+          <p className="text-xs font-semibold">Manager overrides</p>
+          <p className="mb-3 text-[11px] text-muted-foreground">
+            When a cashier action needs a manager's OK. The PIN is a quick gate for now —
+            real per-person approval arrives with accounts.
+          </p>
+          <div className="flex flex-col gap-3">
+            <FieldRow label="Manager PIN">
+              <Input
+                inputMode="numeric"
+                value={pos.managerPin}
+                onChange={(e) => patchPos({ managerPin: e.target.value.replace(/\D/g, "").slice(0, 6) })}
+                placeholder="4-6 digits"
+              />
+            </FieldRow>
+            <FieldRow label="Ask for approval above this discount %">
+              <Input
+                type="number"
+                min={0}
+                value={pos.discountApprovalPercent}
+                onChange={(e) => patchPos({ discountApprovalPercent: Math.max(0, Number(e.target.value) || 0) })}
+              />
+            </FieldRow>
+            <FieldRow label="Ask for approval to void a line worth more than">
+              <Input
+                type="number"
+                min={0}
+                value={pos.voidApprovalAmount}
+                onChange={(e) => patchPos({ voidApprovalAmount: Math.max(0, Number(e.target.value) || 0) })}
+              />
+            </FieldRow>
+            <SwitchField
+              label="Capture a reason on void"
+              description="Cashier picks why a line was removed (typo, customer cancelled, out of stock…)."
+              checked={pos.requireVoidReason}
+              onCheckedChange={(v) => patchPos({ requireVoidReason: v })}
+            />
+          </div>
         </div>
       </div>
     </BottomSheet>

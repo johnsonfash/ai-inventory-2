@@ -4,6 +4,7 @@ import {
   Building2,
   CheckCircle2,
   CreditCard,
+  HandCoins,
   Plus,
   Smartphone,
   X,
@@ -29,10 +30,20 @@ const METHODS: { value: PaymentMethod; label: string; Icon: LucideIcon }[] = [
 // Common cash-tender amounts to make the keypad quick.
 const QUICK_AMOUNTS = [5, 10, 20, 50, 100, 200]
 
+// Tip percentages offered as one-tap presets. Applied to the pre-tip
+// total. POS-1.
+const TIP_PRESETS = [10, 15, 20]
+
 type Props = {
   open: boolean
   onClose: () => void
+  /** Total BEFORE tip. The sheet adds any tip on top. */
   total: number
+  tip: number
+  onTipChange: (next: number) => void
+  /** Show tip presets up-front (food / services). Other modes get a
+   *  compact "Add a tip" toggle so retail isn't nagged. */
+  tipSuggested?: boolean
   payments: PaymentLine[]
   onAddPayment: () => void
   onRemovePayment: (idx: number) => void
@@ -46,6 +57,9 @@ export function CheckoutSheet({
   open,
   onClose,
   total,
+  tip,
+  onTipChange,
+  tipSuggested,
   payments,
   onAddPayment,
   onRemovePayment,
@@ -53,11 +67,20 @@ export function CheckoutSheet({
   onConfirm,
   virtualAccount,
 }: Props) {
-  const paid = payments.reduce((s, p) => s + (Number.isFinite(p.amount) ? p.amount : 0), 0)
-  const remaining = Math.max(0, Math.round((total - paid) * 100) / 100)
-  const change = Math.max(0, Math.round((paid - total) * 100) / 100)
-  const fullyPaid = paid >= total
   const { formatPrice, symbol } = useCurrency()
+  const grandTotal = Math.round((total + (tip || 0)) * 100) / 100
+  const paid = payments.reduce((s, p) => s + (Number.isFinite(p.amount) ? p.amount : 0), 0)
+  const remaining = Math.max(0, Math.round((grandTotal - paid) * 100) / 100)
+  const change = Math.max(0, Math.round((paid - grandTotal) * 100) / 100)
+  const fullyPaid = paid >= grandTotal
+
+  // "Add a tip" reveal for modes where tips aren't suggested by default.
+  const [tipOpen, setTipOpen] = React.useState(false)
+  const showTipBlock = tipSuggested || tipOpen || (tip || 0) > 0
+  // Which preset is active (for highlight) — derived, not stored.
+  const activePreset = TIP_PRESETS.find(
+    (p) => Math.abs(Math.round(total * p) / 100 - (tip || 0)) < 0.005,
+  )
 
   const setQuick = (amount: number) => {
     // Fill the first cash line, or add one if none exists.
@@ -78,7 +101,7 @@ export function CheckoutSheet({
       open={open}
       onClose={onClose}
       title="Checkout"
-      description={`Total ${formatPrice(total)}`}
+      description={tip > 0 ? `Total ${formatPrice(grandTotal)} (incl. ${formatPrice(tip)} tip)` : `Total ${formatPrice(grandTotal)}`}
       maxHeightVh={92}
       footer={
         <div className="flex flex-col gap-2 pb-3">
@@ -98,6 +121,64 @@ export function CheckoutSheet({
       }
     >
       <div className="flex flex-col gap-4">
+        {/* Tip / gratuity */}
+        {showTipBlock ? (
+          <div>
+            <div className="mb-2 flex items-center justify-between">
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                Tip
+              </p>
+              {(tip || 0) > 0 && (
+                <span className="text-xs font-semibold tabular-nums text-emerald-600 dark:text-emerald-400">
+                  +{formatPrice(tip)}
+                </span>
+              )}
+            </div>
+            <div className="grid grid-cols-4 gap-2">
+              {TIP_PRESETS.map((pct) => {
+                const amt = Math.round(total * pct) / 100
+                const active = activePreset === pct
+                return (
+                  <button
+                    key={pct}
+                    type="button"
+                    onClick={() => onTipChange(active ? 0 : amt)}
+                    className={cn(
+                      "rounded-xl border py-2.5 text-sm font-semibold transition-colors",
+                      active
+                        ? "border-brand bg-brand text-brand-foreground dark:border-primary dark:bg-primary dark:text-primary-foreground"
+                        : "border-border bg-card hover:bg-accent",
+                    )}
+                  >
+                    {pct}%
+                  </button>
+                )
+              })}
+              <div className="flex items-center rounded-xl border border-input bg-background pl-2">
+                <span className="text-xs text-muted-foreground">{symbol}</span>
+                <input
+                  type="number"
+                  inputMode="decimal"
+                  value={tip === 0 ? "" : tip}
+                  onChange={(e) => onTipChange(e.target.value === "" ? 0 : Math.max(0, Number(e.target.value) || 0))}
+                  placeholder="Custom"
+                  min={0}
+                  step="0.01"
+                  className="h-full w-full bg-transparent px-1 text-sm outline-none"
+                />
+              </div>
+            </div>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setTipOpen(true)}
+            className="inline-flex items-center gap-1.5 self-start rounded-full border border-dashed border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground"
+          >
+            <HandCoins className="h-3.5 w-3.5" /> Add a tip
+          </button>
+        )}
+
         {/* Quick cash amounts */}
         <div>
           <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
@@ -116,10 +197,10 @@ export function CheckoutSheet({
             ))}
             <button
               type="button"
-              onClick={() => setQuick(total)}
+              onClick={() => setQuick(grandTotal)}
               className="col-span-3 rounded-xl border border-brand/30 bg-brand-soft py-2.5 text-sm font-semibold tabular-nums text-brand transition-colors hover:bg-brand/10 dark:bg-primary/15 dark:text-primary"
             >
-              Exact {formatPrice(total)}
+              Exact {formatPrice(grandTotal)}
             </button>
           </div>
         </div>

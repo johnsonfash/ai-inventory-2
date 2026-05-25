@@ -5,9 +5,12 @@ import { CartPanel } from "@/components/pos/cart-panel"
 import { CartSheet } from "@/components/pos/cart-sheet"
 import { CatalogGrid } from "@/components/pos/catalog-grid"
 import { CheckoutSheet } from "@/components/pos/checkout-sheet"
+import { CustomItemDialog, type CustomItemDraft } from "@/components/pos/custom-item-dialog"
 import { FloatingCart } from "@/components/pos/floating-cart"
 import { InvoicePreview, ReceiptPreview, printInvoiceNode } from "@/components/pos/invoice-print"
+import { ManagerPinDialog, type PinRequest } from "@/components/pos/manager-pin-dialog"
 import { PosSettingsSheet } from "@/components/pos/pos-settings-sheet"
+import { VoidLineDialog, type VoidTarget } from "@/components/pos/void-line-dialog"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
@@ -20,9 +23,12 @@ import {
   listLocations,
 } from "@/lib/payments/virtual-accounts"
 import {
+  addCatalogItem,
   genId,
   genInvoiceNumber,
   getDraft,
+  lineDiscountValue,
+  lineNet,
   loadCatalog,
   saveDraft,
   saveInvoice,
@@ -32,6 +38,7 @@ import {
   type Invoice,
   type PaymentLine,
 } from "@/lib/pos/storage"
+import { loadPosSettings, type VoidEntry, type VoidReason } from "@/lib/pos/settings"
 import { cn } from "@/lib/utils"
 import {
   Barcode,
@@ -82,8 +89,14 @@ export default function PointOfSale() {
   const [shipping, setShipping] = React.useState(0)
   const [serviceFee, setServiceFee] = React.useState(0)
 
+  // ----- Tip (added at checkout) -----
+  const [tip, setTip] = React.useState(0)
+
   // ----- Payments -----
   const [payments, setPayments] = React.useState<PaymentLine[]>([{ method: "cash", amount: 0 }])
+
+  // ----- Voids (transaction-scoped audit; not persisted in POS-1) -----
+  const [voids, setVoids] = React.useState<VoidEntry[]>([])
 
   // ----- Sheets / dialogs -----
   const [cartOpen, setCartOpen] = React.useState(false)
@@ -94,6 +107,12 @@ export default function PointOfSale() {
   const [previewOpen, setPreviewOpen] = React.useState(false)
   const [receiptOpen, setReceiptOpen] = React.useState(false)
   const [lastInvoice, setLastInvoice] = React.useState<Invoice | null>(null)
+
+  // ----- POS-1 dialogs: manager PIN, custom item, item-not-found, void -----
+  const [pinRequest, setPinRequest] = React.useState<PinRequest | null>(null)
+  const [customItemOpen, setCustomItemOpen] = React.useState(false)
+  const [notFoundCode, setNotFoundCode] = React.useState<string | null>(null)
+  const [voidTarget, setVoidTarget] = React.useState<VoidTarget | null>(null)
 
   // ----- Restore draft if `?draftId=...` was passed in -----
   React.useEffect(() => {
@@ -135,7 +154,7 @@ export default function PointOfSale() {
       catalog.find((p) => p.sku.toLowerCase() === code.toLowerCase()) ||
       catalog.find((p) => p.name.toLowerCase().includes(code.toLowerCase()))
     if (found) addItem(found, 1)
-    else alert(`No product found for "${code}"`)
+    else setNotFoundCode(code)
   }
 
   const updateQty = (sku: string, next: number) => {
@@ -143,7 +162,6 @@ export default function PointOfSale() {
       prev.map((p) => (p.sku === sku ? { ...p, qty: Math.max(0, next) } : p)).filter((p) => p.qty > 0),
     )
   }
-  const removeItem = (sku: string) => setCart((prev) => prev.filter((p) => p.sku !== sku))
 
   const clearCart = () => {
     setCart([])
@@ -151,9 +169,106 @@ export default function PointOfSale() {
     setShipping(0)
     setServiceFee(0)
     setOrderTaxPercent(0)
+    setTip(0)
     setDiscountType("flat")
     setPayments([{ method: "cash", amount: 0 }])
     setCustomer({})
+    setVoids([])
+  }
+
+  // ----- Custom / open item (POS-1) -----
+  const addCustomItem = (draft: CustomItemDraft) => {
+    const sku = draft.sku || `CUSTOM-${Math.random().toString(36).slice(2, 7).toUpperCase()}`
+    if (draft.saveToCatalog) {
+      addCatalogItem(mode, { sku, name: draft.name, price: draft.price, taxRate: draft.taxRate })
+    }
+    setCart((prev) => [
+      {
+        id: genId("ci"),
+        sku,
+        name: draft.name,
+        price: draft.price,
+        taxRate: draft.taxRate,
+        qty: 1,
+        // Items saved to the catalog become real products; only mark the
+        // throwaway ones as custom so reporting can tell them apart.
+        custom: !draft.saveToCatalog,
+      },
+      ...prev,
+    ])
+  }
+
+  // ----- Line discount with manager-override gate (POS-1) -----
+  const setLineDiscount = (sku: string, value: number, type: "flat" | "percent") => {
+    const apply = () =>
+      setCart((prev) =>
+        prev.map((p) => (p.sku === sku ? { ...p, lineDiscount: value, lineDiscountType: type } : p)),
+      )
+    const settings = loadPosSettings()
+    // Gate deep percentage discounts. A flat amount is gated by the share
+    // it represents of the line so a "₦5000 off a ₦6000 line" still asks.
+    const line = cart.find((p) => p.sku === sku)
+    const pct =
+      type === "percent"
+        ? value
+        : line && line.qty * line.price > 0
+          ? (value / (line.qty * line.price)) * 100
+          : 0
+    if (pct >= settings.discountApprovalPercent && value > 0) {
+      setPinRequest({
+        action: `Apply a ${Math.round(pct)}% discount to ${line?.name ?? "this line"}`,
+        onApprove: apply,
+      })
+      return
+    }
+    apply()
+  }
+
+  // ----- Void / remove a line, capturing a reason (POS-1) -----
+  const recordVoid = (item: CartItem, reason: VoidReason, approvedBy?: string) => {
+    setVoids((prev) => [
+      ...prev,
+      { sku: item.sku, name: item.name, qty: item.qty, value: lineNet(item), reason, approvedBy, at: Date.now() },
+    ])
+    setCart((prev) => prev.filter((p) => p.sku !== item.sku))
+  }
+
+  const requestRemove = (sku: string) => {
+    const item = cart.find((p) => p.sku === sku)
+    if (!item) return
+    const settings = loadPosSettings()
+    if (!settings.requireVoidReason) {
+      // No reason needed — but a high-value line still needs a manager.
+      if (lineNet(item) > settings.voidApprovalAmount) {
+        setPinRequest({
+          action: `Void ${item.name} (${formatPrice(lineNet(item))})`,
+          onApprove: () => recordVoid(item, "mistake", "manager"),
+        })
+      } else {
+        recordVoid(item, "mistake")
+      }
+      return
+    }
+    // Capture a reason first; the dialog's confirm chains into the
+    // manager gate when the line is above the threshold.
+    setVoidTarget({ sku: item.sku, name: item.name, value: lineNet(item) })
+  }
+
+  const confirmVoid = (reason: VoidReason, note?: string) => {
+    const target = voidTarget
+    if (!target) return
+    const item = cart.find((p) => p.sku === target.sku)
+    if (!item) return
+    const settings = loadPosSettings()
+    const finish = (approvedBy?: string) => recordVoid(item, reason, approvedBy)
+    if (lineNet(item) > settings.voidApprovalAmount) {
+      setPinRequest({
+        action: `Void ${item.name} (${formatPrice(lineNet(item))})${note ? ` — ${note}` : ""}`,
+        onApprove: () => finish("manager"),
+      })
+    } else {
+      finish()
+    }
   }
 
   const holdSale = () => {
@@ -177,17 +292,35 @@ export default function PointOfSale() {
   }
 
   // ----- Totals -----
+  // subtotal is gross (before any discount); line discounts come off
+  // next, then the order-level discount applies to what remains. Item
+  // tax is charged on the post-line-discount amount (lineNet) — that's
+  // the legally correct base and what Square/Toast do.
   const subtotal = cart.reduce((s, i) => s + i.qty * i.price, 0)
-  const discountValue = discountType === "percent" ? (subtotal * (discount || 0)) / 100 : discount || 0
-  const afterDiscount = Math.max(0, subtotal - discountValue)
-  const itemTax = cart.reduce((s, i) => s + (i.taxRate || 0) * i.qty * i.price, 0)
+  const lineDiscountTotal = cart.reduce((s, i) => s + lineDiscountValue(i), 0)
+  const netAfterLine = Math.max(0, subtotal - lineDiscountTotal)
+  const discountValue =
+    discountType === "percent" ? (netAfterLine * (discount || 0)) / 100 : Math.min(netAfterLine, discount || 0)
+  const afterDiscount = Math.max(0, netAfterLine - discountValue)
+  const itemTax = cart.reduce((s, i) => s + (i.taxRate || 0) * lineNet(i), 0)
   const orderTax = Math.round(((orderTaxPercent || 0) / 100) * afterDiscount * 100) / 100
+  // `total` is pre-tip; the checkout sheet adds the tip on top.
   const total = Math.max(
     0,
     Math.round((afterDiscount + itemTax + orderTax + (shipping || 0) + (serviceFee || 0)) * 100) / 100,
   )
 
-  const totals = { subtotal, itemTax, orderTax, shipping, serviceFee, discountValue, total }
+  const totals = {
+    subtotal,
+    lineDiscountTotal: Math.round(lineDiscountTotal * 100) / 100,
+    itemTax: Math.round(itemTax * 100) / 100,
+    orderTax,
+    shipping,
+    serviceFee,
+    discountValue: Math.round(discountValue * 100) / 100,
+    tip,
+    total,
+  }
 
   // ----- Payment helpers -----
   const addPayment = () => setPayments((ps) => [...ps, { method: "card", amount: 0 }])
@@ -201,9 +334,10 @@ export default function PointOfSale() {
 
   // ----- Confirm sale -----
   const onConfirmPayment = () => {
+    const grandTotal = Math.round((total + (tip || 0)) * 100) / 100
     const paid = payments.reduce((s, p) => s + (Number.isFinite(p.amount) ? p.amount : 0), 0)
-    if (paid < total) return // button is disabled in this case anyway
-    const change = Math.max(0, Math.round((paid - total) * 100) / 100)
+    if (paid < grandTotal) return // button is disabled in this case anyway
+    const change = Math.max(0, Math.round((paid - grandTotal) * 100) / 100)
     const augmented: PaymentLine[] = payments.map((p) => ({ ...p }))
     if (change > 0) {
       const cashIdx = augmented.findIndex((p) => p.method === "cash")
@@ -219,11 +353,12 @@ export default function PointOfSale() {
       discount: discount || 0,
       discountType,
       orderTaxPercent: orderTaxPercent || 0,
-      itemTax,
+      itemTax: totals.itemTax,
       orderTax,
       shipping: shipping || 0,
       serviceFee: serviceFee || 0,
-      total,
+      tip: tip || 0,
+      total: grandTotal,
       payments: augmented,
       meta: { location, salesperson, channel },
     }
@@ -337,6 +472,7 @@ export default function PointOfSale() {
               cart={cart}
               onScanRequest={() => setMobileScanOpen(true)}
               onOverflowRequest={() => setMobileOverflowOpen(true)}
+              onCustomRequest={() => setCustomItemOpen(true)}
             />
           </div>
 
@@ -346,7 +482,8 @@ export default function PointOfSale() {
               customer={customer}
               onCustomerChange={setCustomer}
               onUpdateQty={updateQty}
-              onRemove={removeItem}
+              onRemove={requestRemove}
+              onLineDiscount={setLineDiscount}
               onClearCart={clearCart}
               onHold={holdSale}
               onCharge={() => setCheckoutOpen(true)}
@@ -470,7 +607,8 @@ export default function PointOfSale() {
         customer={customer}
         onCustomerChange={setCustomer}
         onUpdateQty={updateQty}
-        onRemove={removeItem}
+        onRemove={requestRemove}
+        onLineDiscount={setLineDiscount}
         onClearCart={clearCart}
         onHold={holdSale}
         discount={discount}
@@ -494,6 +632,9 @@ export default function PointOfSale() {
         open={checkoutOpen}
         onClose={() => setCheckoutOpen(false)}
         total={total}
+        tip={tip}
+        onTipChange={setTip}
+        tipSuggested={mode === "restaurant" || mode === "services"}
         payments={payments}
         onAddPayment={addPayment}
         onRemovePayment={removePayment}
@@ -611,6 +752,29 @@ export default function PointOfSale() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* POS-1: custom/open item */}
+      <CustomItemDialog
+        open={customItemOpen}
+        onClose={() => setCustomItemOpen(false)}
+        onSubmit={addCustomItem}
+        defaultTaxRate={catalog[0]?.taxRate}
+      />
+
+      {/* POS-1: scanned/typed code not in the catalog */}
+      <CustomItemDialog
+        open={notFoundCode !== null}
+        scannedCode={notFoundCode ?? undefined}
+        onClose={() => setNotFoundCode(null)}
+        onSubmit={addCustomItem}
+        defaultTaxRate={catalog[0]?.taxRate}
+      />
+
+      {/* POS-1: void-with-reason */}
+      <VoidLineDialog target={voidTarget} onConfirm={confirmVoid} onClose={() => setVoidTarget(null)} />
+
+      {/* POS-1: manager-override PIN gate */}
+      <ManagerPinDialog request={pinRequest} onClose={() => setPinRequest(null)} />
     </PageShell>
   )
 }

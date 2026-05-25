@@ -8,11 +8,13 @@ import { CartContent } from "./cart-content"
 
 type Totals = {
   subtotal: number
+  lineDiscountTotal: number
   itemTax: number
   orderTax: number
   shipping: number
   serviceFee: number
   discountValue: number
+  tip: number
   total: number
 }
 
@@ -22,6 +24,7 @@ type Props = {
   onCustomerChange: (next: { name?: string; email?: string; phone?: string }) => void
   onUpdateQty: (sku: string, next: number) => void
   onRemove: (sku: string) => void
+  onLineDiscount?: (sku: string, value: number, type: "flat" | "percent") => void
   onClearCart: () => void
   onHold: () => void
   onCharge: () => void

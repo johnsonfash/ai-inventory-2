@@ -25,7 +25,9 @@ import {
   genId,
   genReturnNumber,
   saveReturn,
+  RETURN_REASONS,
   type Invoice,
+  type ReturnReason,
   type ReturnRecord,
 } from "@/lib/pos/storage"
 import { useCurrency } from "@/contexts/currency"
@@ -51,9 +53,29 @@ export default function NewReturnPage() {
   const [qtys, setQtys] = React.useState<Record<string, number>>({})
   const [method, setMethod] = React.useState<Method>("card")
   const [reference, setReference] = React.useState("")
+  const [reason, setReason] = React.useState<ReturnReason | null>(null)
+  const [reasonNote, setReasonNote] = React.useState("")
   const [lookup, setLookup] = React.useState("")
   const [lookupError, setLookupError] = React.useState<string | null>(null)
   const { formatPrice } = useCurrency()
+
+  // Pre-select the original payment method so "refund to the card they
+  // paid with" is the default — the cashier overrides only when needed.
+  // POS-1.
+  const originalMethod = (inv: Invoice): Method => {
+    const lines = inv.payments ?? []
+    if (lines.length === 0) return "card"
+    const dominant = [...lines].sort((a, b) => b.amount - a.amount)[0]
+    return (dominant?.method as Method) ?? "card"
+  }
+
+  const loadInvoice = React.useCallback((inv: Invoice) => {
+    setInvoice(inv)
+    setMethod(originalMethod(inv))
+    const init: Record<string, number> = {}
+    for (const it of inv.items) init[it.sku] = 0
+    setQtys(init)
+  }, [])
 
   React.useEffect(() => {
     const inv = invoiceId
@@ -61,13 +83,8 @@ export default function NewReturnPage() {
       : invoiceNumberParam
         ? getInvoiceByNumber(invoiceNumberParam)
         : undefined
-    if (inv) {
-      setInvoice(inv)
-      const init: Record<string, number> = {}
-      for (const it of inv.items) init[it.sku] = 0
-      setQtys(init)
-    }
-  }, [invoiceId, invoiceNumberParam])
+    if (inv) loadInvoice(inv)
+  }, [invoiceId, invoiceNumberParam, loadInvoice])
 
   const runLookup = (e: React.FormEvent) => {
     e.preventDefault()
@@ -79,10 +96,7 @@ export default function NewReturnPage() {
       return
     }
     setLookupError(null)
-    setInvoice(inv)
-    const init: Record<string, number> = {}
-    for (const it of inv.items) init[it.sku] = 0
-    setQtys(init)
+    loadInvoice(inv)
   }
 
   // ---------- Empty state (no invoice loaded) ----------
@@ -182,6 +196,10 @@ export default function NewReturnPage() {
       toast.error("Select at least one quantity to return.")
       return
     }
+    if (!reason) {
+      toast.error("Pick a reason for the return.")
+      return
+    }
     const rec: ReturnRecord = {
       id: genId("ret"),
       number: genReturnNumber(),
@@ -197,6 +215,8 @@ export default function NewReturnPage() {
       totalRefund,
       method,
       reference: reference || undefined,
+      reason,
+      reasonNote: reason === "other" ? reasonNote.trim() || undefined : undefined,
     }
     saveReturn(rec)
     toast.success(`Return ${rec.number} created · ${formatPrice(totalRefund)} refunded.`)
@@ -304,6 +324,44 @@ export default function NewReturnPage() {
           </CardContent>
         </Card>
 
+        {/* Reason for return — required (POS-1) */}
+        <Card>
+          <CardContent className="p-4">
+            <h3 className="text-sm font-semibold md:text-base">Reason for return</h3>
+            <p className="text-[11px] text-muted-foreground">
+              Helps you spot patterns — faulty batches, sizing issues, items that get sent back a lot.
+            </p>
+            <div className="mt-3 flex flex-wrap gap-1.5">
+              {RETURN_REASONS.map((r) => {
+                const active = reason === r.value
+                return (
+                  <button
+                    key={r.value}
+                    type="button"
+                    onClick={() => setReason(r.value)}
+                    className={cn(
+                      "rounded-full px-3 py-1.5 text-xs font-semibold transition-colors",
+                      active
+                        ? "bg-brand text-brand-foreground dark:bg-primary dark:text-primary-foreground"
+                        : "border border-border bg-card text-muted-foreground hover:bg-accent hover:text-foreground",
+                    )}
+                  >
+                    {r.label}
+                  </button>
+                )
+              })}
+            </div>
+            {reason === "other" && (
+              <Input
+                value={reasonNote}
+                onChange={(e) => setReasonNote(e.target.value)}
+                placeholder="Add a short note"
+                className="mt-3"
+              />
+            )}
+          </CardContent>
+        </Card>
+
         {/* Refund method + reference */}
         <Card>
           <CardContent className="p-4">
@@ -368,7 +426,7 @@ export default function NewReturnPage() {
         {/* Actions */}
         <div className="sticky bottom-0 flex flex-wrap items-center justify-end gap-2 bg-background py-2 md:static">
           <Button variant="outline" onClick={() => navigate("/pos/returns")}>Cancel</Button>
-          <Button onClick={submitReturn} disabled={totalRefund <= 0}>
+          <Button onClick={submitReturn} disabled={totalRefund <= 0 || !reason}>
             <RotateCcw className="h-4 w-4" /> Create return · {formatPrice(totalRefund)}
           </Button>
         </div>

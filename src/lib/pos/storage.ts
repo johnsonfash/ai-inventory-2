@@ -21,6 +21,34 @@ export type CartItem = {
   price: number
   qty: number
   taxRate?: number
+  /** Per-line discount, expressed as flat currency OR a percent of the
+   *  line gross, switched by `lineDiscountType`. POS-1. Order-level
+   *  discount still lives on the Draft/Invoice; this is the per-row one
+   *  Square calls a "line discount". */
+  lineDiscount?: number
+  lineDiscountType?: "flat" | "percent"
+  /** Open/custom item rung in manually (price typed at the till). Not in
+   *  the catalog and never adjusts stock. POS-1. */
+  custom?: boolean
+  /** Free-text note shown on the line + receipt (special requests). */
+  note?: string
+}
+
+// ---- Per-line money math (POS-1) -------------------------------------
+// One source of truth so the cart, checkout, invoice, and receipt all
+// agree. `lineNet` is the line AFTER its own discount but BEFORE tax.
+export function lineGross(i: CartItem): number {
+  return i.qty * i.price
+}
+export function lineDiscountValue(i: CartItem): number {
+  if (!i.lineDiscount || i.lineDiscount <= 0) return 0
+  const gross = lineGross(i)
+  const raw = i.lineDiscountType === "percent" ? (gross * i.lineDiscount) / 100 : i.lineDiscount
+  // Never discount below zero.
+  return Math.min(gross, Math.max(0, Math.round(raw * 100) / 100))
+}
+export function lineNet(i: CartItem): number {
+  return Math.max(0, lineGross(i) - lineDiscountValue(i))
 }
 
 export type PaymentLine = {
@@ -61,6 +89,9 @@ export type Invoice = {
   orderTax: number
   shipping?: number
   serviceFee?: number
+  /** Gratuity added at checkout. Stored as its own line so reporting can
+   *  pool tips separately from revenue. POS-1. */
+  tip?: number
   total: number
   payments: PaymentLine[]
   meta?: {
@@ -69,6 +100,29 @@ export type Invoice = {
     channel?: string
   }
 }
+
+// Why a return happened. Industry-agnostic — "sizing" suits apparel,
+// "defective" suits electronics, "quality" suits food/services, and
+// "other" with a note covers the rest. Feeds the returns-by-reason
+// report in a later wave. POS-1.
+export type ReturnReason =
+  | "damaged"
+  | "defective"
+  | "wrong-item"
+  | "changed-mind"
+  | "sizing"
+  | "quality"
+  | "other"
+
+export const RETURN_REASONS: { value: ReturnReason; label: string }[] = [
+  { value: "damaged", label: "Arrived damaged" },
+  { value: "defective", label: "Faulty / defective" },
+  { value: "wrong-item", label: "Wrong item" },
+  { value: "changed-mind", label: "Changed mind" },
+  { value: "sizing", label: "Size / fit" },
+  { value: "quality", label: "Not as expected" },
+  { value: "other", label: "Other" },
+]
 
 export type ReturnRecord = {
   id: string
@@ -83,6 +137,10 @@ export type ReturnRecord = {
   totalRefund: number
   method: "cash" | "card" | "paypal" | "stripe" | "other"
   reference?: string
+  /** Why the customer brought it back. Required at the till from POS-1. */
+  reason?: ReturnReason
+  /** Free-text detail, especially for `reason === "other"`. */
+  reasonNote?: string
 }
 
 const DRAFTS_KEY = "pos:drafts"
@@ -368,6 +426,22 @@ export function loadCatalog(mode: "retail" | "restaurant" | "services" | "auto" 
   // key before the bundle finished updating).
   if (!ls || ls.length < items.length) setLS(key, items)
   return getLS<CatalogItem[]>(key, items)
+}
+
+// Quick-add a new product to the catalog for a given mode. Used by the
+// item-not-found dialog ("scanned a barcode we don't know — add it
+// now?"). Dedupes by SKU. Returns the stored item. POS-1.
+export function addCatalogItem(
+  mode: "retail" | "restaurant" | "services" | "auto",
+  item: Omit<CatalogItem, "id"> & { id?: string },
+): CatalogItem {
+  const key = `${CATALOG_KEY}:${mode}`
+  const list = loadCatalog(mode)
+  const existing = list.find((c) => c.sku.toLowerCase() === item.sku.toLowerCase())
+  if (existing) return existing
+  const stored: CatalogItem = { id: item.id ?? genId("p"), ...item }
+  setLS(key, [stored, ...list])
+  return stored
 }
 
 // -------------- Drafts --------------

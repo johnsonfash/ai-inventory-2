@@ -1,5 +1,5 @@
 import * as React from "react"
-import { Barcode, MoreHorizontal, Plus, Search } from "lucide-react"
+import { Barcode, MoreHorizontal, Pencil, Plus, Search } from "lucide-react"
 import type { CartItem, CatalogItem } from "@/lib/pos/storage"
 import { Input } from "@/components/ui/input"
 import { useCurrency } from "@/contexts/currency"
@@ -16,12 +16,15 @@ type Props = {
   onScanRequest?: () => void
   /** Mobile-only: overflow trigger (drafts / invoices / returns / settings). */
   onOverflowRequest?: () => void
+  /** Ring in an open/custom item not in the catalog. Renders a "+ Custom"
+   *  tile at the end of the grid/list when provided. POS-1. */
+  onCustomRequest?: () => void
 }
 
 // Catalog grid with horizontal-snap filter chips + product tiles.
 // Tapping a tile adds the product. Already-in-cart items show a qty
 // badge in the top-right corner.
-export function CatalogGrid({ catalog, onAdd, cart, onScanRequest, onOverflowRequest }: Props) {
+export function CatalogGrid({ catalog, onAdd, cart, onScanRequest, onOverflowRequest, onCustomRequest }: Props) {
   const [q, setQ] = React.useState("")
   const [category, setCategory] = React.useState<string>("All")
   const { formatPrice } = useCurrency()
@@ -179,6 +182,29 @@ export function CatalogGrid({ catalog, onAdd, cart, onScanRequest, onOverflowReq
             </li>
           )
         })}
+        {/* Custom / open item — last row. POS-1. */}
+        {onCustomRequest && (
+          <li>
+            <button
+              type="button"
+              onClick={onCustomRequest}
+              className="flex w-full items-center gap-3 rounded-2xl border border-dashed border-border bg-card/50 p-2.5 text-left transition-all active:scale-[0.99] active:bg-accent/40"
+            >
+              <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl bg-brand-soft text-brand dark:bg-primary/15 dark:text-primary">
+                <Pencil className="h-5 w-5" />
+              </span>
+              <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+                <span className="truncate text-sm font-semibold">Custom item</span>
+                <span className="truncate text-[11px] text-muted-foreground">
+                  Ring in a price for something not in the catalog
+                </span>
+              </div>
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-soft text-brand dark:bg-primary/15 dark:text-primary">
+                <Plus className="h-4 w-4" strokeWidth={2.4} />
+              </span>
+            </button>
+          </li>
+        )}
       </ul>
 
       {/* Desktop: 3-5 col GRID with image-led tiles. Image is the
@@ -224,6 +250,20 @@ export function CatalogGrid({ catalog, onAdd, cart, onScanRequest, onOverflowReq
             </button>
           )
         })}
+        {/* Custom / open item tile. POS-1. */}
+        {onCustomRequest && (
+          <button
+            type="button"
+            onClick={onCustomRequest}
+            className="group flex min-w-0 flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-border bg-card/50 p-4 text-center transition-all hover:border-brand/40 hover:bg-accent/40 active:scale-[0.98]"
+          >
+            <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-brand-soft text-brand dark:bg-primary/15 dark:text-primary">
+              <Pencil className="h-5 w-5" />
+            </span>
+            <span className="text-sm font-semibold">Custom item</span>
+            <span className="text-[11px] text-muted-foreground">Type a one-off price</span>
+          </button>
+        )}
       </div>
 
       {filtered.length === 0 && (
