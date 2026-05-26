@@ -151,6 +151,8 @@ notes what's frontend-doable now vs backend-blocked.
 - Make the per-channel "new-campaign/new-listing" wrappers share the reworked builder.
 **Backend:** Meta/TikTok/Google ad APIs, media upload, publish. **Size:** ~3–4 days. Frontend now.
 
+**Progress (2026-05-26):** ✅ DONE — reworked `/marketing/listings/new` into a real ad/listing builder: **subject types** Product / Service / App / Custom (ads no longer goods-only — non-product subjects take a destination link + their own CTA), **real catalogue picker** (loadAllCatalog, pre-fills title+price), **multi-image + video** upload with thumbnail previews + remove, **TikTok** added as a publish channel (data-driven channel list), **live preview** social-post card that updates as you build, ₦-currency via useCurrency, budget section gated to paid channels. Added the **TikTok Ads channel page** (`/marketing/tiktok-ads`) + route + dashboard card. ⏳ REMAINING: per-channel preview variants, dedicated TikTok new-campaign/new-listing wrappers (currently point to the unified builder), real publish/media-upload (backend).
+
 ## W9 — AI ad generation (credits-metered)
 **Goal:** Generate ads — copy, fliers/images, and video — from a chat-style builder.
 **Scope:**

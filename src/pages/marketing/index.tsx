@@ -5,6 +5,7 @@ import {
   Facebook,
   Instagram,
   Megaphone,
+  Music2,
   Plus,
   ShoppingBag,
   Sparkles,
@@ -37,7 +38,8 @@ const CHANNELS: Channel[] = [
   { href: "/marketing/facebook-ads", name: "Facebook Ads", Icon: Facebook, status: "connected", campaigns: 4, spend30d: 1240, roas: 3.8, tone: "sky" },
   { href: "/marketing/instagram-ads", name: "Instagram Ads", Icon: Instagram, status: "connected", campaigns: 3, spend30d: 980, roas: 4.2, tone: "fuchsia" },
   { href: "/marketing/youtube-adsense", name: "YouTube & AdSense", Icon: Youtube, status: "connected", campaigns: 1, spend30d: 320, roas: 2.1, tone: "rose" },
-  { href: "/marketing/facebook-marketplace", name: "Facebook Marketplace", Icon: ShoppingBag, status: "available", campaigns: 0, spend30d: 0, roas: null, tone: "violet" },
+  { href: "/marketing/tiktok-ads", name: "TikTok Ads", Icon: Music2, status: "available", campaigns: 0, spend30d: 0, roas: null, tone: "violet" },
+  { href: "/marketing/facebook-marketplace", name: "Facebook Marketplace", Icon: ShoppingBag, status: "available", campaigns: 0, spend30d: 0, roas: null, tone: "emerald" },
 ]
 
 const TONES = {

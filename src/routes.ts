@@ -111,6 +111,7 @@ export const routes: RouteObject[] = [
   { path: "/marketing/facebook-ads/new-campaign", Component: page(() => import("./pages/marketing/facebook-ads/new-campaign")) },
   { path: "/marketing/facebook-ads/new-listing", Component: page(() => import("./pages/marketing/facebook-ads/new-listing")) },
   { path: "/marketing/facebook-marketplace", Component: page(() => import("./pages/marketing/facebook-marketplace")) },
+  { path: "/marketing/tiktok-ads", Component: page(() => import("./pages/marketing/tiktok-ads")) },
   { path: "/marketing/instagram-ads", Component: page(() => import("./pages/marketing/instagram-ads")) },
   { path: "/marketing/instagram-ads/new-campaign", Component: page(() => import("./pages/marketing/instagram-ads/new-campaign")) },
   { path: "/marketing/instagram-ads/new-listing", Component: page(() => import("./pages/marketing/instagram-ads/new-listing")) },
