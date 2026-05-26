@@ -1,7 +1,12 @@
 import * as React from "react"
-import { CalendarDays, ChevronLeft, ChevronRight, Clock, MapPin, Plus, User } from "lucide-react"
+import { toast } from "sonner"
+import { CalendarDays, CalendarOff, Check, ChevronLeft, ChevronRight, Clock, MapPin, Plus, User, X } from "lucide-react"
 import { PageShell } from "@/components/page-shell"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Switch } from "@/components/ui/switch"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { BottomSheet } from "@/components/mobile/bottom-sheet"
 import { useRegisterPageRefresh } from "@/hooks/use-pull-to-refresh"
 import { EmptyState } from "@/components/lists/empty-state"
 import { StatusBadge, type StatusTone } from "@/components/lists/status-badge"
@@ -48,6 +53,48 @@ const statusTone: Record<Appt["status"], StatusTone> = {
   cancelled: "danger",
 }
 
+// --- Staff time off / leave ---
+// Staff block time as unavailable; an admin approves or rejects. Approved
+// leave shows on the calendar (so it isn't double-booked) and notifies
+// the requester. Mock today; backend gates request vs approve by RBAC
+// and pushes the notification.
+type LeaveStatus = "pending" | "approved" | "rejected"
+type TimeOff = {
+  id: string
+  staff: string
+  start: string // YYYY-MM-DD
+  end: string   // inclusive
+  allDay: boolean
+  reason: string
+  status: LeaveStatus
+  decisionNote?: string
+}
+
+const STAFF = ["Mia Chen", "Alex Larson", "Priya Patel", "Daniel Kim"]
+
+const SEED_TIME_OFF: TimeOff[] = [
+  { id: "TO-3001", staff: "Priya Patel", start: addDays(2), end: addDays(3), allDay: true, reason: "Family event", status: "pending" },
+  { id: "TO-3002", staff: "Daniel Kim",  start: addDays(6), end: addDays(8), allDay: true, reason: "Annual leave", status: "approved" },
+]
+
+const leaveTone: Record<LeaveStatus, StatusTone> = {
+  pending: "warning",
+  approved: "success",
+  rejected: "danger",
+}
+
+// Every ISO date in [start, end] inclusive.
+function datesInRange(start: string, end: string): string[] {
+  const out: string[] = []
+  const d = new Date(start)
+  const last = new Date(end)
+  while (d <= last) {
+    out.push(d.toISOString().slice(0, 10))
+    d.setDate(d.getDate() + 1)
+  }
+  return out
+}
+
 function buildMonth(ref: Date) {
   const first = new Date(ref.getFullYear(), ref.getMonth(), 1)
   const start = new Date(first)
@@ -62,6 +109,44 @@ function buildMonth(ref: Date) {
 export default function Appointments() {
   const [refDate, setRefDate] = React.useState(new Date())
   const [selected, setSelected] = React.useState(todayISO)
+
+  // Time off / leave state + handlers.
+  const [timeOff, setTimeOff] = React.useState<TimeOff[]>(SEED_TIME_OFF)
+  const [requestOpen, setRequestOpen] = React.useState(false)
+  const [rejectFor, setRejectFor] = React.useState<TimeOff | null>(null)
+  const [rejectNote, setRejectNote] = React.useState("")
+
+  const submitRequest = (req: Omit<TimeOff, "id" | "status">) => {
+    setTimeOff((prev) => [{ ...req, id: `TO-${Date.now().toString().slice(-5)}`, status: "pending" }, ...prev])
+    toast.success("Time-off request sent", { description: "Your manager has been notified to approve it." })
+    setRequestOpen(false)
+  }
+  const approveLeave = (t: TimeOff) => {
+    setTimeOff((prev) => prev.map((x) => (x.id === t.id ? { ...x, status: "approved" } : x)))
+    toast.success("Leave approved", { description: `${t.staff} · ${t.reason}. The calendar now blocks these days.` })
+  }
+  const confirmReject = () => {
+    if (!rejectFor) return
+    const t = rejectFor
+    setTimeOff((prev) => prev.map((x) => (x.id === t.id ? { ...x, status: "rejected", decisionNote: rejectNote.trim() || undefined } : x)))
+    toast(`Leave rejected`, { description: `${t.staff} has been notified.` })
+    setRejectFor(null)
+    setRejectNote("")
+  }
+
+  // ISO date → staff on approved leave that day (drives calendar markers
+  // + the selected-day banner).
+  const leaveByDay = React.useMemo(() => {
+    const m = new Map<string, string[]>()
+    for (const t of timeOff) {
+      if (t.status !== "approved") continue
+      for (const iso of datesInRange(t.start, t.end)) {
+        m.set(iso, [...(m.get(iso) ?? []), t.staff])
+      }
+    }
+    return m
+  }, [timeOff])
+  const pendingLeave = timeOff.filter((t) => t.status === "pending")
 
   useRegisterPageRefresh(React.useCallback(async () => { await new Promise((r) => setTimeout(r, 400)) }, []))
 
@@ -149,6 +234,7 @@ export default function Appointments() {
                 const isToday = iso === todayISO
                 const isSelected = iso === selected
                 const n = countsByDay.get(iso) ?? 0
+                const onLeave = leaveByDay.has(iso)
                 return (
                   <button
                     type="button"
@@ -159,13 +245,20 @@ export default function Appointments() {
                       !inMonth && "text-muted-foreground/40",
                       isSelected && "bg-brand text-brand-foreground dark:bg-primary dark:text-primary-foreground",
                       !isSelected && isToday && "ring-1 ring-inset ring-brand dark:ring-primary",
+                      !isSelected && onLeave && "bg-amber-500/10",
                       !isSelected && "hover:bg-accent",
                     )}
+                    title={onLeave ? `On leave: ${leaveByDay.get(iso)!.join(", ")}` : undefined}
                   >
                     <span className={cn(isSelected ? "font-bold" : isToday ? "font-semibold" : "")}>{d.getDate()}</span>
-                    {n > 0 && (
-                      <span className={cn("mt-0.5 h-1 w-1 rounded-full", isSelected ? "bg-white" : "bg-brand dark:bg-primary")} />
-                    )}
+                    <span className="mt-0.5 flex items-center gap-0.5">
+                      {n > 0 && (
+                        <span className={cn("h-1 w-1 rounded-full", isSelected ? "bg-white" : "bg-brand dark:bg-primary")} />
+                      )}
+                      {onLeave && (
+                        <span className={cn("h-1 w-1 rounded-full", isSelected ? "bg-white/80" : "bg-amber-500")} />
+                      )}
+                    </span>
                   </button>
                 )
               })}
@@ -184,6 +277,12 @@ export default function Appointments() {
             <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
               {new Date(selected).toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" })}
             </p>
+            {leaveByDay.has(selected) && (
+              <div className="flex items-center gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs dark:bg-amber-950/15">
+                <CalendarOff className="h-3.5 w-3.5 shrink-0 text-amber-600 dark:text-amber-300" />
+                <span><strong className="font-semibold">On leave:</strong> {leaveByDay.get(selected)!.join(", ")}</span>
+              </div>
+            )}
             {dayItems.length === 0 ? (
               <div className="rounded-2xl border border-dashed border-border bg-muted/30 p-6 text-center">
                 <CalendarDays className="mx-auto h-8 w-8 text-muted-foreground" />
@@ -247,7 +346,158 @@ export default function Appointments() {
             </ul>
           )}
         </section>
+
+        {/* Time off & leave */}
+        <section className="flex flex-col gap-3">
+          <div className="flex items-center justify-between gap-2">
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Time off &amp; leave</p>
+              {pendingLeave.length > 0 && (
+                <p className="text-[11px] text-amber-600 dark:text-amber-400">{pendingLeave.length} request{pendingLeave.length === 1 ? "" : "s"} awaiting approval</p>
+              )}
+            </div>
+            <Button size="sm" variant="outline" onClick={() => setRequestOpen(true)}>
+              <CalendarOff className="h-3.5 w-3.5" /> Request time off
+            </Button>
+          </div>
+          {timeOff.length === 0 ? (
+            <EmptyState Icon={CalendarOff} title="No time off booked" description="Staff requests appear here for you to approve." size="sm" />
+          ) : (
+            <ul className="space-y-2">
+              {timeOff.map((t) => (
+                <li key={t.id} className="rounded-2xl border border-border bg-card p-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-semibold">{t.staff}</p>
+                      <p className="truncate text-[11px] text-muted-foreground">
+                        {fmtRange(t.start, t.end)} · {t.allDay ? "All day" : "Part day"} · {t.reason}
+                      </p>
+                      {t.decisionNote && <p className="mt-0.5 text-[11px] text-rose-600 dark:text-rose-400">Note: {t.decisionNote}</p>}
+                    </div>
+                    <StatusBadge tone={leaveTone[t.status]}>{t.status}</StatusBadge>
+                  </div>
+                  {t.status === "pending" && (
+                    <div className="mt-2 flex items-center gap-2">
+                      <Button size="sm" onClick={() => approveLeave(t)}><Check className="h-3.5 w-3.5" /> Approve</Button>
+                      <Button size="sm" variant="ghost" onClick={() => setRejectFor(t)} className="text-rose-600 hover:bg-rose-500/10 dark:text-rose-400">
+                        <X className="h-3.5 w-3.5" /> Reject
+                      </Button>
+                    </div>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
       </div>
+
+      <RequestTimeOffSheet open={requestOpen} onClose={() => setRequestOpen(false)} onSubmit={submitRequest} />
+
+      {/* Reject with an optional note shared back to the requester. */}
+      <BottomSheet
+        open={rejectFor !== null}
+        onClose={() => { setRejectFor(null); setRejectNote("") }}
+        title="Reject time-off request"
+        description={rejectFor ? `${rejectFor.staff} · ${fmtRange(rejectFor.start, rejectFor.end)}` : undefined}
+        footer={
+          <div className="flex items-center justify-end gap-2 pb-3">
+            <Button variant="ghost" onClick={() => { setRejectFor(null); setRejectNote("") }}>Cancel</Button>
+            <Button onClick={confirmReject} className="bg-rose-600 text-white hover:bg-rose-600/90 dark:bg-rose-700 dark:hover:bg-rose-700/90">Reject request</Button>
+          </div>
+        }
+      >
+        <label className="flex flex-col gap-1.5 pb-1 text-xs">
+          <span className="font-semibold text-foreground/80">Reason (optional, shared with the requester)</span>
+          <Input value={rejectNote} onChange={(e) => setRejectNote(e.target.value)} placeholder="e.g. clashes with the month-end stock count — let's pick another week" />
+        </label>
+      </BottomSheet>
     </PageShell>
+  )
+}
+
+// Range label: "May 28" for a single day, "May 28 – May 30" for a span.
+function fmtRange(start: string, end: string): string {
+  const opts: Intl.DateTimeFormatOptions = { month: "short", day: "numeric" }
+  const s = new Date(start).toLocaleDateString(undefined, opts)
+  if (start === end) return s
+  return `${s} – ${new Date(end).toLocaleDateString(undefined, opts)}`
+}
+
+// Self-contained request form (isolated state so a cancelled draft never
+// leaks into the next request).
+function RequestTimeOffSheet({ open, onClose, onSubmit }: {
+  open: boolean
+  onClose: () => void
+  onSubmit: (r: Omit<TimeOff, "id" | "status">) => void
+}) {
+  const [staff, setStaff] = React.useState(STAFF[0]!)
+  const [start, setStart] = React.useState(todayISO)
+  const [end, setEnd] = React.useState(todayISO)
+  const [allDay, setAllDay] = React.useState(true)
+  const [reason, setReason] = React.useState("")
+
+  React.useEffect(() => {
+    if (!open) return
+    setStaff(STAFF[0]!)
+    setStart(todayISO)
+    setEnd(todayISO)
+    setAllDay(true)
+    setReason("")
+  }, [open])
+
+  const valid = reason.trim().length > 0 && end >= start
+  const submit = () => {
+    if (!valid) return
+    onSubmit({ staff, start, end, allDay, reason: reason.trim() })
+  }
+
+  return (
+    <BottomSheet
+      open={open}
+      onClose={onClose}
+      title="Request time off"
+      description="Block these days as unavailable. Your manager approves before it shows on the calendar."
+      maxHeightVh={85}
+      footer={
+        <div className="flex items-center justify-end gap-2 pb-3">
+          <Button variant="ghost" onClick={onClose}>Cancel</Button>
+          <Button onClick={submit} disabled={!valid}>Send request</Button>
+        </div>
+      }
+    >
+      <form onSubmit={(e) => { e.preventDefault(); submit() }} className="flex flex-col gap-3 pb-1">
+        <label className="flex flex-col gap-1.5 text-xs">
+          <span className="font-semibold text-foreground/80">Staff member</span>
+          <Select value={staff} onValueChange={setStaff}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              {STAFF.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </label>
+        <div className="grid grid-cols-2 gap-3">
+          <label className="flex flex-col gap-1.5 text-xs">
+            <span className="font-semibold text-foreground/80">From</span>
+            <Input type="date" value={start} onChange={(e) => { setStart(e.target.value); if (e.target.value > end) setEnd(e.target.value) }} />
+          </label>
+          <label className="flex flex-col gap-1.5 text-xs">
+            <span className="font-semibold text-foreground/80">To</span>
+            <Input type="date" value={end} min={start} onChange={(e) => setEnd(e.target.value)} />
+          </label>
+        </div>
+        <div className="flex items-center justify-between rounded-xl border border-border bg-background p-3">
+          <div>
+            <p className="text-sm font-medium">All day</p>
+            <p className="text-[11px] text-muted-foreground">Off for the whole working day(s).</p>
+          </div>
+          <Switch checked={allDay} onCheckedChange={setAllDay} aria-label="All day" />
+        </div>
+        <label className="flex flex-col gap-1.5 text-xs">
+          <span className="font-semibold text-foreground/80">Reason</span>
+          <Input value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Annual leave, appointment, family event…" />
+        </label>
+        <button type="submit" className="hidden" aria-hidden tabIndex={-1} />
+      </form>
+    </BottomSheet>
   )
 }

@@ -140,6 +140,8 @@ notes what's frontend-doable now vs backend-blocked.
 - Roles: who can request vs approve (RBAC). Mobile-first request flow (quick-add overlay per W3).
 **Backend:** persistence, notifications/push, calendar sync. **Size:** ~2 days. Frontend now.
 
+**Progress (2026-05-26):** ✅ DONE — "Time off & leave" on /appointments: staff **request** time off (staff, date range, all-day toggle, reason) via overlay → enters **pending** → admin **approve / reject** (reject takes an optional note shared back) → **approved leave reflects on the calendar** (amber day markers + an "On leave: names" banner on the selected day). Toasts stand in for the admin notification/push (backend wires real notifications + persistence + RBAC gating of request-vs-approve).
+
 ## W8 — Marketing builder rework (mobile-first)
 **Goal:** A best-in-class, simple ad/listing builder that beats competitors, on mobile first.
 **Scope:**
