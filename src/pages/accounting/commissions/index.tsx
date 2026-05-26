@@ -15,6 +15,7 @@ import {
   Filter,
   Receipt,
   Send,
+  SlidersHorizontal,
   TrendingUp,
   Users,
   Wallet,
@@ -27,6 +28,7 @@ import { Input } from "@/components/ui/input"
 import { StatusBadge, type StatusTone } from "@/components/lists/status-badge"
 import { Avatar } from "@/components/avatar"
 import { BottomSheet } from "@/components/mobile/bottom-sheet"
+import { CommissionRulesSheet } from "@/components/commissions/commission-rules-sheet"
 import { ConnectionCard } from "@/components/integrations/connection-chip"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { useRegisterPageRefresh } from "@/hooks/use-pull-to-refresh"
@@ -98,6 +100,7 @@ export default function CommissionsPayout() {
   const [selectedIds, setSelectedIds] = React.useState<Set<string>>(new Set())
   const [entries, setEntries] = React.useState<Entry[]>(SEED_ENTRIES)
   const [statementFor, setStatementFor] = React.useState<string | null>(null)
+  const [rulesOpen, setRulesOpen] = React.useState(false)
 
   const todayLabel = () => new Date().toLocaleDateString("en-NG", { month: "short", day: "numeric", year: "numeric" })
 
@@ -234,6 +237,9 @@ export default function CommissionsPayout() {
               </div>
             </div>
             <div className="flex flex-wrap items-center gap-2">
+              <Button size="sm" variant="ghost" onClick={() => setRulesOpen(true)}>
+                <SlidersHorizontal className="h-3.5 w-3.5" /> Rules
+              </Button>
               <Button size="sm" variant="outline" disabled={pending.length === 0} onClick={() => approve(selectedIds)}>
                 <CheckSquare className="h-3.5 w-3.5" /> Approve {selectedIds.size > 0 ? `${selectedIds.size} selected` : `all pending (${pending.length})`}
               </Button>
@@ -521,6 +527,8 @@ export default function CommissionsPayout() {
           )
         })()}
       </BottomSheet>
+
+      <CommissionRulesSheet open={rulesOpen} onClose={() => setRulesOpen(false)} />
     </ReportShell>
   )
 }

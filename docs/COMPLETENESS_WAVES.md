@@ -178,6 +178,14 @@ notes what's frontend-doable now vs backend-blocked.
 
 ---
 
+## Frontend-doables follow-up (2026-05-26, post-program)
+Knocked out the documented remaining items that don't need the backend:
+- **W5 commission rule engine config** — `lib/commissions/rules.ts` (default + per-tier + per-rep rates, `resolveSaleRate`) + a "Rules" drawer on `/accounting/commissions` with a live effective-rate preview.
+- **W4 composer** — "Send via" channel picker (Email/WhatsApp/SMS; subject hidden for SMS/WhatsApp), real **Attach** (file input → chips with remove), and the template picker now includes the user's own templates.
+- **W8 per-channel ad previews** — the builder's live preview now switches chrome per channel (Reels/TikTok vertical, YouTube 16:9, Marketplace listing, Feed square) via a channel tab row.
+- **W6 per-provider integration guidance** — numbered setup guides for Paystack / Flutterwave / OPay / PalmPay on the integration detail page (shown pre- and post-connect).
+Still backend-gated only: real send/publish/OAuth/credit-ledger/generation/metric-sync, plus minor polish (team-chat deep pass, TikTok campaign/listing wrappers, commission dispute workflow).
+
 ## ✅ Program complete (2026-05-26)
 All ten waves shipped and pushed (commits 1086728 → this one). Each wave's
 remaining items are **backend-gated** (real send/sync/publish/OAuth/credit

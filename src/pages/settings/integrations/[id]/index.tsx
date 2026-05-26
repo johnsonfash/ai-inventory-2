@@ -41,6 +41,56 @@ const STATUS_TONE: Record<IntegrationStatus, StatusTone> = {
   error: "danger",
 }
 
+// Provider-specific setup steps. The NG payment rails fall to this
+// generic detail page, so they previously had no bespoke guidance —
+// these walk through keys + webhook registration for each.
+const SETUP_GUIDES: Record<string, string[]> = {
+  paystack: [
+    "In your Paystack dashboard, open Settings → API Keys & Webhooks.",
+    "Copy your Secret Key + Public Key and paste them when you Connect.",
+    "Paste the webhook URL below into Paystack's “Webhook URL” field and save.",
+    "Enable the charge.success and transfer.success events.",
+    "Hit Test here — a 200 confirms Paystack can reach Pallio.",
+  ],
+  flutterwave: [
+    "In the Flutterwave dashboard, open Settings → API.",
+    "Copy your Secret + Public keys into the Connect form.",
+    "Set a Secret Hash on Flutterwave and enter the same value here.",
+    "Add the webhook URL below under Settings → Webhooks.",
+    "Run Test to verify card + transfer events flow through.",
+  ],
+  opay: [
+    "From the OPay Merchant dashboard, open Developer → API Keys.",
+    "Copy the Merchant ID + Public/Private keys into the Connect form.",
+    "Register the webhook URL below for payment notifications.",
+    "Whitelist Pallio's callback domain if OPay prompts you.",
+    "Run Test to confirm the connection.",
+  ],
+  palmpay: [
+    "In the PalmPay Business portal, open Developer → Credentials.",
+    "Copy the App ID + keys into Pallio's Connect form.",
+    "Add the webhook URL below as your payment callback.",
+    "Enable settlement + payment-status notifications.",
+    "Run Test.",
+  ],
+}
+
+function SetupGuide({ steps }: { steps: string[] }) {
+  return (
+    <section className="rounded-2xl border border-border bg-card p-4">
+      <h3 className="text-sm font-semibold md:text-base">Setup guide</h3>
+      <ol className="mt-3 flex flex-col gap-2">
+        {steps.map((s, i) => (
+          <li key={i} className="flex items-start gap-2.5 text-sm">
+            <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-brand-soft text-[11px] font-bold text-brand dark:bg-primary/15 dark:text-primary">{i + 1}</span>
+            <span className="text-muted-foreground">{s}</span>
+          </li>
+        ))}
+      </ol>
+    </section>
+  )
+}
+
 function relTime(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime()
   const m = Math.round(diff / 60_000)
@@ -110,6 +160,7 @@ export default function IntegrationDetail() {
               />
             </CardContent>
           </Card>
+          {SETUP_GUIDES[provider.id] && <SetupGuide steps={SETUP_GUIDES[provider.id]!} />}
         </div>
       </PageShell>
     )
@@ -248,6 +299,9 @@ export default function IntegrationDetail() {
             </section>
           )
         })()}
+
+        {/* Provider-specific setup steps (NG payment rails, etc.). */}
+        {SETUP_GUIDES[provider.id] && <SetupGuide steps={SETUP_GUIDES[provider.id]!} />}
 
         {/* Functional configuration — category-aware tabs that do
             real work (settlement, refunds, hubs, sender, etc.). */}

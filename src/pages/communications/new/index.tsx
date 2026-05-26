@@ -20,9 +20,21 @@ import { StatusBadge } from "@/components/lists/status-badge"
 import { InfoTooltip } from "@/components/info-tooltip"
 import { ConnectionCard } from "@/components/integrations/connection-chip"
 import { RichTextEditor } from "@/components/rich-text-editor"
-import { TEMPLATES, interpolate } from "@/lib/comms/data"
+import { interpolate } from "@/lib/comms/data"
+import { loadAllTemplates, TEMPLATES_CHANGED } from "@/lib/comms/storage"
 import { MEMBERS } from "@/lib/team/data"
 import { cn } from "@/lib/utils"
+
+// Channels a message can go out on, gated in real life by which provider
+// integrations are connected. SMS/WhatsApp have no subject line.
+type SendChannel = "email" | "whatsapp" | "sms"
+const CHANNELS: { key: SendChannel; label: string; provider: string }[] = [
+  { key: "email", label: "Email", provider: "mailgun" },
+  { key: "whatsapp", label: "WhatsApp", provider: "whatsapp-cloud" },
+  { key: "sms", label: "SMS", provider: "twilio" },
+]
+
+type Attachment = { id: string; name: string; size: number }
 
 // Customer suggestions for the To picker. Same mock list used by the
 // command palette so search feels consistent. Add `kind` so we can
@@ -69,14 +81,31 @@ export default function ComposeEmail() {
   const [variables, setVariables] = React.useState<Record<string, string>>({})
   const [preview, setPreview] = React.useState(false)
   const [submitting, setSubmitting] = React.useState(false)
+  const [channel, setChannel] = React.useState<SendChannel>("email")
+  const [attachments, setAttachments] = React.useState<Attachment[]>([])
+  const fileRef = React.useRef<HTMLInputElement>(null)
 
-  const template = TEMPLATES.find((t) => t.id === templateId)
+  // Templates = builtins + the user's own (W4 editor). Refresh on change.
+  const [templates, setTemplates] = React.useState(() => loadAllTemplates())
+  React.useEffect(() => {
+    const refresh = () => setTemplates(loadAllTemplates())
+    window.addEventListener(TEMPLATES_CHANGED, refresh)
+    return () => window.removeEventListener(TEMPLATES_CHANGED, refresh)
+  }, [])
+
+  const onAttach = (files: FileList | null) => {
+    if (!files) return
+    setAttachments((prev) => [...prev, ...Array.from(files).map((f) => ({ id: `${f.name}-${Date.now()}`, name: f.name, size: f.size }))])
+  }
+
+  const template = templates.find((t) => t.id === templateId)
+  const channelLabel = CHANNELS.find((c) => c.key === channel)!.label
 
   // Apply a template: load subject + body + seed variables with
   // sample values so the preview renders out of the box.
   const applyTemplate = (id: string) => {
     setTemplateId(id)
-    const tpl = TEMPLATES.find((t) => t.id === id)
+    const tpl = templates.find((t) => t.id === id)
     if (!tpl) return
     const seeded: Record<string, string> = {}
     for (const t of tpl.tokens) seeded[t.key] = variables[t.key] ?? t.sample
@@ -92,7 +121,7 @@ export default function ComposeEmail() {
     setSubmitting(true)
     await new Promise((r) => setTimeout(r, 600))
     setSubmitting(false)
-    toast.success(`Email queued for ${to.length} recipient${to.length === 1 ? "" : "s"}.`)
+    toast.success(`${channelLabel} queued for ${to.length} recipient${to.length === 1 ? "" : "s"}.`)
     navigate("/communications")
   }
 
@@ -134,6 +163,25 @@ export default function ComposeEmail() {
         <div className="grid gap-4 lg:grid-cols-[1fr_320px]">
           {/* Composer column */}
           <section className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-4">
+            {/* Send via — which connected rail this message goes out on */}
+            <Field label="Send via">
+              <div className="inline-flex gap-1 rounded-lg border border-border p-0.5">
+                {CHANNELS.map((c) => (
+                  <button
+                    key={c.key}
+                    type="button"
+                    onClick={() => setChannel(c.key)}
+                    className={cn(
+                      "rounded-md px-3 py-1.5 text-xs font-semibold transition-colors",
+                      channel === c.key ? "bg-brand text-brand-foreground dark:bg-primary dark:text-primary-foreground" : "text-muted-foreground hover:text-foreground",
+                    )}
+                  >
+                    {c.label}
+                  </button>
+                ))}
+              </div>
+            </Field>
+
             {/* To */}
             <Field label="To" required>
               <RecipientPicker selected={to} onChange={setTo} />
@@ -153,15 +201,17 @@ export default function ComposeEmail() {
               </Field>
             )}
 
-            {/* Subject */}
-            <Field label="Subject" required>
-              <Input
-                value={preview ? interpolatedSubject : subject}
-                readOnly={preview}
-                onChange={(e) => setSubject(e.target.value)}
-                placeholder="Quick subject…"
-              />
-            </Field>
+            {/* Subject — email only; SMS/WhatsApp have no subject line */}
+            {channel === "email" && (
+              <Field label="Subject" required>
+                <Input
+                  value={preview ? interpolatedSubject : subject}
+                  readOnly={preview}
+                  onChange={(e) => setSubject(e.target.value)}
+                  placeholder="Quick subject…"
+                />
+              </Field>
+            )}
 
             {/* Body */}
             <Field label="Message" required>
@@ -180,10 +230,27 @@ export default function ComposeEmail() {
               )}
             </Field>
 
+            {/* Attachment chips */}
+            {attachments.length > 0 && (
+              <div className="flex flex-wrap gap-1.5">
+                {attachments.map((a) => (
+                  <span key={a.id} className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background px-2 py-1 text-[11px]">
+                    <Paperclip className="h-3 w-3 text-muted-foreground" />
+                    <span className="max-w-[12rem] truncate font-medium">{a.name}</span>
+                    <span className="text-muted-foreground">{(a.size / 1024).toFixed(0)} KB</span>
+                    <button type="button" onClick={() => setAttachments((prev) => prev.filter((x) => x.id !== a.id))} aria-label={`Remove ${a.name}`} className="text-muted-foreground hover:text-foreground">
+                      <X className="h-3 w-3" />
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
+
             {/* Attach */}
             <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border pt-3">
               <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm">
+                <input ref={fileRef} type="file" multiple className="hidden" onChange={(e) => { onAttach(e.target.files); e.target.value = "" }} />
+                <Button variant="outline" size="sm" onClick={() => fileRef.current?.click()}>
                   <Paperclip className="h-3.5 w-3.5" /> Attach
                 </Button>
                 <Button
@@ -198,8 +265,8 @@ export default function ComposeEmail() {
                 <Button variant="ghost" size="sm" onClick={onSaveDraft} disabled={submitting}>
                   <Save className="h-3.5 w-3.5" /> Save draft
                 </Button>
-                <Button size="sm" onClick={onSend} disabled={submitting || to.length === 0 || !subject.trim()}>
-                  {submitting ? "Sending…" : <>Send <Send className="h-3.5 w-3.5" /></>}
+                <Button size="sm" onClick={onSend} disabled={submitting || to.length === 0 || (channel === "email" && !subject.trim())}>
+                  {submitting ? "Sending…" : <>Send {channel === "email" ? "" : channelLabel} <Send className="h-3.5 w-3.5" /></>}
                 </Button>
               </div>
             </div>
@@ -218,9 +285,9 @@ export default function ComposeEmail() {
               <Select value={templateId} onValueChange={(v) => v && applyTemplate(v)}>
                 <SelectTrigger className="mt-2"><SelectValue placeholder="Pick a template…" /></SelectTrigger>
                 <SelectContent>
-                  {TEMPLATES.map((t) => (
+                  {templates.map((t) => (
                     <SelectItem key={t.id} value={t.id}>
-                      {t.name}
+                      {t.name}{t.builtin ? "" : " · yours"}
                     </SelectItem>
                   ))}
                 </SelectContent>

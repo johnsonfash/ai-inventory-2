@@ -129,7 +129,7 @@ export default function NewListing() {
       }
       backHref="/marketing"
       onSubmit={() => { setSubmitting(true); setTimeout(() => setSubmitting(false), 600) }}
-      aside={<PreviewAside subjectCta={subjectDef.cta} title={previewTitle} image={previewImage} priceLabel={price && !Number.isNaN(priceNum) ? formatPrice(priceNum) : undefined} channels={enabledChannels.map((c) => c.label)} hasVideo={media.some((m) => m.kind === "video")} />}
+      aside={<PreviewAside subjectCta={subjectDef.cta} title={previewTitle} image={previewImage} priceLabel={price && !Number.isNaN(priceNum) ? formatPrice(priceNum) : undefined} channels={enabledChannels.map((c) => ({ key: c.key, label: c.label }))} hasVideo={media.some((m) => m.kind === "video")} />}
       footer={
         <FormFooter
           submitLabel={`Publish to ${enabledCount} ${enabledCount === 1 ? "channel" : "channels"}`}
@@ -274,52 +274,90 @@ export default function NewListing() {
   )
 }
 
-// Live preview — a social-post mock that updates as you build, so you
-// see the ad the way a shopper will before publishing.
+// Per-channel layout: each surface frames the ad differently, so the
+// preview shows the ad the way it'll actually appear on the channel
+// you're checking.
+function layoutFor(key?: ChannelKey): "vertical" | "wide" | "listing" | "square" {
+  if (key === "tiktok-ads" || key === "instagram-ads") return "vertical"
+  if (key === "youtube-adsense") return "wide"
+  if (key === "facebook-marketplace") return "listing"
+  return "square"
+}
+
+// Live preview — a social-post mock that updates as you build, and
+// switches chrome per channel (Reels/TikTok vertical, YouTube 16:9,
+// Marketplace listing, Feed square).
 function PreviewAside({ subjectCta, title, image, priceLabel, channels, hasVideo }: {
   subjectCta: string
   title: string
   image?: string
   priceLabel?: string
-  channels: string[]
+  channels: { key: ChannelKey; label: string }[]
   hasVideo: boolean
 }) {
+  const [active, setActive] = React.useState<ChannelKey | undefined>(channels[0]?.key)
+  // Keep the active tab valid as channels toggle.
+  React.useEffect(() => {
+    if (channels.length === 0) { setActive(undefined); return }
+    if (!active || !channels.some((c) => c.key === active)) setActive(channels[0]!.key)
+  }, [channels, active])
+
+  const layout = layoutFor(active)
+  const media = (
+    <div className={cn("relative w-full bg-muted", layout === "vertical" ? "aspect-[9/16]" : layout === "wide" ? "aspect-video" : "aspect-square")}>
+      {image ? <img src={image} alt="" className="h-full w-full object-cover" /> : <ProductThumb name={title} className="h-full w-full rounded-none" textClassName="text-3xl" />}
+      {(hasVideo || layout === "wide") && (
+        <span className="absolute bottom-2 right-2 inline-flex items-center gap-1 rounded-full bg-black/60 px-2 py-0.5 text-[10px] font-semibold text-white"><Video className="h-3 w-3" /> video</span>
+      )}
+      {/* Vertical formats overlay the caption like Reels/TikTok. */}
+      {layout === "vertical" && (
+        <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-2 bg-gradient-to-t from-black/70 to-transparent p-3">
+          <p className="line-clamp-2 text-xs font-bold text-white">{title}</p>
+          <span className="shrink-0 rounded-lg bg-white/95 px-2 py-1 text-[10px] font-bold text-black">{subjectCta}</span>
+        </div>
+      )}
+    </div>
+  )
+
   return (
     <div className="flex flex-col gap-3">
       <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Live preview</p>
-      <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
-        <div className="flex items-center gap-2 px-3 py-2">
-          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-brand to-fuchsia-500 text-[10px] font-bold text-white">P</span>
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-xs font-semibold">Your business</p>
-            <p className="text-[10px] text-muted-foreground">Sponsored</p>
-          </div>
-        </div>
-        <div className="relative aspect-square w-full bg-muted">
-          {image ? (
-            <img src={image} alt="" className="h-full w-full object-cover" />
-          ) : (
-            <ProductThumb name={title} className="h-full w-full rounded-none" textClassName="text-3xl" />
-          )}
-          {hasVideo && (
-            <span className="absolute bottom-2 right-2 inline-flex items-center gap-1 rounded-full bg-black/60 px-2 py-0.5 text-[10px] font-semibold text-white"><Video className="h-3 w-3" /> video</span>
-          )}
-        </div>
-        <div className="flex items-center justify-between gap-2 px-3 py-2.5">
-          <div className="min-w-0">
-            <p className="truncate text-xs font-semibold">{title}</p>
-            {priceLabel && <p className="text-[11px] text-muted-foreground">{priceLabel}</p>}
-          </div>
-          <span className="shrink-0 rounded-lg bg-brand px-2.5 py-1 text-[11px] font-semibold text-brand-foreground dark:bg-primary dark:text-primary-foreground">{subjectCta}</span>
-        </div>
-      </div>
+
       {channels.length > 0 && (
-        <div className="flex flex-wrap gap-1">
+        <div className="-mx-1 flex gap-1 overflow-x-auto px-1 scrollbar-hide">
           {channels.map((c) => (
-            <span key={c} className="rounded-full border border-border bg-background px-2 py-0.5 text-[10px] font-medium text-muted-foreground">{c}</span>
+            <button key={c.key} type="button" onClick={() => setActive(c.key)}
+              className={cn("shrink-0 rounded-full border px-2.5 py-1 text-[10px] font-semibold transition-colors",
+                active === c.key ? "border-brand bg-brand-soft text-brand dark:border-primary dark:bg-primary/15 dark:text-primary" : "border-border text-muted-foreground hover:border-brand/40")}>
+              {c.label}
+            </button>
           ))}
         </div>
       )}
+
+      <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+        {layout !== "listing" && (
+          <div className="flex items-center gap-2 px-3 py-2">
+            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-brand to-fuchsia-500 text-[10px] font-bold text-white">P</span>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-xs font-semibold">Your business</p>
+              <p className="text-[10px] text-muted-foreground">{active === "website" ? "Featured" : "Sponsored"}</p>
+            </div>
+          </div>
+        )}
+        {media}
+        {/* Non-vertical layouts put the headline + CTA below the media. */}
+        {layout !== "vertical" && (
+          <div className="flex items-center justify-between gap-2 px-3 py-2.5">
+            <div className="min-w-0">
+              <p className="truncate text-xs font-semibold">{title}</p>
+              {priceLabel && <p className={cn("text-[11px]", layout === "listing" ? "font-bold text-foreground" : "text-muted-foreground")}>{priceLabel}</p>}
+            </div>
+            <span className="shrink-0 rounded-lg bg-brand px-2.5 py-1 text-[11px] font-semibold text-brand-foreground dark:bg-primary dark:text-primary-foreground">{layout === "listing" ? "Message" : subjectCta}</span>
+          </div>
+        )}
+      </div>
+      {channels.length === 0 && <p className="text-[11px] text-muted-foreground">Pick a channel to preview the ad.</p>}
     </div>
   )
 }
