@@ -26,6 +26,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { StatusBadge, type StatusTone } from "@/components/lists/status-badge"
 import { Avatar } from "@/components/avatar"
+import { BottomSheet } from "@/components/mobile/bottom-sheet"
 import { ConnectionCard } from "@/components/integrations/connection-chip"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { useRegisterPageRefresh } from "@/hooks/use-pull-to-refresh"
@@ -49,7 +50,15 @@ type Entry = {
   bankShort: string
 }
 
-const ENTRIES: Entry[] = [
+// Withholding tax on commission/professional-service payouts. NG FIRS
+// rate is 5% for individuals/most services — held back from the gross
+// and remitted, so the recipient nets gross − WHT. Backend will make
+// this configurable per jurisdiction.
+const WHT_RATE = 0.05
+const whtOf = (gross: number) => Math.round(gross * WHT_RATE)
+const netOf = (gross: number) => gross - whtOf(gross)
+
+const SEED_ENTRIES: Entry[] = [
   // Pending — earned this month, not yet approved
   { id: "COMM-2026-05-001", type: "affiliate", earnedAt: "May 20, 2026", recipient: { id: "a-1", name: "Tunde Bello",     email: "tunde@ekopro.com",  role: "Affiliate · Lagos" },   source: "12 orders via TUNDE10",     basis: 412_400, rate: 10, amount: 41_240, state: "pending", bankShort: "GTBank ··· 4218" },
   { id: "COMM-2026-05-002", type: "affiliate", earnedAt: "May 19, 2026", recipient: { id: "a-2", name: "Aisha Personal",  email: "aisha@personal.io", role: "Affiliate · Influencer" },source: "8 orders via AISHA15",     basis: 218_800, rate: 15, amount: 32_820, state: "pending", bankShort: "Kuda ··· 3382" },
@@ -87,30 +96,70 @@ export default function CommissionsPayout() {
   const [period, setPeriod] = React.useState<Period>("30d")
   const [filter, setFilter] = React.useState<Filter>("all")
   const [selectedIds, setSelectedIds] = React.useState<Set<string>>(new Set())
+  const [entries, setEntries] = React.useState<Entry[]>(SEED_ENTRIES)
+  const [statementFor, setStatementFor] = React.useState<string | null>(null)
+
+  const todayLabel = () => new Date().toLocaleDateString("en-NG", { month: "short", day: "numeric", year: "numeric" })
+
+  // --- State machine. Approve verifies pending → approved; pay debits
+  // + transfers approved → paid (records the date); reject voids a
+  // pending entry (e.g. the underlying order was refunded). All support
+  // a single id or a batch, and clear those ids from the selection.
+  const setState = (ids: Set<string>, from: EntryState, to: EntryState, stamp = false) => {
+    setEntries((prev) => prev.map((e) =>
+      ids.has(e.id) && e.state === from
+        ? { ...e, state: to, ...(stamp ? { paidDate: todayLabel() } : {}) }
+        : e,
+    ))
+    setSelectedIds(new Set())
+  }
+  const idsOrAll = (explicit: Set<string>, fallbackState: EntryState) =>
+    explicit.size > 0 ? explicit : new Set(entries.filter((e) => e.state === fallbackState).map((e) => e.id))
+
+  const approve = (ids: Set<string>) => {
+    const target = idsOrAll(ids, "pending")
+    const n = entries.filter((e) => target.has(e.id) && e.state === "pending").length
+    setState(target, "pending", "approved")
+    toast.success(`${n} ${n === 1 ? "entry" : "entries"} approved`, { description: "Ready for the next batch payout." })
+  }
+  const pay = (ids: Set<string>) => {
+    const target = idsOrAll(ids, "approved")
+    const rows = entries.filter((e) => target.has(e.id) && e.state === "approved")
+    const gross = rows.reduce((s, e) => s + e.amount, 0)
+    setState(target, "approved", "paid", true)
+    toast.success(`Paid ${rows.length} · ${formatPrice(netOf(gross))} net`, { description: `${formatPrice(whtOf(gross))} WHT withheld · transfers via Paystack NIBSS.` })
+  }
+  const reject = (e: Entry) => {
+    setEntries((prev) => prev.map((x) => (x.id === e.id ? { ...x, state: "rejected" } : x)))
+    toast(`${e.id} rejected`, {
+      description: e.recipient.name,
+      action: { label: "Undo", onClick: () => setEntries((prev) => prev.map((x) => (x.id === e.id ? { ...x, state: "pending" } : x))) },
+    })
+  }
 
   const filtered = React.useMemo(() => {
-    return ENTRIES.filter((e) => {
+    return entries.filter((e) => {
       if (filter === "all") return true
       if (filter === "sales" || filter === "affiliate") return e.type === filter
       return e.state === filter
     })
-  }, [filter])
+  }, [filter, entries])
 
-  const pending     = ENTRIES.filter((e) => e.state === "pending")
-  const approved    = ENTRIES.filter((e) => e.state === "approved")
-  const paid        = ENTRIES.filter((e) => e.state === "paid")
+  const pending     = entries.filter((e) => e.state === "pending")
+  const approved    = entries.filter((e) => e.state === "approved")
+  const paid        = entries.filter((e) => e.state === "paid")
   const owed        = pending.reduce((s, e) => s + e.amount, 0) + approved.reduce((s, e) => s + e.amount, 0)
   const paidYTD     = paid.reduce((s, e) => s + e.amount, 0)
   const approvedNow = approved.reduce((s, e) => s + e.amount, 0)
 
   const counts: Record<Filter, number> = {
-    all:       ENTRIES.length,
+    all:       entries.length,
     pending:   pending.length,
     approved:  approved.length,
     paid:      paid.length,
-    rejected:  ENTRIES.filter((e) => e.state === "rejected").length,
-    sales:     ENTRIES.filter((e) => e.type === "sales").length,
-    affiliate: ENTRIES.filter((e) => e.type === "affiliate").length,
+    rejected:  entries.filter((e) => e.state === "rejected").length,
+    sales:     entries.filter((e) => e.type === "sales").length,
+    affiliate: entries.filter((e) => e.type === "affiliate").length,
   }
 
   const toggle = (id: string) => {
@@ -122,19 +171,24 @@ export default function CommissionsPayout() {
     })
   }
   const toggleAll = (rows: Entry[]) => {
-    const allSelected = rows.every((r) => selectedIds.has(r.id))
+    const selectable = rows.filter((r) => r.state === "pending" || r.state === "approved")
+    const allSelected = selectable.length > 0 && selectable.every((r) => selectedIds.has(r.id))
     setSelectedIds((prev) => {
       const next = new Set(prev)
-      if (allSelected) rows.forEach((r) => next.delete(r.id))
-      else rows.forEach((r) => next.add(r.id))
+      if (allSelected) selectable.forEach((r) => next.delete(r.id))
+      else selectable.forEach((r) => next.add(r.id))
       return next
     })
   }
-  const selectedAmount = ENTRIES.filter((e) => selectedIds.has(e.id)).reduce((s, e) => s + e.amount, 0)
+  const selectedAmount = entries.filter((e) => selectedIds.has(e.id)).reduce((s, e) => s + e.amount, 0)
 
-  const exportRows = ENTRIES.map((e) => ({
+  // Per-recipient statement (drawer): every entry for one person + totals.
+  const statementEntries = statementFor ? entries.filter((e) => e.recipient.email === statementFor) : []
+  const statementName = statementEntries[0]?.recipient.name ?? ""
+
+  const exportRows = entries.map((e) => ({
     id: e.id, type: e.type, recipient: e.recipient.name, source: e.source,
-    basis: e.basis, rate_pct: e.rate, amount: e.amount, state: e.state,
+    basis: e.basis, rate_pct: e.rate, gross: e.amount, wht: whtOf(e.amount), net: netOf(e.amount), state: e.state,
     paid_date: e.paidDate ?? "", bank: e.bankShort,
   }))
 
@@ -175,15 +229,15 @@ export default function CommissionsPayout() {
                 <p className="text-[10px] font-semibold uppercase tracking-[0.3em] text-muted-foreground">Next batch payout</p>
                 <h2 className="text-xl font-bold tracking-tight md:text-2xl">{formatPrice(approvedNow)} · {approved.length} approved</h2>
                 <p className="text-xs text-muted-foreground md:text-sm">
-                  Funds debit your business bank account on the <strong className="font-bold text-foreground">5th of each month</strong>. Transfers route via Paystack NIBSS — same-day to every recipient.
+                  Recipients net <strong className="font-bold text-foreground">{formatPrice(netOf(approvedNow))}</strong> after <strong className="font-bold text-foreground">{formatPrice(whtOf(approvedNow))}</strong> (5%) withholding tax. Transfers route via Paystack NIBSS, debiting on the 5th.
                 </p>
               </div>
             </div>
             <div className="flex flex-wrap items-center gap-2">
-              <Button size="sm" variant="outline" onClick={() => toast.success(`${selectedIds.size > 0 ? selectedIds.size : pending.length} entries marked approved.`)}>
+              <Button size="sm" variant="outline" disabled={pending.length === 0} onClick={() => approve(selectedIds)}>
                 <CheckSquare className="h-3.5 w-3.5" /> Approve {selectedIds.size > 0 ? `${selectedIds.size} selected` : `all pending (${pending.length})`}
               </Button>
-              <Button size="sm" onClick={() => toast.success(`Batch payout of ${formatPrice(approvedNow)} scheduled — bank debit ${nextBusinessDay()}.`)}>
+              <Button size="sm" disabled={approved.length === 0} onClick={() => pay(selectedIds)}>
                 <Send className="h-3.5 w-3.5" /> Pay {approved.length} approved
               </Button>
             </div>
@@ -221,10 +275,10 @@ export default function CommissionsPayout() {
           </p>
           <div className="flex gap-2">
             <Button size="sm" variant="outline" onClick={() => setSelectedIds(new Set())}>Clear</Button>
-            <Button size="sm" variant="outline" onClick={() => toast.success(`${selectedIds.size} entries approved.`)}>
+            <Button size="sm" variant="outline" onClick={() => approve(selectedIds)}>
               <Check className="h-3.5 w-3.5" /> Approve selected
             </Button>
-            <Button size="sm" onClick={() => toast.success(`Batch payout of ${formatPrice(selectedAmount)} scheduled.`)}>
+            <Button size="sm" onClick={() => pay(selectedIds)}>
               <Send className="h-3.5 w-3.5" /> Pay selected
             </Button>
           </div>
@@ -238,7 +292,16 @@ export default function CommissionsPayout() {
             <ul className="divide-y divide-border">
               {filtered.map((e) => (
                 <li key={e.id} className="p-3">
-                  <EntryCard entry={e} formatPrice={formatPrice} selected={selectedIds.has(e.id)} onToggle={() => toggle(e.id)} />
+                  <EntryCard
+                    entry={e}
+                    formatPrice={formatPrice}
+                    selected={selectedIds.has(e.id)}
+                    onToggle={() => toggle(e.id)}
+                    onApprove={() => approve(new Set([e.id]))}
+                    onReject={() => reject(e)}
+                    onPay={() => pay(new Set([e.id]))}
+                    onOpenStatement={() => setStatementFor(e.recipient.email)}
+                  />
                 </li>
               ))}
               {filtered.length === 0 && <li className="p-12 text-center text-sm text-muted-foreground">No entries match the filter.</li>}
@@ -288,18 +351,21 @@ export default function CommissionsPayout() {
                           <p className="text-[10px] text-muted-foreground">{e.earnedAt}</p>
                         </td>
                         <td className="px-3 py-2.5">
-                          <div className="flex items-center gap-2">
+                          <button type="button" onClick={() => setStatementFor(e.recipient.email)} className="flex items-center gap-2 text-left hover:underline">
                             <Avatar seed={e.recipient.email} name={e.recipient.name} size={26} />
                             <div className="min-w-0">
                               <p className="truncate text-xs font-semibold">{e.recipient.name}</p>
                               <p className="truncate text-[10px] text-muted-foreground">{e.recipient.role}</p>
                             </div>
-                          </div>
+                          </button>
                         </td>
                         <td className="px-3 py-2.5 text-xs text-muted-foreground">{e.source}</td>
                         <td className="px-3 py-2.5 text-right text-xs tabular-nums">{formatPrice(e.basis)}</td>
                         <td className="px-3 py-2.5 text-right text-xs tabular-nums">{e.rate}%</td>
-                        <td className="px-3 py-2.5 text-right text-xs font-bold tabular-nums">{formatPrice(e.amount)}</td>
+                        <td className="px-3 py-2.5 text-right tabular-nums">
+                          <p className="text-xs font-bold">{formatPrice(e.amount)}</p>
+                          <p className="text-[10px] text-muted-foreground">net {formatPrice(netOf(e.amount))}</p>
+                        </td>
                         <td className="px-3 py-2.5">
                           <div>
                             <StatusBadge tone={STATE_TONE[e.state]} withDot>{e.state}</StatusBadge>
@@ -308,10 +374,13 @@ export default function CommissionsPayout() {
                         </td>
                         <td className="px-3 py-2.5 text-right">
                           {e.state === "pending" && (
-                            <Button size="sm" variant="outline" onClick={() => toast.success(`${e.id} approved.`)}>Approve</Button>
+                            <div className="flex items-center justify-end gap-1">
+                              <Button size="sm" variant="outline" onClick={() => approve(new Set([e.id]))}>Approve</Button>
+                              <Button size="sm" variant="ghost" onClick={() => reject(e)} className="text-rose-600 hover:bg-rose-500/10 dark:text-rose-400">Reject</Button>
+                            </div>
                           )}
                           {e.state === "approved" && (
-                            <Button size="sm" onClick={() => toast.success(`${e.id} paid · ${formatPrice(e.amount)} sent to ${e.bankShort}.`)}>Pay now</Button>
+                            <Button size="sm" onClick={() => pay(new Set([e.id]))}>Pay now</Button>
                           )}
                           {e.state === "paid" && (
                             <Button size="sm" variant="ghost" onClick={() => toast.success(`${e.id} receipt downloaded.`)}>
@@ -339,7 +408,7 @@ export default function CommissionsPayout() {
             <h3 className="text-sm font-semibold md:text-base">Top earners · this period</h3>
             <p className="text-[11px] text-muted-foreground">Who's bringing in the most attributable revenue.</p>
             <ul className="mt-3 space-y-2.5">
-              {topEarners(ENTRIES).slice(0, 5).map((r, i) => (
+              {topEarners(entries).slice(0, 5).map((r, i) => (
                 <li key={r.email} className="flex items-center gap-3">
                   <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-bold tabular-nums">{i + 1}</span>
                   <Avatar seed={r.email} name={r.name} size={32} />
@@ -400,6 +469,58 @@ export default function CommissionsPayout() {
           </Link>
         ))}
       </div>
+
+      {/* Per-rep statement */}
+      <BottomSheet
+        open={statementFor !== null}
+        onClose={() => setStatementFor(null)}
+        title={statementName ? `${statementName} · statement` : "Statement"}
+        description="Every commission for this recipient, with gross, withholding and net."
+        maxHeightVh={85}
+      >
+        {statementEntries.length > 0 && (() => {
+          const sum = (st: EntryState) => statementEntries.filter((e) => e.state === st).reduce((s, e) => s + e.amount, 0)
+          const lifetimeGross = statementEntries.reduce((s, e) => s + e.amount, 0)
+          return (
+            <div className="pb-2">
+              <div className="grid grid-cols-3 gap-2">
+                {([
+                  ["Pending", sum("pending"), "warning"],
+                  ["Approved", sum("approved"), "info"],
+                  ["Paid", sum("paid"), "success"],
+                ] as const).map(([label, val, tone]) => (
+                  <div key={label} className="rounded-xl border border-border bg-card p-2.5 text-center">
+                    <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{label}</p>
+                    <p className={cn("mt-0.5 text-sm font-bold tabular-nums",
+                      tone === "warning" && "text-amber-600 dark:text-amber-300",
+                      tone === "info" && "text-sky-600 dark:text-sky-300",
+                      tone === "success" && "text-emerald-600 dark:text-emerald-400",
+                    )}>{formatPrice(val)}</p>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-2 flex items-center justify-between rounded-xl border border-border bg-muted/40 px-3 py-2 text-xs">
+                <span className="text-muted-foreground">Lifetime gross · net after {Math.round(WHT_RATE * 100)}% WHT</span>
+                <span className="font-bold tabular-nums">{formatPrice(lifetimeGross)} · {formatPrice(netOf(lifetimeGross))}</span>
+              </div>
+              <ul className="mt-3 divide-y divide-border">
+                {statementEntries.map((e) => (
+                  <li key={e.id} className="flex items-center justify-between gap-2 py-2">
+                    <div className="min-w-0">
+                      <p className="truncate text-xs font-medium">{e.source}</p>
+                      <p className="text-[10px] text-muted-foreground">{e.earnedAt} · {e.rate}% of {formatPrice(e.basis)}{e.paidDate ? ` · paid ${e.paidDate}` : ""}</p>
+                    </div>
+                    <div className="flex shrink-0 items-center gap-2">
+                      <StatusBadge tone={STATE_TONE[e.state]}>{e.state}</StatusBadge>
+                      <span className="text-xs font-bold tabular-nums">{formatPrice(e.amount)}</span>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )
+        })()}
+      </BottomSheet>
     </ReportShell>
   )
 }
@@ -424,7 +545,16 @@ function Tile({ label, value, sub, tone }: { label: string; value: string; sub?:
   )
 }
 
-function EntryCard({ entry: e, formatPrice, selected, onToggle }: { entry: Entry; formatPrice: (n: number) => string; selected: boolean; onToggle: () => void }) {
+function EntryCard({ entry: e, formatPrice, selected, onToggle, onApprove, onReject, onPay, onOpenStatement }: {
+  entry: Entry
+  formatPrice: (n: number) => string
+  selected: boolean
+  onToggle: () => void
+  onApprove: () => void
+  onReject: () => void
+  onPay: () => void
+  onOpenStatement: () => void
+}) {
   const canSelect = e.state === "pending" || e.state === "approved"
   return (
     <div className={cn("flex items-start gap-3", selected && "rounded-xl bg-brand-soft/30 p-2 dark:bg-primary/10")}>
@@ -436,11 +566,16 @@ function EntryCard({ entry: e, formatPrice, selected, onToggle }: { entry: Entry
         disabled={!canSelect}
         aria-label={`Select ${e.id}`}
       />
-      <Avatar seed={e.recipient.email} name={e.recipient.name} size={36} />
+      <button type="button" onClick={onOpenStatement} aria-label={`Statement for ${e.recipient.name}`}>
+        <Avatar seed={e.recipient.email} name={e.recipient.name} size={36} />
+      </button>
       <div className="min-w-0 flex-1">
         <div className="flex items-baseline justify-between gap-2">
-          <p className="truncate text-sm font-semibold">{e.recipient.name}</p>
-          <p className="shrink-0 text-sm font-bold tabular-nums">{formatPrice(e.amount)}</p>
+          <button type="button" onClick={onOpenStatement} className="truncate text-left text-sm font-semibold hover:underline">{e.recipient.name}</button>
+          <div className="shrink-0 text-right">
+            <p className="text-sm font-bold tabular-nums">{formatPrice(e.amount)}</p>
+            <p className="text-[10px] text-muted-foreground">net {formatPrice(netOf(e.amount))}</p>
+          </div>
         </div>
         <p className="truncate text-[11px] text-muted-foreground">{e.recipient.role}</p>
         <p className="truncate text-[11px] text-muted-foreground">{e.source}</p>
@@ -449,6 +584,19 @@ function EntryCard({ entry: e, formatPrice, selected, onToggle }: { entry: Entry
           <span className="text-[10px] text-muted-foreground">{e.rate}% · {e.earnedAt}</span>
           {e.paidDate && <span className="text-[10px] text-muted-foreground">paid {e.paidDate}</span>}
         </div>
+        {(e.state === "pending" || e.state === "approved") && (
+          <div className="mt-2 flex items-center gap-1.5">
+            {e.state === "pending" && (
+              <>
+                <Button size="sm" variant="outline" onClick={onApprove}>Approve</Button>
+                <Button size="sm" variant="ghost" onClick={onReject} className="text-rose-600 hover:bg-rose-500/10 dark:text-rose-400">Reject</Button>
+              </>
+            )}
+            {e.state === "approved" && (
+              <Button size="sm" onClick={onPay}>Pay now</Button>
+            )}
+          </div>
+        )}
       </div>
     </div>
   )
@@ -463,14 +611,6 @@ function topEarners(entries: Entry[]): { name: string; email: string; role: stri
     map.set(key, existing)
   }
   return Array.from(map.values()).sort((a, b) => b.total - a.total)
-}
-
-function nextBusinessDay() {
-  const d = new Date()
-  d.setDate(d.getDate() + 1)
-  if (d.getDay() === 0) d.setDate(d.getDate() + 1)
-  if (d.getDay() === 6) d.setDate(d.getDate() + 2)
-  return d.toLocaleDateString("en-NG", { month: "long", day: "numeric" })
 }
 
 void Building2; void CreditCard; void Filter; void Input

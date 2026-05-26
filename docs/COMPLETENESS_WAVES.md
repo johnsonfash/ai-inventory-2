@@ -112,6 +112,8 @@ notes what's frontend-doable now vs backend-blocked.
 - Clarify affiliate vs sales-rep attribution (which sale earned whose commission).
 **Backend:** payouts, GL posting, WHT filing. **Size:** ~3 days. Frontend rules/statements now; payouts backend-blocked.
 
+**Progress (2026-05-26):** ✅ DONE — the ledger is now **functional, not mock**: real approve / **reject** / pay **state machine** (single row, bulk-selected, and hero batch; entries are stateful), **WHT** (5% NG default — `whtOf`/`netOf`, net shown per row + in the payout hero + statement), **per-rep statement drawer** (click any recipient → all their entries + pending/approved/paid/lifetime totals), CSV export now carries gross/WHT/net. Reject is undo-able. ⏳ REMAINING: the **commission rule engine config** (define default + per-role rates, tiers, per-rep overrides) — larger build; rates are still per-entry. Per-rep statement currently read-only (no dispute workflow).
+
 ## W6 — Settings & integrations completeness
 **Goal:** No broken settings tiles; integrations gain real depth.
 **Scope:**
