@@ -1,63 +1,67 @@
 import { Link } from "react-router-dom"
 import { motion } from "framer-motion"
 import {
+  CalendarPlus,
   CreditCard,
+  FileText,
   PackagePlus,
   Receipt,
-  ScanBarcode,
   Truck,
   UserPlus,
   type LucideIcon,
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { loadBusinessProfile } from "@/lib/profile/business-profile"
 import { cn } from "@/lib/utils"
 
 type Action = { title: string; sub: string; href: string; Icon: LucideIcon; tone: string }
 
-const actions: Action[] = [
-  {
-    title: "New sale",
-    sub: "Open POS",
-    href: "/pos",
-    Icon: CreditCard,
-    tone: "from-violet-500/20 to-violet-500/0 text-brand dark:text-primary",
-  },
-  {
-    title: "Add item",
-    sub: "Create SKU",
-    href: "/inventory/new",
-    Icon: PackagePlus,
-    tone: "from-emerald-500/20 to-emerald-500/0 text-emerald-600 dark:text-emerald-300",
-  },
-  {
-    title: "Receive stock",
-    sub: "Inbound goods",
-    href: "/inventory/receive",
-    Icon: Truck,
-    tone: "from-sky-500/20 to-sky-500/0 text-sky-600 dark:text-sky-300",
-  },
-  {
-    title: "New customer",
-    sub: "Add to CRM",
-    href: "/sales/customers/new",
-    Icon: UserPlus,
-    tone: "from-amber-500/20 to-amber-500/0 text-amber-600 dark:text-amber-300",
-  },
-  {
-    title: "Scan label",
-    sub: "Barcode lookup",
-    href: "/inventory/labels",
-    Icon: ScanBarcode,
-    tone: "from-fuchsia-500/20 to-fuchsia-500/0 text-fuchsia-600 dark:text-fuchsia-300",
-  },
-  {
-    title: "Add expense",
-    sub: "Log a cost",
-    href: "/expenses/new",
-    Icon: Receipt,
-    tone: "from-rose-500/20 to-rose-500/0 text-rose-600 dark:text-rose-300",
-  },
-]
+// Quick actions adapt to the business profile so the set stays the SIX
+// most-common flows for THIS operator. Service-led businesses get
+// "New booking" where a goods business gets "Receive stock". Everything
+// is still reachable from the nav — this is just emphasis, never gating.
+function buildActions(): Action[] {
+  const profile = loadBusinessProfile()
+  const serviceLed = profile?.industry === "services" || profile?.sells === "services"
+
+  const newSale: Action = {
+    title: "New sale", sub: "Open POS", href: "/pos",
+    Icon: CreditCard, tone: "from-violet-500/20 to-violet-500/0 text-brand dark:text-primary",
+  }
+  const addItem: Action = {
+    title: "Add item", sub: "Create SKU", href: "/inventory/new",
+    Icon: PackagePlus, tone: "from-emerald-500/20 to-emerald-500/0 text-emerald-600 dark:text-emerald-300",
+  }
+  const newCustomer: Action = {
+    title: "New customer", sub: "Add to CRM", href: "/sales/customers/new",
+    Icon: UserPlus, tone: "from-amber-500/20 to-amber-500/0 text-amber-600 dark:text-amber-300",
+  }
+  const newInvoice: Action = {
+    title: "New invoice", sub: "Bill a customer", href: "/sales/invoices/new",
+    Icon: FileText, tone: "from-fuchsia-500/20 to-fuchsia-500/0 text-fuchsia-600 dark:text-fuchsia-300",
+  }
+  const addExpense: Action = {
+    title: "Add expense", sub: "Log a cost", href: "/expenses/new",
+    Icon: Receipt, tone: "from-rose-500/20 to-rose-500/0 text-rose-600 dark:text-rose-300",
+  }
+  const receiveStock: Action = {
+    title: "Receive stock", sub: "Inbound goods", href: "/inventory/receive",
+    Icon: Truck, tone: "from-sky-500/20 to-sky-500/0 text-sky-600 dark:text-sky-300",
+  }
+  const newBooking: Action = {
+    title: "New booking", sub: "Schedule a visit", href: "/appointments",
+    Icon: CalendarPlus, tone: "from-sky-500/20 to-sky-500/0 text-sky-600 dark:text-sky-300",
+  }
+
+  return [
+    newSale,
+    addItem,
+    newCustomer,
+    serviceLed ? newBooking : receiveStock,
+    newInvoice,
+    addExpense,
+  ]
+}
 
 const grid = {
   open: { transition: { staggerChildren: 0.025, delayChildren: 0.05 } },
@@ -69,6 +73,7 @@ const tile = {
 }
 
 export function QuickActionsCard() {
+  const actions = buildActions()
   return (
     <Card className="overflow-hidden">
       <CardHeader className="pb-3">

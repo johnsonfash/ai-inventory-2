@@ -10,8 +10,16 @@ type Ctx = {
   label?: string
   setLabel: (l?: string) => void
   onValueChange?: (v: string) => void
+  triggerRef: React.RefObject<HTMLButtonElement | null>
+  /** True when the listbox should open ABOVE the trigger because there
+   *  isn't room below (e.g. a Select near the bottom of a bottom-sheet). */
+  dropUp: boolean
 }
 const SelectCtx = React.createContext<Ctx | null>(null)
+
+// Roughly the popover's worst-case height: max-h-60 (240px) + the 4px
+// gap + a little breathing room. Used to decide flip direction.
+const MENU_SPACE = 280
 
 type SelectRootProps = {
   value?: string
@@ -22,18 +30,33 @@ type SelectRootProps = {
 export function Select({ value, defaultValue, onValueChange, children }: SelectRootProps) {
   const isControlled = value !== undefined
   const [internal, setInternal] = React.useState<string | undefined>(defaultValue)
-  const [open, setOpen] = React.useState(false)
+  const [open, setOpenRaw] = React.useState(false)
+  const [dropUp, setDropUp] = React.useState(false)
   const [label, setLabel] = React.useState<string | undefined>(undefined)
   const rootRef = React.useRef<HTMLDivElement | null>(null)
+  const triggerRef = React.useRef<HTMLButtonElement | null>(null)
   const current = isControlled ? value : internal
+
+  // Opening: measure the trigger against the viewport and flip the menu
+  // upward when there's more room above than below. This keeps the
+  // options visible (and tappable) when the Select sits low on screen —
+  // notably inside a bottom-sheet, where a downward menu gets clipped.
+  const setOpen = (next: boolean) => {
+    if (next && triggerRef.current) {
+      const r = triggerRef.current.getBoundingClientRect()
+      const spaceBelow = window.innerHeight - r.bottom
+      setDropUp(spaceBelow < MENU_SPACE && r.top > spaceBelow)
+    }
+    setOpenRaw(next)
+  }
 
   React.useEffect(() => {
     const onDoc = (e: MouseEvent) => {
       if (!rootRef.current) return
-      if (!rootRef.current.contains(e.target as Node)) setOpen(false)
+      if (!rootRef.current.contains(e.target as Node)) setOpenRaw(false)
     }
     const onEsc = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpen(false)
+      if (e.key === "Escape") setOpenRaw(false)
     }
     document.addEventListener("mousedown", onDoc)
     document.addEventListener("keydown", onEsc)
@@ -46,11 +69,11 @@ export function Select({ value, defaultValue, onValueChange, children }: SelectR
   const setValue = (v?: string) => {
     if (!isControlled) setInternal(v)
     if (v != null) onValueChange?.(v)
-    setOpen(false)
+    setOpenRaw(false)
   }
 
   return (
-    <SelectCtx.Provider value={{ open, setOpen, value: current, setValue, label, setLabel, onValueChange }}>
+    <SelectCtx.Provider value={{ open, setOpen, value: current, setValue, label, setLabel, onValueChange, triggerRef, dropUp }}>
       <div ref={rootRef} className="relative">
         {children}
       </div>
@@ -62,6 +85,7 @@ export function SelectTrigger({ className, children, ...props }: React.ButtonHTM
   const ctx = React.useContext(SelectCtx)!
   return (
     <button
+      ref={ctx.triggerRef}
       type="button"
       aria-haspopup="listbox"
       aria-expanded={ctx.open}
@@ -109,8 +133,9 @@ export function SelectContent({ className, children }: React.HTMLAttributes<HTML
     <div
       role="listbox"
       className={cn(
-        "absolute z-50 mt-1 max-h-60 min-w-full w-max max-w-[min(90vw,420px)] overflow-auto rounded-md border bg-background p-1 text-sm shadow-md focus:outline-none",
-        "transition origin-top scale-95 opacity-0",
+        "absolute z-50 max-h-60 min-w-full w-max max-w-[min(90vw,420px)] overflow-auto rounded-md border bg-background p-1 text-sm shadow-md focus:outline-none",
+        "transition scale-95 opacity-0",
+        ctx.dropUp ? "bottom-full mb-1 origin-bottom" : "top-full mt-1 origin-top",
         ctx.open && "scale-100 opacity-100",
         className,
       )}

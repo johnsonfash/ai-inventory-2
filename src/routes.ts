@@ -15,8 +15,13 @@ type PageModule = { default: ComponentType<any> }
 // failures bubble up to the error boundary instead.
 const RELOAD_GUARD_KEY = "pallio:chunk-reload-once"
 
-const page = (load: () => Promise<PageModule>) =>
-  lazy(async () => {
+// A lazy component that also exposes `preload()` so a route's chunk
+// can be warmed BEFORE the user navigates — this kills the Suspense
+// fallback flash on first visit to a heavy route (notably POS).
+type PreloadableComponent = ReturnType<typeof lazy> & { preload: () => Promise<unknown> }
+
+const page = (load: () => Promise<PageModule>): PreloadableComponent => {
+  const Comp = lazy(async () => {
     try {
       const mod = await load()
       // Successful load — reset the guard so a future stale-chunk
@@ -34,7 +39,12 @@ const page = (load: () => Promise<PageModule>) =>
       }
       throw err
     }
-  })
+  }) as PreloadableComponent
+  // Warm the chunk on demand; swallow errors (a failed prefetch is
+  // harmless — the real navigation still takes the lazy path).
+  Comp.preload = () => load().catch(() => {})
+  return Comp
+}
 
 export const routes: RouteObject[] = [
   // --- Public marketing site ---
@@ -235,3 +245,16 @@ export const routes: RouteObject[] = [
   { path: "/settings/warehouses/new", Component: page(() => import("./pages/settings/warehouses/new")) },
   { path: "*", Component: page(() => import("./pages/not-found")) },
 ]
+
+// Warm the chunks for the given route paths (no-op for unknown paths).
+// Called on idle from the app shell so the heavy, most-visited routes
+// are already cached by the time the operator taps them — no Suspense
+// "loading" flash that reads like the boot splash.
+export function prefetchRoutes(paths: string[]): void {
+  for (const p of paths) {
+    const comp = routes.find((r) => r.path === p)?.Component as
+      | (ComponentType<any> & { preload?: () => Promise<unknown> })
+      | undefined
+    comp?.preload?.()
+  }
+}

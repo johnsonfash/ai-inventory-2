@@ -108,11 +108,13 @@ export function UserMenu() {
 
   const body = (
     <>
-      {/* Workspace switcher — pinned at the top so multi-store
-          operators can flip org/location in one tap (avatar) + one
-          tap (row) + one tap (option). Shares state with the
-          desktop top-bar OrgLocationSwitch via useOrgLocation. */}
-      <WorkspaceSwitcher onSelect={() => setOpen(false)} />
+      {/* Workspace switcher — MOBILE ONLY. On desktop the header already
+          shows the OrgLocationSwitch dual-select, so repeating it inside
+          the avatar dropdown is redundant. On mobile there's no header
+          switcher, so the drawer is where multi-store operators flip
+          org/location (one tap avatar → row → option). Both surfaces
+          share state via useOrgLocation. */}
+      {isMobile && <WorkspaceSwitcher onSelect={() => setOpen(false)} />}
 
       {/* Header — name + email + role */}
       <div className="border-b border-border px-4 py-3">

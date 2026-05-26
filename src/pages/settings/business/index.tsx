@@ -34,6 +34,20 @@ export default function BusinessSettings() {
   const [industry, setIndustry] = React.useState<IndustryKey>(saved?.industry ?? "retail")
   const [sells, setSells] = React.useState<SellsKind>(saved?.sells ?? "products")
 
+  // Logo: show the picked file instantly via an object URL. The actual
+  // upload (and a progress %) lands with the backend; for now this gives
+  // the operator the "I see what I changed it to" confirmation.
+  const [logoUrl, setLogoUrl] = React.useState<string | null>(null)
+  const onLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setLogoUrl((prev) => {
+      if (prev) URL.revokeObjectURL(prev)
+      return URL.createObjectURL(file)
+    })
+  }
+  React.useEffect(() => () => { if (logoUrl) URL.revokeObjectURL(logoUrl) }, [logoUrl])
+
   const replayTour = async () => {
     await resetFirstRun()
     toast.success("Setup tour reset", { description: "The welcome guide will open on your dashboard." })
@@ -144,7 +158,23 @@ export default function BusinessSettings() {
             span={2}
             tooltip="Square PNG (at least 512×512 px). Appears on receipts, invoices, and the AppShell brand mark. JPGs work too but PNG keeps a transparent background."
           >
-            <Input type="file" accept="image/*" />
+            <div className="flex items-center gap-4">
+              <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-border bg-muted">
+                {logoUrl ? (
+                  <img src={logoUrl} alt="Logo preview" className="h-full w-full object-cover" />
+                ) : (
+                  <Building2 className="h-6 w-6 text-muted-foreground" />
+                )}
+              </div>
+              <div className="min-w-0 flex-1">
+                <Input type="file" accept="image/*" onChange={onLogoChange} />
+                <p className="mt-1 text-[11px] text-muted-foreground">
+                  {logoUrl
+                    ? "Preview shown. Save to apply — upload finishes when the backend is connected."
+                    : "PNG or JPG, square, at least 512×512 px."}
+                </p>
+              </div>
+            </div>
           </FormField>
         </FormGrid>
       </FormSection>

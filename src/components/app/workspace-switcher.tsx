@@ -125,7 +125,10 @@ function OptionList({
           transition={{ duration: 0.18, ease: "easeOut" }}
           className="overflow-hidden"
         >
-          <ul className="ml-3 mt-0.5 mb-1 border-l border-border pl-2">
+          {/* Cap the list so 10s of shops/locations scroll instead of
+              pushing the drawer off-screen. The motion.div animates to
+              this capped height, so the grow animation is preserved. */}
+          <ul className="ml-3 mt-0.5 mb-1 max-h-[40vh] overflow-y-auto border-l border-border pl-2">
             {items.map((it) => {
               const isActive = it.value === active
               return (

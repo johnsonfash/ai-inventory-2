@@ -1,7 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import * as React from "react"
 import { Suspense, useEffect } from "react"
-import { Loader2 } from "lucide-react"
 import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom"
 import { toast } from "sonner"
 import { Toaster } from "@/components/ui/sonner"
@@ -21,7 +20,7 @@ import { useNative } from "@/hooks/use-native"
 import { useBackButton } from "@/hooks/use-back-button"
 import { useDeepLinks } from "@/hooks/use-deep-links"
 import { useKeyboardHeightCapture } from "@/hooks/use-chat-keyboard"
-import { routes } from "./routes"
+import { routes, prefetchRoutes } from "./routes"
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -33,19 +32,41 @@ const queryClient = new QueryClient({
   },
 })
 
-// Content-area suspense fallback — a small inline spinner that
-// occupies only the page content slot (inside AppFrame's <main>).
-// The chrome (sidebar, mobile top bar, bottom nav, header, toolbar)
-// stays mounted, so navigations don't flash the whole UI.
+// Content-area suspense fallback. Deliberately a CONTENT SKELETON
+// (pulsing blocks shaped like a typical page) rather than a centered
+// brand spinner — a spinner over the dark shell read like the cold-
+// start splash re-appearing when navigating to a lazily-loaded route
+// (e.g. POS). The chrome (sidebar, mobile top bar, bottom nav, header)
+// stays mounted; only this content slot swaps.
 function ContentLoader() {
   return (
-    <div className="flex h-full min-h-[40vh] items-center justify-center" aria-hidden="true">
-      <div className="flex flex-col items-center gap-3 text-muted-foreground">
-        <Loader2 className="h-6 w-6 animate-spin text-brand dark:text-primary" />
-        <span className="text-xs uppercase tracking-wider">Loading</span>
+    <div className="space-y-4" aria-hidden="true">
+      <div className="h-7 w-44 animate-pulse rounded-md bg-muted" />
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div key={i} className="h-20 animate-pulse rounded-xl bg-muted" />
+        ))}
       </div>
+      <div className="h-72 animate-pulse rounded-2xl bg-muted" />
     </div>
   )
+}
+
+// Warms the chunks for the heaviest, most-visited app routes shortly
+// after the shell mounts (on idle), so the first tap into POS / stock /
+// sales doesn't hit a Suspense fallback at all.
+function RoutePrefetch() {
+  React.useEffect(() => {
+    const warm = () => prefetchRoutes(["/pos", "/inventory", "/sales/orders", "/inventory/new"])
+    const ric = (window as unknown as { requestIdleCallback?: (cb: () => void) => number }).requestIdleCallback
+    if (ric) {
+      const id = ric(warm)
+      return () => (window as unknown as { cancelIdleCallback?: (h: number) => void }).cancelIdleCallback?.(id)
+    }
+    const t = setTimeout(warm, 1500)
+    return () => clearTimeout(t)
+  }, [])
+  return null
 }
 
 // Bootstraps Capacitor wiring (status bar, splash hide, keyboard,
@@ -138,6 +159,7 @@ function ShellRouter() {
   return (
     <PageMetaProvider>
       <PageRefreshProvider>
+        <RoutePrefetch />
         <AppFrame>
           <AppRoutes />
         </AppFrame>
