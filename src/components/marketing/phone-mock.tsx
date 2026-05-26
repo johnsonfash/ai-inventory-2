@@ -1,4 +1,4 @@
-import { Bell, ChevronRight, CreditCard, Layers, Search, ShoppingCart, Sparkles } from "lucide-react"
+import { BarChart3, Bell, CreditCard, Layers, MoreHorizontal, Package2, ShoppingCart, Sparkles } from "lucide-react"
 
 // Inline Pallio app mock that renders INSIDE the phone frame on
 // the landing page. Looks like a tiny dashboard — KPI strip + AI
@@ -49,9 +49,9 @@ export function PhoneDashboardMock() {
         </span>
         <div className="min-w-0 flex-1">
           <p className="text-[8px] font-semibold uppercase tracking-wider text-amber-700 dark:text-amber-300">Stock</p>
-          <p className="text-[10px] font-semibold leading-tight">USB‑C Hub trending +24%</p>
+          <p className="text-[10px] font-semibold leading-tight">Earbuds selling 24% faster</p>
           <p className="mt-0.5 text-[8px] leading-tight text-muted-foreground line-clamp-1">
-            Will sell out in 4 days at current pace.
+            About 4 days of stock left — reorder soon.
           </p>
         </div>
       </div>
@@ -62,19 +62,20 @@ export function PhoneDashboardMock() {
         <Spark className="mt-1 h-9 w-full" />
       </div>
 
-      {/* Bottom nav */}
+      {/* Bottom nav — mirrors BOTTOM_NAV_PRIMARY (Home · POS · Stock ·
+          Sales) + More, with Home active since this screen is the
+          dashboard. */}
       <div className="mt-auto flex items-center justify-around border-t border-border bg-background/95 px-3 py-2 backdrop-blur">
-        {[Search, ShoppingCart, CreditCard, Layers].map((Icon, i) => (
+        {[BarChart3, CreditCard, Package2, ShoppingCart, MoreHorizontal].map((Icon, i) => (
           <Icon
             key={i}
             className={
-              i === 1
+              i === 0
                 ? "h-4 w-4 text-brand dark:text-primary"
                 : "h-4 w-4 text-muted-foreground"
             }
           />
         ))}
-        <ChevronRight className="h-4 w-4 text-muted-foreground rotate-90" />
       </div>
     </div>
   )

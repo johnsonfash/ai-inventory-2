@@ -11,67 +11,107 @@ const SECTIONS: { title: string; items: Item[] }[] = [
     title: "Getting started",
     items: [
       {
-        q: "Do I need a credit card to try Pallio?",
-        a: "No. The free plan is genuinely free. No card, no credit-check, no auto-conversion. You move to a paid plan only when you choose to.",
+        q: "Is it really free to start?",
+        a: "Yes. Every account begins with 30 days of full access — no card, no credit check, nothing to cancel if you walk away. When the trial ends you pick a plan to keep going, or your account simply pauses (we never delete your data).",
       },
       {
-        q: "Can I import data from my current POS or inventory tool?",
-        a: "Yes. Pallio supports CSV import for items, customers, vendors and purchase orders. A guided importer maps your columns to Pallio's fields. Shopify and WooCommerce one-click sync is in the Growth plan.",
+        q: "Will Pallio work for my kind of business?",
+        a: "Almost certainly. Pallio is built to be industry-agnostic: it runs a clothing store, a restaurant or café, a pharmacy, a salon, a supermarket, an electronics shop, a workshop or a small factory — and a single account can run several of those at once. Tools you don't need (kitchen prep queue, recipes/production, expiry tracking) simply stay out of your way; nothing is locked off.",
       },
       {
-        q: "Does Pallio work offline?",
-        a: "Yes. The app caches your catalog and recent transactions. Keep ringing sales at a pop-up or through a power cut. Everything syncs the moment you're back online.",
+        q: "How long does setup take, and can I bring my data over?",
+        a: "Most people are selling the same day. Import your products, customers and suppliers from a CSV with a guided column-mapper, or one-click sync from Shopify or WooCommerce. A Getting Started checklist walks you through the rest.",
+      },
+      {
+        q: "Do I need special hardware?",
+        a: "No — the phone or laptop you already have is enough, and your phone's camera can scan barcodes. If you want them, Pallio also supports USB/Bluetooth barcode scanners, thermal receipt printers and cash drawers on desktop and Android.",
+      },
+      {
+        q: "Does Pallio keep working when the network or power drops?",
+        a: "Yes. The POS caches your catalogue and keeps ringing up sales offline — at a pop-up, a market stall, or through a power cut. Everything syncs automatically the moment you're back online.",
       },
     ],
   },
   {
-    title: "Pricing + billing",
+    title: "Pricing, billing & credits",
     items: [
       {
-        q: "Are there transaction fees?",
-        a: "Pallio doesn't take a transaction fee. You pay your payment processor (Paystack, Flutterwave, Stripe, etc.) their normal fee. Same as if you wired them yourself.",
+        q: "How much does Pallio cost?",
+        a: "Three plans: Starter (₦2,000/mo), Growth (₦5,000/mo) and Scale (₦10,000/mo). Pay yearly and two months are free. The full breakdown — including what's in each plan — is on the Pricing page.",
       },
       {
-        q: "Can I switch between monthly and yearly?",
-        a: "Any time. We prorate the difference and credit or charge accordingly.",
+        q: "Does Pallio take a cut of my sales?",
+        a: "Never. You pay one flat monthly price for the plan, full stop. Your payment processor (Paystack, Flutterwave, Opay, PalmPay, Stripe, bank transfer…) charges its normal fee just as it would anywhere else — Pallio doesn't add a kobo on top.",
       },
       {
-        q: "What happens if I downgrade?",
-        a: "We keep your data and the features stay enabled until your current billing cycle ends. After that, anything outside the new plan's limits goes read-only. Never deleted.",
+        q: "What are AI credits, and what uses them?",
+        a: "Credits power the features that genuinely cost us money to run: the AI assistant, AI ad-copy and ad-video generation, bulk product descriptions, and SMS/email blasts. Each plan includes a monthly allowance (100 / 1,000 / 5,000). If you run low, top up any time — extra credits stay good while your plan is active. Everything else in your plan is unlimited and unmetered.",
+      },
+      {
+        q: "Can I change plans or cancel?",
+        a: "Any time, yourself, from Settings — no phone call required. Switching between monthly and yearly is prorated. If you downgrade, your data stays put and anything beyond the new plan's limits goes read-only rather than being deleted.",
+      },
+      {
+        q: "How do my customers pay me?",
+        a: "However they like — card, bank transfer, Paystack/Flutterwave/Opay/PalmPay, cash, or a virtual account per till. Pallio records the payment against the sale and your books update automatically.",
       },
     ],
   },
   {
-    title: "Features + roadmap",
+    title: "Features & how it works",
     items: [
       {
-        q: "Is the AI assistant real or just a marketing label?",
-        a: "Real, but tuned to be useful instead of chatty. Common alerts (low stock, vendor lateness, margin drift) come from rules so they're predictable. The chat surface uses a proper language model that reasons over your numbers at the moment you ask. Your data is never used to train anything.",
+        q: "What does Pallio replace?",
+        a: "For most businesses: the separate POS, the inventory tool, the stock-count spreadsheet, the accounting software, the email/marketing tool, the affiliate dashboard and the storefront builder. One login, one bill, one set of numbers that always agree.",
       },
       {
-        q: "Can I run multiple locations?",
-        a: "Yes. The free plan covers 1 location, Growth covers 3, Scale is unlimited. Stock, sales and reports attribute to whichever location they belong to.",
+        q: "Is the AI real, or just a label?",
+        a: "Real, but tuned to be useful rather than chatty. Everyday alerts — low stock, a supplier running late, margin drift, an ad return spiking — come from rules, so they're predictable and instant. The chat assistant uses a proper language model that reasons over your own numbers the moment you ask. Your data is never used to train any model.",
       },
       {
-        q: "Do you have an API?",
-        a: "Yes. REST API with API keys, webhooks for inbound events, and a custom-website integration for storefronts. Available on every plan.",
+        q: "Does it do proper accounting?",
+        a: "Yes — a real double-entry general ledger, not a glorified summary. Sales, returns and bills post to the books automatically, and your P&L, balance sheet, cash flow and VAT return are derived from the ledger rather than typed in. Hand your accountant a GL export, or push to QuickBooks or Xero.",
+      },
+      {
+        q: "Can I run several branches or locations?",
+        a: "Yes. Starter covers up to 3 locations, Growth up to 10, and Scale is unlimited. Stock, sales, staff and reports each attribute to the right location, and you can see them all on one screen or drill into one.",
+      },
+      {
+        q: "Can I sell online as well as in person?",
+        a: "Yes. Every plan includes a hosted storefront at yourname.pallio.shop, sharing the same catalogue and stock as your POS. Connect your own domain on Growth and Scale.",
+      },
+      {
+        q: "Can staff have different levels of access?",
+        a: "Yes. Give cashiers, sales reps, marketers, accountants and managers exactly the access they need with role-based permissions, and lock sensitive actions behind Face ID or fingerprint. Scale adds single sign-on (SSO) and a full audit log.",
+      },
+      {
+        q: "Is there an API?",
+        a: "Yes — a REST API with keys, webhooks for inbound events, and a custom-website integration for storefronts. Available on every plan.",
       },
     ],
   },
   {
-    title: "Security + data",
+    title: "Security, data & support",
     items: [
+      {
+        q: "Is my data safe, and do you train AI on it?",
+        a: "Your data is encrypted in transit and at rest, access is role-scoped, and the app can be locked behind biometrics. We never sell your data and never use it to train any model — the AI reasons over it only when you ask, then the conversation is discarded.",
+      },
       {
         q: "Where is my data stored?",
-        a: "By default, in our primary US data centre with daily encrypted backups. EU + AU regions are available on Scale plans for data-residency requirements.",
+        a: "In a managed cloud with daily encrypted backups. Region options for data-residency requirements are available on the Scale plan.",
       },
       {
-        q: "Does Pallio train on my data?",
-        a: "No. Your data is never used to train any model. The AI assistant reasons over your data when you ask, then the conversation is discarded.",
+        q: "Can I get my data out again?",
+        a: "Always, in one click. Full CSV export of every record — products, customers, orders, invoices, purchase orders and more — from Settings. You own your data; Pallio is just where you work on it.",
       },
       {
-        q: "Can I export everything?",
-        a: "Always. Full CSV export of every record (items, customers, orders, invoices, POs and more) is one click from the Settings page. You own your data. Pallio is just where you work on it.",
+        q: "What devices does Pallio run on?",
+        a: "Native apps for iPhone, Android, Mac and Windows, plus any modern browser (which you can install to your home screen). It's the same Pallio with the same data everywhere — phone on the move, laptop in the back office, the till up front.",
+      },
+      {
+        q: "How do I get help if I'm stuck?",
+        a: "Email and in-app chat on every plan, with priority queues on Growth, and phone + WhatsApp support on Scale. During business hours we typically reply in under two hours.",
       },
     ],
   },
@@ -96,7 +136,7 @@ export default function FaqPage() {
           </p>
           <h1 className="mt-2 text-4xl font-extrabold tracking-tight md:text-5xl">FAQ</h1>
           <p className="mt-4 text-base text-muted-foreground md:text-lg">
-            If your question isn't here, our team is one tap away.
+            The honest answers to what people ask us most. If yours isn't here, our team is one tap away.
           </p>
         </motion.div>
 

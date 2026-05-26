@@ -22,85 +22,166 @@ const TIERS: Tier[] = [
   {
     id: "starter",
     name: "Starter",
-    blurb: "Everything an independent shop needs to leave the spreadsheet behind.",
+    blurb: "For a single store or stall ready to leave the spreadsheet behind.",
     monthly: 2_000,
     yearly: 20_000,  // 12-mo price ≈ 2 free months
-    cta: "Start free for 1 month",
+    cta: "Start 30 days free",
     features: [
-      "Up to 3 locations",
-      "Up to 5 team members",
-      "Unlimited SKUs",
-      "Full POS + receipts",
-      "Inventory + suggested restock",
-      "Sales + purchasing",
-      "Basic reporting",
-      "Email + chat support",
+      "Up to 3 locations · 5 team members",
+      "Unlimited products & sales",
+      "Full POS — keeps selling offline",
+      "Inventory, bundles & recipes/production",
+      "Sales, invoicing & purchasing",
+      "Double-entry books, VAT & receipts",
+      "Online storefront",
+      "100 AI credits / month",
+      "Email & chat support",
     ],
   },
   {
     id: "growth",
     name: "Growth",
-    blurb: "Most popular. For multi-shop SMBs with a sales team + ad spend.",
+    blurb: "For multi-location businesses with a sales team and ad spend.",
     monthly: 5_000,
     yearly: 50_000,
-    cta: "Start free for 1 month",
+    cta: "Start 30 days free",
     highlight: true,
     features: [
-      "Up to 10 locations",
-      "Up to 25 team members",
-      "Everything in Starter",
+      "Everything in Starter, plus:",
+      "Up to 10 locations · 25 team members",
       "AI insights + 7-day forecast",
-      "Smart restock + auto-POs",
-      "Marketing across Facebook, Instagram, YouTube + Marketplace",
-      "Custom email templates + rich editor",
-      "Role-based access (Cashier / Sales rep / Marketer)",
-      "Priority email + chat support",
+      "Smart restock & automatic purchase orders",
+      "Ads: Facebook, Instagram, YouTube + Marketplace",
+      "AI ad copy & video generation (1,000 credits / mo)",
+      "Custom roles & custom storefront domain",
+      "Payroll, commissions & bank reconciliation",
+      "Priority support",
     ],
   },
   {
     id: "scale",
     name: "Scale",
-    blurb: "For multi-location operators with affiliates + a real ad team.",
+    blurb: "For chains and operators with affiliates and a real ad team.",
     monthly: 10_000,
     yearly: 100_000,
-    cta: "Start free for 1 month",
+    cta: "Start 30 days free",
     features: [
-      "Unlimited locations",
-      "Unlimited team members",
+      "Everything in Growth, plus:",
+      "Unlimited locations & team members",
       "Affiliate program + payouts",
-      "Advanced AI (anomaly detection, cashflow forecast)",
-      "Single sign-on (SSO)",
-      "Audit log + retained for 1 year",
-      "White-label invoices + receipts",
-      "Priority phone + WhatsApp support",
-      "SLA-backed uptime",
+      "Advanced AI: anomaly detection & cash-flow forecast",
+      "5,000 AI credits / month",
+      "Single sign-on (SSO) & 1-year audit log",
+      "White-label invoices & receipts",
+      "Multi-currency",
+      "Phone + WhatsApp support, SLA-backed uptime",
     ],
   },
 ]
 
-const COMPARISON: { feature: string; values: [string | boolean, string | boolean, string | boolean]; tip?: string }[] = [
-  { feature: "Locations",            values: ["3", "10", "Unlimited"] },
-  { feature: "Team members",         values: ["5", "25", "Unlimited"] },
-  { feature: "Inventory items (SKUs)", values: ["Unlimited", "Unlimited", "Unlimited"] },
-  { feature: "Point of sale",        values: [true, true, true] },
-  { feature: "Composite items + bundles", values: [true, true, true] },
-  { feature: "AI insights + forecast", values: [false, true, true], tip: "Restock suggestions, vendor lateness flags, ROAS spikes, cashflow forecast. Reads your own numbers when you ask. Never used to train any model." },
-  { feature: "Marketing (Ads + Marketplace)", values: [false, true, true] },
-  { feature: "Affiliate program",    values: [false, false, true], tip: "Generate unique referral links, attribute sales automatically, and pay out commissions in one click from Settings → Payments → Withdrawals." },
-  { feature: "Rich email + templates", values: [true, true, true] },
-  { feature: "Custom roles + permissions", values: ["Basic", "Yes", "Yes"] },
-  { feature: "Single sign-on (SSO)", values: [false, false, true] },
-  { feature: "Audit log",            values: [false, "30 days", "1 year"] },
-  { feature: "Priority support + SLA", values: [false, false, true] },
+type CmpValue = string | boolean
+type CmpRow = { feature: string; values: [CmpValue, CmpValue, CmpValue]; tip?: string }
+
+// Grouped so the table reads like the actual app — selling, inventory/
+// production, books, marketing, AI, team/security, platform. Core ops
+// are in every plan (we never gate whole modules); advanced tools and
+// higher limits scale with the tier.
+const COMPARISON: { group: string; rows: CmpRow[] }[] = [
+  {
+    group: "Plan limits",
+    rows: [
+      { feature: "Locations",                 values: ["3", "10", "Unlimited"] },
+      { feature: "Team members",              values: ["5", "25", "Unlimited"] },
+      { feature: "Products & sales",          values: ["Unlimited", "Unlimited", "Unlimited"] },
+      { feature: "AI credits / month",        values: ["100", "1,000", "5,000"], tip: "Credits power the AI assistant, AI ad copy and ad-video generation, and bulk descriptions. Top up any time — see Add-ons & credits below." },
+    ],
+  },
+  {
+    group: "Selling & POS",
+    rows: [
+      { feature: "Point of sale, works offline",        values: [true, true, true] },
+      { feature: "Tables, tabs & kitchen prep queue",   values: [true, true, true], tip: "Hospitality mode — seat tables, run tabs, and send orders to a prep/kitchen queue. Ignore it if you don't need it; nothing is hidden." },
+      { feature: "Returns, drafts & multiple cashiers", values: [true, true, true] },
+      { feature: "Appointments & bookings",             values: [true, true, true] },
+      { feature: "Online storefront",                   values: [true, true, true] },
+      { feature: "Custom storefront domain",            values: [false, true, true] },
+    ],
+  },
+  {
+    group: "Inventory & production",
+    rows: [
+      { feature: "Multi-location stock, transfers & adjustments", values: [true, true, true] },
+      { feature: "Bundles, kits & composite items",               values: [true, true, true] },
+      { feature: "Recipes / BOM, production & batch tracking",    values: [true, true, true], tip: "Make-to-stock for bakeries, kitchens, cosmetics labs, workshops and manufacturers — components, yield, sub-recipes, and lot/expiry tracking." },
+      { feature: "Expiry (FEFO) & recall trace",                  values: [true, true, true] },
+    ],
+  },
+  {
+    group: "Money & books",
+    rows: [
+      { feature: "Sales, invoicing & purchasing",                values: [true, true, true] },
+      { feature: "Double-entry accounting, VAT & tax",           values: [true, true, true], tip: "A real general ledger — every sale, return and bill posts automatically. P&L, balance sheet and cash flow are derived, not typed in." },
+      { feature: "Payroll & staff commissions",                  values: [false, true, true] },
+      { feature: "Bank reconciliation & period lock",            values: [false, true, true] },
+      { feature: "Accountant export (QuickBooks, Xero, GL CSV)", values: [false, true, true] },
+    ],
+  },
+  {
+    group: "Marketing & growth",
+    rows: [
+      { feature: "Discounts & customer segments",                values: [true, true, true] },
+      { feature: "Ads — Facebook, Instagram, YouTube + Marketplace", values: [false, true, true] },
+      { feature: "AI ad copy & video generation",                values: [false, true, true], tip: "Generate captions, ad scripts and short marketing videos from your own catalogue. Runs on AI credits — top up any time." },
+      { feature: "Affiliate program & payouts",                  values: [false, false, true], tip: "Unique referral links, automatic sales attribution, and one-click commission payouts." },
+    ],
+  },
+  {
+    group: "AI & insights",
+    rows: [
+      { feature: "AI insights & 7-day forecast",         values: [false, true, true], tip: "Restock nudges, late-supplier flags, margin drift and ad-return spikes — surfaced as cards with one-tap actions." },
+      { feature: "AI assistant (chat over your data)",   values: ["Limited", true, true] },
+      { feature: "Anomaly detection & cash-flow forecast", values: [false, false, true] },
+    ],
+  },
+  {
+    group: "Team, security & support",
+    rows: [
+      { feature: "Role-based access",                      values: ["Basic", "Custom roles", "Custom roles"] },
+      { feature: "Biometric unlock (Face ID / fingerprint)", values: [true, true, true] },
+      { feature: "Single sign-on (SSO)",                   values: [false, false, true] },
+      { feature: "Audit log",                              values: [false, "30 days", "1 year"] },
+      { feature: "White-label invoices & receipts",        values: [false, false, true] },
+      { feature: "Support",                                values: ["Email & chat", "Priority", "Phone + WhatsApp · SLA"] },
+    ],
+  },
+  {
+    group: "Platform",
+    rows: [
+      { feature: "Apps for iPhone, Android, Mac & Windows", values: [true, true, true] },
+      { feature: "Offline mode + automatic sync",           values: [true, true, true] },
+      { feature: "Multi-currency",                          values: [false, true, true] },
+      { feature: "REST API + webhooks",                     values: [true, true, true] },
+      { feature: "Integrations (Paystack, Shopify, couriers…)", values: [true, true, true] },
+    ],
+  },
 ]
 
+// What you pay for as you use it — metered by credits, separate from
+// the flat plan price. The AI ad-video generator lives here.
+const CREDIT_PACKS = [
+  { name: "500 credits", price: "₦1,000" },
+  { name: "2,000 credits", price: "₦3,500" },
+  { name: "10,000 credits", price: "₦15,000" },
+]
+
+// Subscription extras that stack on top of any plan.
 const ADDONS = [
   { name: "Extra location", price: "+₦500 / mo each" },
   { name: "Extra team member", price: "+₦300 / mo each" },
-  { name: "Branded receipt + email theme", price: "+₦1,000 / mo" },
-  { name: "Custom domain (storefront)", price: "+₦800 / mo" },
-  { name: "Advanced reporting export (raw)", price: "+₦1,500 / mo" },
+  { name: "Extra storefront", price: "+₦1,000 / mo each" },
+  { name: "Custom storefront domain", price: "+₦800 / mo" },
   { name: "WhatsApp Business API", price: "+₦2,500 / mo" },
+  { name: "Priority onboarding & data migration", price: "one-off" },
 ]
 
 function fmtNaira(amount: number): string {
@@ -146,17 +227,17 @@ export default function PricingPage() {
         {/* Header */}
         <div className="mx-auto mt-12 max-w-2xl text-center">
           <p className="text-xs font-semibold uppercase tracking-wider text-brand dark:text-primary">
-            Naira pricing for Nigerian SMBs
+            Naira-first pricing
           </p>
           <h1 className="mt-2 text-4xl font-extrabold tracking-tight md:text-5xl">
-            Honest pricing.
+            One flat price.
             <br />
             <span className="bg-gradient-to-r from-brand via-fuchsia-500 to-emerald-500 bg-clip-text text-transparent">
-              No transaction fees.
+              We never touch your sales.
             </span>
           </h1>
           <p className="mt-4 text-base text-muted-foreground md:text-lg">
-            Pay your payment processor what they charge. Pallio doesn't take a cut. Cancel any time. Annual plans get you 2 free months.
+            Pick a plan, pay one monthly price. Your payment processor charges its normal fee — Pallio doesn't add a kobo on top. Cancel whenever; pay yearly and two months are on us.
           </p>
         </div>
 
@@ -257,7 +338,7 @@ export default function PricingPage() {
           <div className="mx-auto max-w-2xl text-center">
             <h2 className="text-3xl font-bold tracking-tight md:text-4xl">Compare every plan</h2>
             <p className="mt-3 text-muted-foreground">
-              All features available in every plan unless noted. Limits scale with the tier.
+              Core selling, inventory and books are in every plan — we never lock whole modules behind a tier. Advanced tools and higher limits scale up as you grow.
             </p>
           </div>
           <div className="mt-8 overflow-x-auto rounded-2xl border border-border bg-card">
@@ -271,60 +352,104 @@ export default function PricingPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {COMPARISON.map((row) => (
-                  <tr key={row.feature}>
-                    <td className="px-4 py-3 font-medium">
-                      <span className="inline-flex items-center gap-1.5">
-                        {row.feature}
-                        {row.tip && <InfoTooltip label={row.feature} size="xs">{row.tip}</InfoTooltip>}
-                      </span>
-                    </td>
-                    {row.values.map((v, i) => (
-                      <td key={i} className="px-4 py-3 text-center">
-                        {typeof v === "boolean" ? (
-                          v ? (
-                            <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-300">
-                              <Check className="h-3 w-3" />
-                            </span>
-                          ) : (
-                            <span className="text-muted-foreground/60">·</span>
-                          )
-                        ) : (
-                          <span className="font-semibold tabular-nums">{v}</span>
-                        )}
+                {COMPARISON.map((section) => (
+                  <React.Fragment key={section.group}>
+                    <tr className="bg-muted/20">
+                      <td colSpan={1 + TIERS.length} className="px-4 py-2 text-[11px] font-bold uppercase tracking-wider text-brand dark:text-primary">
+                        {section.group}
                       </td>
+                    </tr>
+                    {section.rows.map((row) => (
+                      <tr key={row.feature}>
+                        <td className="px-4 py-3 font-medium">
+                          <span className="inline-flex items-center gap-1.5">
+                            {row.feature}
+                            {row.tip && <InfoTooltip label={row.feature} size="xs">{row.tip}</InfoTooltip>}
+                          </span>
+                        </td>
+                        {row.values.map((v, i) => (
+                          <td key={i} className="px-4 py-3 text-center">
+                            {typeof v === "boolean" ? (
+                              v ? (
+                                <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-300">
+                                  <Check className="h-3 w-3" />
+                                </span>
+                              ) : (
+                                <span className="text-muted-foreground/60">·</span>
+                              )
+                            ) : (
+                              <span className="font-semibold tabular-nums">{v}</span>
+                            )}
+                          </td>
+                        ))}
+                      </tr>
                     ))}
-                  </tr>
+                  </React.Fragment>
                 ))}
               </tbody>
             </table>
           </div>
         </section>
 
-        {/* Add-ons */}
+        {/* Add-ons & credits */}
         <section className="mt-20">
           <div className="mx-auto max-w-2xl text-center">
-            <h2 className="text-2xl font-bold tracking-tight md:text-3xl">Optional add-ons</h2>
-            <p className="mt-3 text-muted-foreground">Pay only for what you actually need.</p>
+            <h2 className="text-2xl font-bold tracking-tight md:text-3xl">Add-ons &amp; credits</h2>
+            <p className="mt-3 text-muted-foreground">
+              Your plan price is flat. A few power features run on credits, and you can stack optional add-ons whenever you need them.
+            </p>
           </div>
-          <ul className="mx-auto mt-8 grid max-w-3xl gap-3 sm:grid-cols-2">
-            {ADDONS.map((a) => (
-              <li
-                key={a.name}
-                className="flex items-center justify-between rounded-xl border border-border bg-card px-4 py-3"
-              >
-                <span className="text-sm font-semibold">{a.name}</span>
-                <span className="text-sm tabular-nums text-brand dark:text-primary">{a.price}</span>
-              </li>
-            ))}
-          </ul>
+
+          <div className="mx-auto mt-8 grid max-w-4xl gap-5 lg:grid-cols-2">
+            {/* Credits */}
+            <div className="rounded-2xl border border-border bg-card p-6">
+              <div className="flex items-center gap-2">
+                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-soft text-brand dark:bg-primary/15 dark:text-primary">
+                  <Sparkles className="h-4 w-4" />
+                </span>
+                <h3 className="text-base font-bold tracking-tight">Pay-as-you-go credits</h3>
+              </div>
+              <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+                Every plan includes a monthly credit allowance (100 / 1,000 / 5,000). Credits power the <strong>AI assistant</strong>, <strong>AI ad copy &amp; video generation</strong>, bulk product descriptions, and SMS/email blasts. Run low? Top up any time — extra credits stay good while your plan is active.
+              </p>
+              <ul className="mt-4 flex flex-col gap-2">
+                {CREDIT_PACKS.map((p) => (
+                  <li key={p.name} className="flex items-center justify-between rounded-xl border border-border bg-background px-4 py-2.5">
+                    <span className="text-sm font-semibold">{p.name}</span>
+                    <span className="text-sm tabular-nums text-brand dark:text-primary">{p.price}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Subscription add-ons */}
+            <div className="rounded-2xl border border-border bg-card p-6">
+              <div className="flex items-center gap-2">
+                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-500/15 text-emerald-700 dark:text-emerald-300">
+                  <Gift className="h-4 w-4" />
+                </span>
+                <h3 className="text-base font-bold tracking-tight">Optional add-ons</h3>
+              </div>
+              <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+                Outgrown a limit before you're ready for the next plan? Add just the piece you need.
+              </p>
+              <ul className="mt-4 flex flex-col gap-2">
+                {ADDONS.map((a) => (
+                  <li key={a.name} className="flex items-center justify-between rounded-xl border border-border bg-background px-4 py-2.5">
+                    <span className="text-sm font-semibold">{a.name}</span>
+                    <span className="shrink-0 pl-3 text-sm tabular-nums text-brand dark:text-primary">{a.price}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
         </section>
 
         {/* FAQ teaser */}
         <section className="mt-20 rounded-2xl border border-border bg-gradient-to-br from-brand-soft via-card to-emerald-50/40 p-8 text-center dark:from-primary/10 dark:to-emerald-950/15">
           <h3 className="text-xl font-bold tracking-tight">Still have questions?</h3>
           <p className="mt-2 text-muted-foreground">
-            We have a long FAQ + an even longer-suffering team WhatsApp.
+            The FAQ covers pricing, credits, data and more — or message our team and we'll answer fast.
           </p>
           <div className="mt-5 flex flex-wrap items-center justify-center gap-3">
             <Link to="/faq">

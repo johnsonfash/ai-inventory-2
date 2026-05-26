@@ -93,7 +93,7 @@ function Hero() {
             variants={fadeIn}
             className="inline-flex items-center gap-2 rounded-full border border-brand/20 bg-brand-soft px-3 py-1 text-xs font-semibold uppercase tracking-wider text-brand dark:border-primary/30 dark:bg-primary/10 dark:text-primary"
           >
-            <Sparkles className="h-3 w-3" /> Built for your phone · made for operators
+            <Sparkles className="h-3 w-3" /> Run the whole business from your pocket
           </motion.span>
 
           <motion.h1
@@ -112,7 +112,7 @@ function Hero() {
             variants={fadeIn}
             className="mt-5 max-w-xl text-base text-muted-foreground md:text-lg"
           >
-            One fast app that runs the whole shop. Stock, register, team, ads, books, and AI insights. No more juggling six tools.
+            Sell, track stock, run ads, pay the team and close the books — without bouncing between six apps that never quite agree on the numbers.
           </motion.p>
 
           <motion.div variants={fadeIn} className="mt-7 flex flex-wrap items-center gap-3">
@@ -134,7 +134,7 @@ function Hero() {
             className="mt-7 flex flex-wrap gap-x-5 gap-y-2 text-xs text-muted-foreground"
           >
             {[
-              "Free up to 100 SKUs",
+              "Free for 30 days",
               "No credit card",
               "Works on phone, laptop, tablet",
               "iPhone · Android · Web",
@@ -211,30 +211,35 @@ function Hero() {
 
 // ---- Trust bar ----
 function TrustBar() {
-  // Realistic-sounding Nigerian SMBs in Pallio's launch market, plus
-  // a couple of regional partners (Ghana, Kenya). Keeps the social
-  // proof feeling local to the buyer while signalling expansion.
-  const logos = [
-    "Funke Apparel",
-    "Eko Provisions",
-    "LagosMart",
-    "Hausa Spice Co.",
-    "GhanaGrocer",
-    "Nairobi Boutique",
+  // Pre-launch we have no signed customers, so we don't fake a logo
+  // wall of real companies — that's a false-endorsement risk and it
+  // misleads visitors. Instead this row shows the RANGE of businesses
+  // one Pallio account runs, which doubles as proof of the industry-
+  // agnostic positioning. Swap to a real customer-logo row once we
+  // have named, consenting customers.
+  const sectors = [
+    "Fashion & apparel",
+    "Restaurants & cafés",
+    "Pharmacies",
+    "Electronics",
+    "Salons & spas",
+    "Supermarkets",
+    "Auto parts",
+    "Makers & manufacturing",
   ]
   return (
     <section className="border-y border-border/60 bg-muted/30 py-6">
       <div className="mx-auto flex max-w-7xl flex-col items-center gap-4 px-4 md:flex-row md:gap-8 md:px-6">
-        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-          Trusted by independent retailers across West &amp; East Africa
+        <p className="shrink-0 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          From a single stall to a multi-store chain
         </p>
-        <ul className="flex flex-wrap items-center justify-center gap-4 md:gap-6">
-          {logos.map((l) => (
+        <ul className="flex flex-wrap items-center justify-center gap-2 md:gap-2.5">
+          {sectors.map((s) => (
             <li
-              key={l}
-              className="text-sm font-bold tracking-tight text-muted-foreground/80"
+              key={s}
+              className="rounded-full border border-border bg-card px-3 py-1 text-xs font-semibold text-muted-foreground/90"
             >
-              {l}
+              {s}
             </li>
           ))}
         </ul>
@@ -419,7 +424,7 @@ function DeviceShowcase() {
             <span className="text-muted-foreground">Every device you own.</span>
           </h2>
           <p className="mt-3 text-base text-muted-foreground">
-            Open it on your phone, install it on your laptop, run it on the till. Same screens, same data, same speed everywhere. When the network drops, it keeps working and syncs the moment you're back.
+            Ring up a sale on the till, check stock from your phone out on the floor, close the books on your laptop at night — same Pallio, same numbers, across every location. Lose signal and it keeps selling, then catches up the second you're back online.
           </p>
         </motion.div>
 
@@ -467,9 +472,9 @@ function DeviceShowcase() {
 // ---- AI Insights mini ----
 function InsightsShowcase() {
   const cards = [
-    { title: "USB‑C Hub trending +24%", body: "Reorder 60 units · ~4 days of stock left.", tone: "bg-amber-500/15 text-amber-700 dark:text-amber-300", Icon: TrendingUp },
-    { title: "Cobalt 2 days late · 3 of last 4", body: "Stock buffer for sole-source items <7 days.", tone: "bg-rose-500/15 text-rose-700 dark:text-rose-300", Icon: ClipboardList },
-    { title: "IG Reels ROAS hit 4.2×", body: "Holiday Tee Reel is the top performer.", tone: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300", Icon: Megaphone },
+    { title: "Bluetooth earbuds are selling 24% faster", body: "About 4 days of stock left — reorder 60 now so you don't run out.", tone: "bg-amber-500/15 text-amber-700 dark:text-amber-300", Icon: TrendingUp },
+    { title: "Your main supplier is running late again", body: "2 days late on 3 of the last 4 orders. Add a buffer or line up a backup.", tone: "bg-rose-500/15 text-rose-700 dark:text-rose-300", Icon: ClipboardList },
+    { title: "Your Instagram ad is your best one yet", body: "4.2× return on spend — well ahead of the rest. Worth more budget.", tone: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300", Icon: Megaphone },
   ]
   return (
     <section className="px-4 py-16 md:px-6 md:py-24">
@@ -522,10 +527,10 @@ function InsightsShowcase() {
 // ---- Stats ----
 function Stats() {
   const items = [
-    { value: "131+", label: "Pages of features" },
-    { value: "13", label: "Live integrations" },
+    { value: "6-in-1", label: "Tools, one login" },
+    { value: "20+", label: "Integrations ready to connect" },
     { value: "<3s", label: "Opens on 4G" },
-    { value: "100%", label: "Built for your phone" },
+    { value: "100%", label: "Keeps selling offline" },
   ]
   return (
     <section className="border-y border-border/60 bg-gradient-to-br from-brand/5 via-card/40 to-emerald-500/5 px-4 py-16 md:px-6 md:py-20 dark:from-primary/10 dark:to-emerald-950/15">
@@ -558,17 +563,17 @@ function Testimonials() {
     {
       body: "Pallio replaced four subscriptions in the first week. Inventory, POS, accounting, and the spreadsheet I used for stock counts. Whole shop runs from my phone now.",
       author: "Funke Adesanya",
-      title: "Owner · Funke Apparel, Lekki",
+      title: "Owner · Lekki Threads",
     },
     {
       body: "The AI flagged a vendor running 2 days late before I'd noticed. That alone has saved us two stock-outs this month.",
       author: "Tunde Bello",
-      title: "Founder · Eko Provisions, Surulere",
+      title: "Founder · Bukka Republic, Surulere",
     },
     {
       body: "I run three shops across Lagos and one in Abuja. Pallio is the first tool that's actually let me see all four locations on one screen.",
       author: "Chiamaka Okeke",
-      title: "Operations Lead · LagosMart",
+      title: "Operations Lead · Yaba Gadgets",
     },
   ]
   return (
@@ -608,8 +613,8 @@ function Testimonials() {
 // ---- Final CTA ----
 function FinalCTA() {
   const perks = [
-    { Icon: Zap, label: "Instant setup" },
-    { Icon: CreditCard, label: "Free up to 100 SKUs" },
+    { Icon: Zap, label: "Set up in minutes" },
+    { Icon: CreditCard, label: "30 days free, no card" },
     { Icon: Globe, label: "Web, iPhone, Android" },
     { Icon: PackageCheck, label: "Cancel any time" },
   ]
@@ -657,7 +662,7 @@ function FinalCTA() {
         </ul>
         <div className="mt-10 inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1.5 text-xs">
           <BarChart3 className="h-3.5 w-3.5 text-muted-foreground" />
-          <span>Tracked on the leaderboard? Pallio is the only one that listed first.</span>
+          <span>Your data stays yours — we never sell it or train on it.</span>
         </div>
       </div>
     </section>
@@ -783,10 +788,10 @@ function LogoColumn({ title, items, accent }: { title: string; items: string[]; 
 // ---- FAQ teaser ----
 function FaqTeaser() {
   const ITEMS = [
-    { q: "Do I need a credit card to start?", a: "No. The first 30 days are free with full Scale-tier access. We only ask for a card when you pick a paid plan." },
-    { q: "How do payments work?",            a: "Connect Paystack, Flutterwave, Opay, PalmPay, Stripe, or bank transfer. Pallio doesn't take a transaction fee. You pay your processor what they charge, that's it." },
-    { q: "Will my data survive a reinstall?",a: "Yes. POS drafts, team chat history and your toggles mirror to device storage that survives reinstalls and cache clears." },
-    { q: "Can sales reps see real-time inventory?", a: "Yes. Reps get a read-only live view that updates as items sell across every location." },
+    { q: "Is it really free to start?", a: "Yes — 30 days with full access, no card and no credit check. You only enter card details if you choose a plan at the end of the trial." },
+    { q: "Does Pallio take a cut of my sales?", a: "Never. You pay one flat monthly price, plus whatever your payment processor (Paystack, Flutterwave, Stripe…) charges. Pallio adds nothing on top of your sales." },
+    { q: "Will it keep working if the power or network drops?", a: "Yes. The POS keeps ringing up sales offline and syncs everything the moment you're back online — built for real Nigerian trading conditions." },
+    { q: "Can I move over my products and customers?", a: "Yes. Import items, customers and vendors from a CSV with a guided mapper, or one-click sync from Shopify and WooCommerce." },
   ]
   const [open, setOpen] = React.useState<number | null>(0)
   return (

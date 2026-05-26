@@ -31,15 +31,17 @@ export function DesktopDashboardMock() {
         </div>
         <nav className="flex-1 px-1.5 py-1.5">
           {[
+            // Mirrors the real sidebar groups + order in lib/nav.ts so
+            // the mock reads like an actual Pallio screen, not a guess.
             { Icon: BarChart3,    label: "Dashboard",   active: true },
             { Icon: CreditCard,   label: "POS" },
-            { Icon: Package2,     label: "Inventory" },
             { Icon: ShoppingCart, label: "Sales" },
-            { Icon: Boxes,        label: "Purchasing" },
+            { Icon: Package2,     label: "Inventory" },
+            { Icon: Boxes,        label: "Purchases" },
+            { Icon: Wallet,       label: "Accounting" },
             { Icon: BarChart3,    label: "Reporting" },
             { Icon: Megaphone,    label: "Marketing" },
-            { Icon: Bot,          label: "AI" },
-            { Icon: Users,        label: "Team" },
+            { Icon: Bot,          label: "AI Assistant" },
             { Icon: ShieldCheck,  label: "Settings" },
           ].map((n) => (
             <div
@@ -85,9 +87,9 @@ export function DesktopDashboardMock() {
           {/* AI insights row */}
           <div className="mt-2 grid grid-cols-3 gap-1.5">
             {[
-              { Icon: Boxes,    title: "USB‑C Hub trending +24%", body: "Reorder 60 units · ~4d left.",   tone: "bg-amber-500/15 text-amber-700 dark:text-amber-300" },
-              { Icon: Wallet,   title: "ROAS 4.2× on IG Reels",   body: "Best of any active channel.",    tone: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300" },
-              { Icon: Megaphone,title: "Cobalt 2d late · 3 of 4", body: "Stock buffer thin on EL-2109.",  tone: "bg-rose-500/15 text-rose-700 dark:text-rose-300" },
+              { Icon: Boxes,    title: "Earbuds selling 24% faster", body: "~4 days left · reorder 60 now.", tone: "bg-amber-500/15 text-amber-700 dark:text-amber-300" },
+              { Icon: Wallet,   title: "Instagram ad · 4.2× return",  body: "Your best channel — add budget.", tone: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300" },
+              { Icon: Megaphone,title: "Supplier 2 days late",        body: "3 of last 4 — add a buffer.",     tone: "bg-rose-500/15 text-rose-700 dark:text-rose-300" },
             ].map((c) => (
               <div key={c.title} className="rounded-md border border-border bg-card p-1.5">
                 <div className="flex items-start gap-1">
@@ -125,7 +127,7 @@ export function DesktopDashboardMock() {
             <div className="rounded-md border border-border bg-card p-1.5">
               <p className="text-[7px] font-semibold">Suggested restock</p>
               <div className="mt-1 space-y-0.5">
-                {["EL-2109 · Hub", "AP-4012 · Tee", "HM-2205 · Mug"].map((s) => (
+                {["Bluetooth earbuds", "Cotton tee · black", "Ceramic mug"].map((s) => (
                   <div key={s} className="flex items-center justify-between rounded-sm bg-background px-1 py-0.5 text-[6px]">
                     <span className="truncate">{s}</span>
                     <span className="font-bold text-brand dark:text-primary">+60</span>
@@ -146,13 +148,13 @@ export function DesktopDashboardMock() {
             <p className="flex items-center gap-1 text-[6px] uppercase tracking-wider text-muted-foreground">
               <Layers className="h-2 w-2" /> Activity
             </p>
-            <p className="mt-0.5 text-[7px]">Mia closed a ₦86,000 sale · USB‑C Hub crossed reorder threshold · PO‑1042 received in full</p>
+            <p className="mt-0.5 text-[7px]">Mia closed a ₦86,000 sale · earbuds hit the reorder point · supplier order PO‑1042 received in full</p>
           </div>
         </div>
       </div>
 
       {/* Unused-imports placation: keeps the file robust to future variants */}
-      <span className="hidden"><ChevronRight /></span>
+      <span className="hidden"><ChevronRight /><Users /></span>
     </div>
   )
 }

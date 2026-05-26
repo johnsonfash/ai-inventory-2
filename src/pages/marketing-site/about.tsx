@@ -20,25 +20,25 @@ const VALUES: { Icon: LucideIcon; tone: string; title: string; body: string }[] 
     Icon: Smartphone,
     tone: "bg-brand-soft text-brand dark:bg-primary/15 dark:text-primary",
     title: "The phone is the desk",
-    body: "Most shop owners run the day with one hand on their phone. So that's the screen we design for first. Your laptop and the till at the front of the shop come along for the ride.",
+    body: "Whether you're behind one till or watching five branches, the day happens on your phone. So that's the screen we design for first — the laptop and the shop-floor till come along for the ride, with the same numbers everywhere.",
   },
   {
     Icon: ShieldCheck,
     tone: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300",
     title: "Boring on security",
-    body: "Bank-grade encryption, biometric unlock, role-scoped access, audit-friendly logs. Your data is yours. We don't sell it, train on it, or peek at it.",
+    body: "Strong encryption, biometric unlock, role-scoped access and audit-friendly logs. Your data is yours — we don't sell it, train models on it, or peek at it.",
   },
   {
     Icon: HandHeart,
     tone: "bg-rose-500/15 text-rose-700 dark:text-rose-300",
-    title: "Honest pricing",
-    body: "Three plans, no per-transaction fees, no surprise add-ons in the small print. If we ship something new that costs us money, we tell you up front.",
+    title: "No surprises on the bill",
+    body: "One flat monthly price per plan and no cut of your sales. Power features that genuinely cost us money — like AI ad-video generation — run on clearly-priced credits, so you always see what you're spending before you spend it.",
   },
   {
     Icon: Sparkles,
     tone: "bg-fuchsia-500/15 text-fuchsia-700 dark:text-fuchsia-300",
-    title: "AI that's actually useful",
-    body: "Not a chat that makes up inventory numbers. Pallio surfaces concrete decisions (restock this, audit that vendor, pause this campaign) with the data behind them right there to check.",
+    title: "AI that earns its keep",
+    body: "Not a chatbot that invents your stock levels. Pallio surfaces concrete decisions — restock this, chase that supplier, pause this campaign — with the numbers behind each one right there to check.",
   },
 ]
 
@@ -74,7 +74,7 @@ export default function AboutPage() {
             </span>
           </h1>
           <p className="mx-auto mt-5 max-w-2xl text-base text-muted-foreground md:text-lg">
-            One app that runs the whole shop. Inventory, POS, sales team, marketing, books and AI in one place. So you can stop paying for five tools that don't talk to each other.
+            One app to run the whole business — inventory, POS, sales, marketing, books and AI in one place. So you can stop paying for half a dozen tools that don't talk to each other.
           </p>
         </motion.div>
 
@@ -103,7 +103,7 @@ export default function AboutPage() {
               We've spent years building software for businesses. Inventory systems, point-of-sale apps, sales dashboards. Each one solved a piece of the puzzle, and each one made the puzzle harder.
             </p>
             <p>
-              The same operators kept telling us the same thing. They were paying for five apps that wouldn't talk to each other. They were copying numbers between tabs. The cashier was on one tool, the accountant on another, the marketing person on a third nobody else had ever seen. They didn't want better features. They wanted one app that just did the lot.
+              The same answer kept coming back, from a one-person stall and a five-branch chain alike. They were paying for half a dozen apps that wouldn't talk to each other, and copying numbers between tabs to make them agree. The cashier was on one tool, the accountant on another, the marketer on a third nobody else had ever opened. They didn't want more features. They wanted one app that just did the lot.
             </p>
             <p>
               Pallio is that app. Inventory, POS, sales team, marketing, books and an AI that nudges you when something needs attention. Built so the same numbers show up in the same place no matter who you are or what you're trying to do.
