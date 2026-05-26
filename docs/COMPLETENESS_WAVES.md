@@ -129,6 +129,8 @@ notes what's frontend-doable now vs backend-blocked.
 - Verify no other settings hub tile is a dead link.
 **Backend:** billing/credits, API keys, webhooks, real export, audit feed, OAuth. **Size:** ~3–4 days. Frontend shells now; data backend-blocked.
 
+**Progress (2026-05-26):** ✅ DONE — built all 6 missing pages + routes + settings-hub tiles (new "Developer & data" group): **billing** (plan + AI-credit meter with top-up packs + add-ons + invoices, ties to pricing model), **api** (key create→reveal-once→revoke), **webhooks** (endpoint + event picker, pause/resume/delete), **automations** (when→then rule toggles), **export** (per-dataset + export-everything, format picker), **audit** (filterable activity log). **Team** intentionally folds into the existing Users tile (no duplicate page). NOTE: the earlier audit's claim that these had routes-but-no-files was wrong — they had neither; now built. ⏳ REMAINING: per-provider integration setup guidance (Paystack/Flutterwave/Opay/PalmPay webhook instructions) + real OAuth/connect (backend).
+
 ## W7 — Appointments: staff availability & leave
 **Goal:** Staff can block time off; admin is notified and approves/rejects.
 **Scope:**
