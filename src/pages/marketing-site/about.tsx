@@ -20,25 +20,25 @@ const VALUES: { Icon: LucideIcon; tone: string; title: string; body: string }[] 
     Icon: Smartphone,
     tone: "bg-brand-soft text-brand dark:bg-primary/15 dark:text-primary",
     title: "The phone is the desk",
-    body: "Whether you're behind one till or watching five branches, the day happens on your phone. So that's the screen we design for first — the laptop and the shop-floor till come along for the ride, with the same numbers everywhere.",
+    body: "Whether you're behind one till or watching five branches, the day happens on your phone. So that's the screen we design for first, and the laptop and the shop-floor till come along for the ride, with the same numbers everywhere.",
   },
   {
     Icon: ShieldCheck,
     tone: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300",
     title: "Boring on security",
-    body: "Strong encryption, biometric unlock, role-scoped access and audit-friendly logs. Your data is yours — we don't sell it, train models on it, or peek at it.",
+    body: "Strong encryption, biometric unlock, role-scoped access and audit-friendly logs. Your data is yours. We don't sell it, train models on it, or peek at it.",
   },
   {
     Icon: HandHeart,
     tone: "bg-rose-500/15 text-rose-700 dark:text-rose-300",
     title: "No surprises on the bill",
-    body: "One flat monthly price per plan and no cut of your sales. Power features that genuinely cost us money — like AI ad-video generation — run on clearly-priced credits, so you always see what you're spending before you spend it.",
+    body: "One flat monthly price per plan and no cut of your sales. Power features that genuinely cost us money, like AI ad-video generation, run on clearly-priced credits, so you always see what you're spending before you spend it.",
   },
   {
     Icon: Sparkles,
     tone: "bg-fuchsia-500/15 text-fuchsia-700 dark:text-fuchsia-300",
     title: "AI that earns its keep",
-    body: "Not a chatbot that invents your stock levels. Pallio surfaces concrete decisions — restock this, chase that supplier, pause this campaign — with the numbers behind each one right there to check.",
+    body: "Not a chatbot that invents your stock levels. Pallio surfaces concrete decisions (restock this, chase that supplier, pause this campaign) with the numbers behind each one right there to check.",
   },
 ]
 
@@ -74,7 +74,7 @@ export default function AboutPage() {
             </span>
           </h1>
           <p className="mx-auto mt-5 max-w-2xl text-base text-muted-foreground md:text-lg">
-            One app to run the whole business — inventory, POS, sales, marketing, books and AI in one place. So you can stop paying for half a dozen tools that don't talk to each other.
+            One app to run the whole business: inventory, POS, sales, marketing, books and AI in one place. So you can stop paying for half a dozen tools that don't talk to each other.
           </p>
         </motion.div>
 

@@ -12,11 +12,11 @@ const SECTIONS: { title: string; items: Item[] }[] = [
     items: [
       {
         q: "Is it really free to start?",
-        a: "Yes. Every account begins with 30 days of full access — no card, no credit check, nothing to cancel if you walk away. When the trial ends you pick a plan to keep going, or your account simply pauses (we never delete your data).",
+        a: "Yes. Every account begins with 30 days of full access. No card, no credit check, and nothing to cancel if you walk away. When the trial ends you pick a plan to keep going, or your account simply pauses (we never delete your data).",
       },
       {
         q: "Will Pallio work for my kind of business?",
-        a: "Almost certainly. Pallio is built to be industry-agnostic: it runs a clothing store, a restaurant or café, a pharmacy, a salon, a supermarket, an electronics shop, a workshop or a small factory — and a single account can run several of those at once. Tools you don't need (kitchen prep queue, recipes/production, expiry tracking) simply stay out of your way; nothing is locked off.",
+        a: "Almost certainly. Pallio is built to be industry-agnostic: it runs a clothing store, a restaurant or café, a pharmacy, a salon, a supermarket, an electronics shop, a workshop or a small factory, and a single account can run several of those at once. Tools you don't need (kitchen prep queue, recipes/production, expiry tracking) simply stay out of your way; nothing is locked off.",
       },
       {
         q: "How long does setup take, and can I bring my data over?",
@@ -24,11 +24,11 @@ const SECTIONS: { title: string; items: Item[] }[] = [
       },
       {
         q: "Do I need special hardware?",
-        a: "No — the phone or laptop you already have is enough, and your phone's camera can scan barcodes. If you want them, Pallio also supports USB/Bluetooth barcode scanners, thermal receipt printers and cash drawers on desktop and Android.",
+        a: "No. The phone or laptop you already have is enough, and your phone's camera can scan barcodes. If you want them, Pallio also supports USB/Bluetooth barcode scanners, thermal receipt printers and cash drawers on desktop and Android.",
       },
       {
         q: "Does Pallio keep working when the network or power drops?",
-        a: "Yes. The POS caches your catalogue and keeps ringing up sales offline — at a pop-up, a market stall, or through a power cut. Everything syncs automatically the moment you're back online.",
+        a: "Yes. The POS caches your catalogue and keeps ringing up sales offline, whether at a pop-up, a market stall, or through a power cut. Everything syncs automatically the moment you're back online.",
       },
     ],
   },
@@ -37,23 +37,23 @@ const SECTIONS: { title: string; items: Item[] }[] = [
     items: [
       {
         q: "How much does Pallio cost?",
-        a: "Three plans: Starter (₦2,000/mo), Growth (₦5,000/mo) and Scale (₦10,000/mo). Pay yearly and two months are free. The full breakdown — including what's in each plan — is on the Pricing page.",
+        a: "Three plans: Starter (₦2,000/mo), Growth (₦5,000/mo) and Scale (₦10,000/mo). Pay yearly and two months are free. The full breakdown, including what's in each plan, is on the Pricing page.",
       },
       {
         q: "Does Pallio take a cut of my sales?",
-        a: "Never. You pay one flat monthly price for the plan, full stop. Your payment processor (Paystack, Flutterwave, Opay, PalmPay, Stripe, bank transfer…) charges its normal fee just as it would anywhere else — Pallio doesn't add a kobo on top.",
+        a: "Never. You pay one flat monthly price for the plan, full stop. Your payment processor (Paystack, Flutterwave, Opay, PalmPay, Stripe, bank transfer…) charges its normal fee just as it would anywhere else. Pallio doesn't add a kobo on top.",
       },
       {
         q: "What are AI credits, and what uses them?",
-        a: "Credits power the features that genuinely cost us money to run: the AI assistant, AI ad-copy and ad-video generation, bulk product descriptions, and SMS/email blasts. Each plan includes a monthly allowance (100 / 1,000 / 5,000). If you run low, top up any time — extra credits stay good while your plan is active. Everything else in your plan is unlimited and unmetered.",
+        a: "Credits power the features that genuinely cost us money to run: the AI assistant, AI ad-copy and ad-video generation, bulk product descriptions, and SMS/email blasts. Each plan includes a monthly allowance (100 / 1,000 / 5,000). If you run low, top up any time, and extra credits stay good while your plan is active. Everything else in your plan is unlimited and unmetered.",
       },
       {
         q: "Can I change plans or cancel?",
-        a: "Any time, yourself, from Settings — no phone call required. Switching between monthly and yearly is prorated. If you downgrade, your data stays put and anything beyond the new plan's limits goes read-only rather than being deleted.",
+        a: "Any time, yourself, from Settings, with no phone call required. Switching between monthly and yearly is prorated. If you downgrade, your data stays put and anything beyond the new plan's limits goes read-only rather than being deleted.",
       },
       {
         q: "How do my customers pay me?",
-        a: "However they like — card, bank transfer, Paystack/Flutterwave/Opay/PalmPay, cash, or a virtual account per till. Pallio records the payment against the sale and your books update automatically.",
+        a: "However they like: card, bank transfer, Paystack/Flutterwave/Opay/PalmPay, cash, or a virtual account per till. Pallio records the payment against the sale and your books update automatically.",
       },
     ],
   },
@@ -66,11 +66,11 @@ const SECTIONS: { title: string; items: Item[] }[] = [
       },
       {
         q: "Is the AI real, or just a label?",
-        a: "Real, but tuned to be useful rather than chatty. Everyday alerts — low stock, a supplier running late, margin drift, an ad return spiking — come from rules, so they're predictable and instant. The chat assistant uses a proper language model that reasons over your own numbers the moment you ask. Your data is never used to train any model.",
+        a: "Real, but tuned to be useful rather than chatty. Everyday alerts (low stock, a supplier running late, margin drift, an ad return spiking) come from rules, so they're predictable and instant. The chat assistant uses a proper language model that reasons over your own numbers the moment you ask. Your data is never used to train any model.",
       },
       {
         q: "Does it do proper accounting?",
-        a: "Yes — a real double-entry general ledger, not a glorified summary. Sales, returns and bills post to the books automatically, and your P&L, balance sheet, cash flow and VAT return are derived from the ledger rather than typed in. Hand your accountant a GL export, or push to QuickBooks or Xero.",
+        a: "Yes. A real double-entry general ledger, not a glorified summary. Sales, returns and bills post to the books automatically, and your P&L, balance sheet, cash flow and VAT return are derived from the ledger rather than typed in. Hand your accountant a GL export, or push to QuickBooks or Xero.",
       },
       {
         q: "Can I run several branches or locations?",
@@ -86,7 +86,7 @@ const SECTIONS: { title: string; items: Item[] }[] = [
       },
       {
         q: "Is there an API?",
-        a: "Yes — a REST API with keys, webhooks for inbound events, and a custom-website integration for storefronts. Available on every plan.",
+        a: "Yes. A REST API with keys, webhooks for inbound events, and a custom-website integration for storefronts. Available on every plan.",
       },
     ],
   },
@@ -95,7 +95,7 @@ const SECTIONS: { title: string; items: Item[] }[] = [
     items: [
       {
         q: "Is my data safe, and do you train AI on it?",
-        a: "Your data is encrypted in transit and at rest, access is role-scoped, and the app can be locked behind biometrics. We never sell your data and never use it to train any model — the AI reasons over it only when you ask, then the conversation is discarded.",
+        a: "Your data is encrypted in transit and at rest, access is role-scoped, and the app can be locked behind biometrics. We never sell your data and never use it to train any model. The AI reasons over it only when you ask, then the conversation is discarded.",
       },
       {
         q: "Where is my data stored?",
@@ -103,11 +103,11 @@ const SECTIONS: { title: string; items: Item[] }[] = [
       },
       {
         q: "Can I get my data out again?",
-        a: "Always, in one click. Full CSV export of every record — products, customers, orders, invoices, purchase orders and more — from Settings. You own your data; Pallio is just where you work on it.",
+        a: "Always, in one click. Full CSV export of every record (products, customers, orders, invoices, purchase orders and more) from Settings. You own your data; Pallio is just where you work on it.",
       },
       {
         q: "What devices does Pallio run on?",
-        a: "Native apps for iPhone, Android, Mac and Windows, plus any modern browser (which you can install to your home screen). It's the same Pallio with the same data everywhere — phone on the move, laptop in the back office, the till up front.",
+        a: "Native apps for iPhone, Android, Mac and Windows, plus any modern browser (which you can install to your home screen). It's the same Pallio with the same data everywhere: phone on the move, laptop in the back office, the till up front.",
       },
       {
         q: "How do I get help if I'm stuck?",

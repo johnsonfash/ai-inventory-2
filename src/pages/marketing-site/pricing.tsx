@@ -29,7 +29,7 @@ const TIERS: Tier[] = [
     features: [
       "Up to 3 locations · 5 team members",
       "Unlimited products & sales",
-      "Full POS — keeps selling offline",
+      "Full POS, keeps selling offline",
       "Inventory, bundles & recipes/production",
       "Sales, invoicing & purchasing",
       "Double-entry books, VAT & receipts",
@@ -93,14 +93,14 @@ const COMPARISON: { group: string; rows: CmpRow[] }[] = [
       { feature: "Locations",                 values: ["3", "10", "Unlimited"] },
       { feature: "Team members",              values: ["5", "25", "Unlimited"] },
       { feature: "Products & sales",          values: ["Unlimited", "Unlimited", "Unlimited"] },
-      { feature: "AI credits / month",        values: ["100", "1,000", "5,000"], tip: "Credits power the AI assistant, AI ad copy and ad-video generation, and bulk descriptions. Top up any time — see Add-ons & credits below." },
+      { feature: "AI credits / month",        values: ["100", "1,000", "5,000"], tip: "Credits power the AI assistant, AI ad copy and ad-video generation, and bulk descriptions. Top up any time; see Add-ons & credits below." },
     ],
   },
   {
     group: "Selling & POS",
     rows: [
       { feature: "Point of sale, works offline",        values: [true, true, true] },
-      { feature: "Tables, tabs & kitchen prep queue",   values: [true, true, true], tip: "Hospitality mode — seat tables, run tabs, and send orders to a prep/kitchen queue. Ignore it if you don't need it; nothing is hidden." },
+      { feature: "Tables, tabs & kitchen prep queue",   values: [true, true, true], tip: "Hospitality mode: seat tables, run tabs, and send orders to a prep/kitchen queue. Ignore it if you don't need it; nothing is hidden." },
       { feature: "Returns, drafts & multiple cashiers", values: [true, true, true] },
       { feature: "Appointments & bookings",             values: [true, true, true] },
       { feature: "Online storefront",                   values: [true, true, true] },
@@ -112,7 +112,7 @@ const COMPARISON: { group: string; rows: CmpRow[] }[] = [
     rows: [
       { feature: "Multi-location stock, transfers & adjustments", values: [true, true, true] },
       { feature: "Bundles, kits & composite items",               values: [true, true, true] },
-      { feature: "Recipes / BOM, production & batch tracking",    values: [true, true, true], tip: "Make-to-stock for bakeries, kitchens, cosmetics labs, workshops and manufacturers — components, yield, sub-recipes, and lot/expiry tracking." },
+      { feature: "Recipes / BOM, production & batch tracking",    values: [true, true, true], tip: "Make-to-stock for bakeries, kitchens, cosmetics labs, workshops and manufacturers: components, yield, sub-recipes, and lot/expiry tracking." },
       { feature: "Expiry (FEFO) & recall trace",                  values: [true, true, true] },
     ],
   },
@@ -120,7 +120,7 @@ const COMPARISON: { group: string; rows: CmpRow[] }[] = [
     group: "Money & books",
     rows: [
       { feature: "Sales, invoicing & purchasing",                values: [true, true, true] },
-      { feature: "Double-entry accounting, VAT & tax",           values: [true, true, true], tip: "A real general ledger — every sale, return and bill posts automatically. P&L, balance sheet and cash flow are derived, not typed in." },
+      { feature: "Double-entry accounting, VAT & tax",           values: [true, true, true], tip: "A real general ledger: every sale, return and bill posts automatically. P&L, balance sheet and cash flow are derived, not typed in." },
       { feature: "Payroll & staff commissions",                  values: [false, true, true] },
       { feature: "Bank reconciliation & period lock",            values: [false, true, true] },
       { feature: "Accountant export (QuickBooks, Xero, GL CSV)", values: [false, true, true] },
@@ -130,15 +130,15 @@ const COMPARISON: { group: string; rows: CmpRow[] }[] = [
     group: "Marketing & growth",
     rows: [
       { feature: "Discounts & customer segments",                values: [true, true, true] },
-      { feature: "Ads — Facebook, Instagram, YouTube + Marketplace", values: [false, true, true] },
-      { feature: "AI ad copy & video generation",                values: [false, true, true], tip: "Generate captions, ad scripts and short marketing videos from your own catalogue. Runs on AI credits — top up any time." },
+      { feature: "Ads: Facebook, Instagram, YouTube + Marketplace", values: [false, true, true] },
+      { feature: "AI ad copy & video generation",                values: [false, true, true], tip: "Generate captions, ad scripts and short marketing videos from your own catalogue. Runs on AI credits; top up any time." },
       { feature: "Affiliate program & payouts",                  values: [false, false, true], tip: "Unique referral links, automatic sales attribution, and one-click commission payouts." },
     ],
   },
   {
     group: "AI & insights",
     rows: [
-      { feature: "AI insights & 7-day forecast",         values: [false, true, true], tip: "Restock nudges, late-supplier flags, margin drift and ad-return spikes — surfaced as cards with one-tap actions." },
+      { feature: "AI insights & 7-day forecast",         values: [false, true, true], tip: "Restock nudges, late-supplier flags, margin drift and ad-return spikes, surfaced as cards with one-tap actions." },
       { feature: "AI assistant (chat over your data)",   values: ["Limited", true, true] },
       { feature: "Anomaly detection & cash-flow forecast", values: [false, false, true] },
     ],
@@ -237,7 +237,7 @@ export default function PricingPage() {
             </span>
           </h1>
           <p className="mt-4 text-base text-muted-foreground md:text-lg">
-            Pick a plan, pay one monthly price. Your payment processor charges its normal fee — Pallio doesn't add a kobo on top. Cancel whenever; pay yearly and two months are on us.
+            Pick a plan, pay one monthly price. Your payment processor charges its normal fee, and Pallio doesn't add a kobo on top. Cancel whenever; pay yearly and two months are on us.
           </p>
         </div>
 
@@ -338,7 +338,7 @@ export default function PricingPage() {
           <div className="mx-auto max-w-2xl text-center">
             <h2 className="text-3xl font-bold tracking-tight md:text-4xl">Compare every plan</h2>
             <p className="mt-3 text-muted-foreground">
-              Core selling, inventory and books are in every plan — we never lock whole modules behind a tier. Advanced tools and higher limits scale up as you grow.
+              Core selling, inventory and books are in every plan. We never lock whole modules behind a tier; advanced tools and higher limits scale up as you grow.
             </p>
           </div>
           <div className="mt-8 overflow-x-auto rounded-2xl border border-border bg-card">
@@ -410,7 +410,7 @@ export default function PricingPage() {
                 <h3 className="text-base font-bold tracking-tight">Pay-as-you-go credits</h3>
               </div>
               <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-                Every plan includes a monthly credit allowance (100 / 1,000 / 5,000). Credits power the <strong>AI assistant</strong>, <strong>AI ad copy &amp; video generation</strong>, bulk product descriptions, and SMS/email blasts. Run low? Top up any time — extra credits stay good while your plan is active.
+                Every plan includes a monthly credit allowance (100 / 1,000 / 5,000). Credits power the <strong>AI assistant</strong>, <strong>AI ad copy &amp; video generation</strong>, bulk product descriptions, and SMS/email blasts. Run low? Top up any time, and extra credits stay good while your plan is active.
               </p>
               <ul className="mt-4 flex flex-col gap-2">
                 {CREDIT_PACKS.map((p) => (
@@ -449,7 +449,7 @@ export default function PricingPage() {
         <section className="mt-20 rounded-2xl border border-border bg-gradient-to-br from-brand-soft via-card to-emerald-50/40 p-8 text-center dark:from-primary/10 dark:to-emerald-950/15">
           <h3 className="text-xl font-bold tracking-tight">Still have questions?</h3>
           <p className="mt-2 text-muted-foreground">
-            The FAQ covers pricing, credits, data and more — or message our team and we'll answer fast.
+            The FAQ covers pricing, credits, data and more. Or message our team and we'll answer fast.
           </p>
           <div className="mt-5 flex flex-wrap items-center justify-center gap-3">
             <Link to="/faq">

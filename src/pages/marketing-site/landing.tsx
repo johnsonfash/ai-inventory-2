@@ -112,7 +112,7 @@ function Hero() {
             variants={fadeIn}
             className="mt-5 max-w-xl text-base text-muted-foreground md:text-lg"
           >
-            Sell, track stock, run ads, pay the team and close the books — without bouncing between six apps that never quite agree on the numbers.
+            Sell, track stock, run ads, pay the team and close the books. No more juggling six apps that never quite agree on the numbers.
           </motion.p>
 
           <motion.div variants={fadeIn} className="mt-7 flex flex-wrap items-center gap-3">
@@ -224,8 +224,7 @@ function TrustBar() {
     "Electronics",
     "Salons & spas",
     "Supermarkets",
-    "Auto parts",
-    "Makers & manufacturing",
+    "Manufacturing",
   ]
   return (
     <section className="border-y border-border/60 bg-muted/30 py-6">
@@ -283,8 +282,8 @@ const FEATURES: { Icon: LucideIcon; tone: string; title: string; body: string }[
   {
     Icon: ShieldCheck,
     tone: "bg-rose-500/15 text-rose-700 dark:text-rose-300",
-    title: "Role-based access, biometric unlock",
-    body: "Invite staff, cashiers, marketers and affiliates, each with the right access. Face ID and fingerprint unlock keep your data private.",
+    title: "Your team, with the right access",
+    body: "Invite cashiers, sales reps, marketers and accountants, each seeing only what they should. Every sale traces to who rang it, and sensitive actions can be locked behind a fingerprint.",
   },
 ]
 
@@ -424,7 +423,7 @@ function DeviceShowcase() {
             <span className="text-muted-foreground">Every device you own.</span>
           </h2>
           <p className="mt-3 text-base text-muted-foreground">
-            Ring up a sale on the till, check stock from your phone out on the floor, close the books on your laptop at night — same Pallio, same numbers, across every location. Lose signal and it keeps selling, then catches up the second you're back online.
+            Ring up a sale on the till, check stock from your phone out on the floor, close the books on your laptop at night. Same Pallio, same numbers, across every location. Lose signal and it keeps selling, then catches up the second you're back online.
           </p>
         </motion.div>
 
@@ -446,7 +445,7 @@ function DeviceShowcase() {
             doesn't wrap into a vertical letter+text stack. */}
         <ul className="mx-auto mt-12 flex max-w-3xl flex-wrap items-center justify-center gap-2 md:mt-16">
           {[
-            { label: "iOS",     body: "From the App Store · Face ID · Push alerts" },
+            { label: "iOS",     body: "From the App Store · Push alerts" },
             { label: "Android", body: "From Play Store · Fingerprint unlock" },
             { label: "Web",     body: "Open in any browser · Save to home screen" },
             { label: "iPad",    body: "Same Pallio · Side-by-side layout" },
@@ -472,9 +471,9 @@ function DeviceShowcase() {
 // ---- AI Insights mini ----
 function InsightsShowcase() {
   const cards = [
-    { title: "Bluetooth earbuds are selling 24% faster", body: "About 4 days of stock left — reorder 60 now so you don't run out.", tone: "bg-amber-500/15 text-amber-700 dark:text-amber-300", Icon: TrendingUp },
+    { title: "Bluetooth earbuds are selling 24% faster", body: "About 4 days of stock left. Reorder 60 now so you don't run out.", tone: "bg-amber-500/15 text-amber-700 dark:text-amber-300", Icon: TrendingUp },
     { title: "Your main supplier is running late again", body: "2 days late on 3 of the last 4 orders. Add a buffer or line up a backup.", tone: "bg-rose-500/15 text-rose-700 dark:text-rose-300", Icon: ClipboardList },
-    { title: "Your Instagram ad is your best one yet", body: "4.2× return on spend — well ahead of the rest. Worth more budget.", tone: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300", Icon: Megaphone },
+    { title: "Your Instagram ad is your best one yet", body: "4.2× return on spend, well ahead of the rest. Worth more budget.", tone: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300", Icon: Megaphone },
   ]
   return (
     <section className="px-4 py-16 md:px-6 md:py-24">
@@ -529,7 +528,7 @@ function Stats() {
   const items = [
     { value: "6-in-1", label: "Tools, one login" },
     { value: "20+", label: "Integrations ready to connect" },
-    { value: "<3s", label: "Opens on 4G" },
+    { value: "0%", label: "Cut of your sales" },
     { value: "100%", label: "Keeps selling offline" },
   ]
   return (
@@ -662,7 +661,7 @@ function FinalCTA() {
         </ul>
         <div className="mt-10 inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1.5 text-xs">
           <BarChart3 className="h-3.5 w-3.5 text-muted-foreground" />
-          <span>Your data stays yours — we never sell it or train on it.</span>
+          <span>Your data stays yours. We never sell it or train on it.</span>
         </div>
       </div>
     </section>
@@ -788,9 +787,9 @@ function LogoColumn({ title, items, accent }: { title: string; items: string[]; 
 // ---- FAQ teaser ----
 function FaqTeaser() {
   const ITEMS = [
-    { q: "Is it really free to start?", a: "Yes — 30 days with full access, no card and no credit check. You only enter card details if you choose a plan at the end of the trial." },
+    { q: "Is it really free to start?", a: "Yes. 30 days with full access, no card and no credit check. You only enter card details if you choose a plan at the end of the trial." },
     { q: "Does Pallio take a cut of my sales?", a: "Never. You pay one flat monthly price, plus whatever your payment processor (Paystack, Flutterwave, Stripe…) charges. Pallio adds nothing on top of your sales." },
-    { q: "Will it keep working if the power or network drops?", a: "Yes. The POS keeps ringing up sales offline and syncs everything the moment you're back online — built for real Nigerian trading conditions." },
+    { q: "Will it keep working if the power or network drops?", a: "Yes. The POS keeps ringing up sales offline and syncs everything the moment you're back online. Built for real Nigerian trading conditions." },
     { q: "Can I move over my products and customers?", a: "Yes. Import items, customers and vendors from a CSV with a guided mapper, or one-click sync from Shopify and WooCommerce." },
   ]
   const [open, setOpen] = React.useState<number | null>(0)
