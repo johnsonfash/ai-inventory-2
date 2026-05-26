@@ -1,5 +1,6 @@
 import * as React from "react"
 import { Link } from "react-router-dom"
+import { toast } from "sonner"
 import {
   Bot,
   Crown,
@@ -237,7 +238,7 @@ export default function RolesSettings() {
                           </td>
                         ))}
                         <td className="px-3 py-2.5 text-right">
-                          <Button size="sm" variant="ghost" aria-label="Edit permission"><Edit3 className="h-3.5 w-3.5" aria-hidden="true" /></Button>
+                          <Button size="sm" variant="ghost" aria-label="Edit permission" onClick={() => toast("Edit permission", { description: p.key })}><Edit3 className="h-3.5 w-3.5" aria-hidden="true" /></Button>
                         </td>
                       </tr>
                     ))}

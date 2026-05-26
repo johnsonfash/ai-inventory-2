@@ -8,6 +8,8 @@ import { useRegisterPageRefresh } from "@/hooks/use-pull-to-refresh"
 import { EmptyState } from "@/components/lists/empty-state"
 import { StatusBadge, type StatusTone } from "@/components/lists/status-badge"
 import { SummaryStrip } from "@/components/lists/summary-strip"
+import { MobileFab } from "@/components/mobile/mobile-fab"
+import { AddLocationDialog, type QuickLocation } from "@/components/dialogs/add-location-dialog"
 
 type Row = {
   id: string
@@ -19,7 +21,7 @@ type Row = {
   status: "active" | "paused" | "closed"
 }
 
-const rows: Row[] = [
+const SEED_LOCATIONS: Row[] = [
   { id: "L-1", name: "Downtown Austin", type: "storefront", address: "200 Congress Ave, Austin, TX", phone: "+1 512 555 0100", manager: "Mia Chen", status: "active" },
   { id: "L-2", name: "East DC", type: "warehouse", address: "44 Industrial Way, Atlanta, GA", phone: "+1 404 555 0101", manager: "Alex Larson", status: "active" },
   { id: "L-3", name: "West Hub", type: "warehouse", address: "1212 Riverside, Portland, OR", phone: "+1 503 555 0102", manager: "Priya Patel", status: "active" },
@@ -37,7 +39,13 @@ const statusTone: Record<Row["status"], StatusTone> = { active: "success", pause
 
 export default function Locations() {
   const [query, setQuery] = React.useState("")
+  const [rows, setRows] = React.useState<Row[]>(SEED_LOCATIONS)
+  const [addOpen, setAddOpen] = React.useState(false)
   useRegisterPageRefresh(React.useCallback(async () => { await new Promise((r) => setTimeout(r, 400)) }, []))
+
+  const handleCreate = (l: QuickLocation) => {
+    setRows((prev) => [{ id: `L-${Date.now().toString().slice(-5)}`, status: "active", ...l }, ...prev])
+  }
 
   const filtered = React.useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -45,7 +53,7 @@ export default function Locations() {
     return rows.filter(
       (r) => r.name.toLowerCase().includes(q) || r.address.toLowerCase().includes(q) || r.manager.toLowerCase().includes(q),
     )
-  }, [query])
+  }, [query, rows])
 
   const active = rows.filter((r) => r.status === "active").length
   const storefronts = rows.filter((r) => r.type === "storefront").length
@@ -79,12 +87,17 @@ export default function Locations() {
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search by name, city, or manager…" className="pl-9" />
           </div>
-          <Button className="hidden md:inline-flex"><Plus className="h-4 w-4" /> Add location</Button>
+          <Button className="hidden md:inline-flex" onClick={() => setAddOpen(true)}><Plus className="h-4 w-4" /> Add location</Button>
         </div>
 
         {filtered.length === 0 ? (
           <Card><CardContent className="p-0">
-            <EmptyState Icon={Building2} title="No locations match" description="Try a different name or city." />
+            <EmptyState
+              Icon={Building2}
+              title={query ? "No locations match" : "No locations yet"}
+              description={query ? "Try a different name or city." : "Add a storefront, warehouse, office, or pop-up."}
+              action={!query ? <Button onClick={() => setAddOpen(true)}><Plus className="h-4 w-4" /> Add location</Button> : undefined}
+            />
           </CardContent></Card>
         ) : (
           <ul className="space-y-2">
@@ -112,6 +125,9 @@ export default function Locations() {
           </ul>
         )}
       </div>
+
+      <MobileFab onClick={() => setAddOpen(true)} label="Add location" />
+      <AddLocationDialog open={addOpen} onClose={() => setAddOpen(false)} onCreate={handleCreate} />
     </PageShell>
   )
 }

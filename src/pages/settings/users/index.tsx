@@ -385,10 +385,10 @@ function InvitesTab() {
               <Button size="sm" variant="outline" onClick={copy}>
                 <Copy className="h-3.5 w-3.5" /> Copy link
               </Button>
-              <Button size="sm" variant="outline">
+              <Button size="sm" variant="outline" onClick={() => toast.success(`Invite resent to ${inv.email}`)}>
                 <RefreshCw className="h-3.5 w-3.5" /> Resend email
               </Button>
-              <Button size="sm" variant="ghost" className="ml-auto text-rose-600 dark:text-rose-400">
+              <Button size="sm" variant="ghost" className="ml-auto text-rose-600 dark:text-rose-400" onClick={() => toast(`Invite to ${inv.email} revoked`, { description: "The link no longer works." })}>
                 <Trash2 className="h-3.5 w-3.5" /> Revoke
               </Button>
             </div>

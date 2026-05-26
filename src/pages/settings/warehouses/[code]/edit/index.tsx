@@ -1,5 +1,6 @@
 
-import { useParams } from "react-router-dom"
+import { useNavigate, useParams } from "react-router-dom"
+import { toast } from "sonner"
 import { PageShell } from "@/components/page-shell"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
@@ -8,7 +9,12 @@ import { Button } from "@/components/ui/button"
 
 export default function EditWarehouse() {
   const params = useParams<{ code: string }>()
+  const navigate = useNavigate()
   const code = params.code?.toUpperCase?.() ?? "WH-?"
+  const onSave = () => {
+    toast.success(`Warehouse ${code} saved`)
+    navigate("/settings/warehouses")
+  }
   return (
     <PageShell
       title={`Edit warehouse · ${code}`}
@@ -42,7 +48,7 @@ export default function EditWarehouse() {
             <Label>Address</Label>
             <Input defaultValue={code === "WH-A" ? "Austin, TX" : ""} />
           </div>
-          <Button className="w-fit">Save Changes</Button>
+          <Button className="w-fit" onClick={onSave}>Save Changes</Button>
         </CardContent>
       </Card>
     </PageShell>

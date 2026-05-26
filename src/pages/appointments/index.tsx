@@ -7,6 +7,8 @@ import { Input } from "@/components/ui/input"
 import { Switch } from "@/components/ui/switch"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { BottomSheet } from "@/components/mobile/bottom-sheet"
+import { MobileFab } from "@/components/mobile/mobile-fab"
+import { AddAppointmentDialog, type QuickAppt } from "@/components/dialogs/add-appointment-dialog"
 import { useRegisterPageRefresh } from "@/hooks/use-pull-to-refresh"
 import { EmptyState } from "@/components/lists/empty-state"
 import { StatusBadge, type StatusTone } from "@/components/lists/status-badge"
@@ -32,7 +34,7 @@ const addDays = (n: number) => {
   return d.toISOString().slice(0, 10)
 }
 
-const appointments: Appt[] = [
+const SEED_APPOINTMENTS: Appt[] = [
   { id: "A-1042", title: "Pickup — bulk order", customer: "Acme Co", date: todayISO, start: "09:30", end: "10:00", staff: "Mia Chen", location: "WH-A loading bay", type: "service", status: "confirmed" },
   { id: "A-1043", title: "Inventory consult", customer: "NovaApps", date: todayISO, start: "11:00", end: "11:45", staff: "Alex Larson", location: "Conference room", type: "consult", status: "scheduled" },
   { id: "A-1044", title: "POS install", customer: "BrightLane", date: todayISO, start: "14:30", end: "16:00", staff: "Priya Patel", location: "On-site", type: "installation", status: "confirmed" },
@@ -109,6 +111,16 @@ function buildMonth(ref: Date) {
 export default function Appointments() {
   const [refDate, setRefDate] = React.useState(new Date())
   const [selected, setSelected] = React.useState(todayISO)
+  const [appts, setAppts] = React.useState<Appt[]>(SEED_APPOINTMENTS)
+  const [addOpen, setAddOpen] = React.useState(false)
+
+  const handleCreate = (a: QuickAppt) => {
+    setAppts((prev) => [
+      { ...a, id: `A-${Date.now().toString().slice(-5)}`, status: "scheduled" },
+      ...prev,
+    ])
+    setSelected(a.date) // jump the calendar to the new booking's day
+  }
 
   // Time off / leave state + handlers.
   const [timeOff, setTimeOff] = React.useState<TimeOff[]>(SEED_TIME_OFF)
@@ -157,12 +169,12 @@ export default function Appointments() {
 
   const countsByDay = React.useMemo(() => {
     const m = new Map<string, number>()
-    for (const a of appointments) m.set(a.date, (m.get(a.date) ?? 0) + 1)
+    for (const a of appts) m.set(a.date, (m.get(a.date) ?? 0) + 1)
     return m
-  }, [])
+  }, [appts])
 
-  const dayItems = appointments.filter((a) => a.date === selected).sort((a, b) => a.start.localeCompare(b.start))
-  const upcoming = appointments
+  const dayItems = appts.filter((a) => a.date === selected).sort((a, b) => a.start.localeCompare(b.start))
+  const upcoming = appts
     .filter((a) => a.date >= todayISO && a.status !== "cancelled")
     .sort((a, b) => `${a.date}T${a.start}`.localeCompare(`${b.date}T${b.start}`))
     .slice(0, 5)
@@ -185,9 +197,9 @@ export default function Appointments() {
         <div className="flex items-end justify-between gap-2">
           <div className="min-w-0">
             <h2 className="text-lg font-bold tracking-tight md:text-xl">Schedule</h2>
-            <p className="mt-0.5 text-sm text-muted-foreground">{appointments.length} appointments on the calendar</p>
+            <p className="mt-0.5 text-sm text-muted-foreground">{appts.length} appointments on the calendar</p>
           </div>
-          <Button className="hidden md:inline-flex"><Plus className="h-4 w-4" /> New appointment</Button>
+          <Button className="hidden md:inline-flex" onClick={() => setAddOpen(true)}><Plus className="h-4 w-4" /> New appointment</Button>
         </div>
 
         <div className="grid gap-4 lg:grid-cols-[1fr_320px]">
@@ -287,7 +299,8 @@ export default function Appointments() {
               <div className="rounded-2xl border border-dashed border-border bg-muted/30 p-6 text-center">
                 <CalendarDays className="mx-auto h-8 w-8 text-muted-foreground" />
                 <p className="mt-2 text-sm font-medium">No appointments</p>
-                <p className="mt-0.5 text-xs text-muted-foreground">Tap "New appointment" to add one.</p>
+                <p className="mt-0.5 text-xs text-muted-foreground">Nothing booked for this day.</p>
+                <Button size="sm" className="mt-3" onClick={() => setAddOpen(true)}><Plus className="h-4 w-4" /> New appointment</Button>
               </div>
             ) : (
               <ul className="space-y-2">
@@ -390,6 +403,9 @@ export default function Appointments() {
           )}
         </section>
       </div>
+
+      <MobileFab onClick={() => setAddOpen(true)} label="New appointment" />
+      <AddAppointmentDialog open={addOpen} onClose={() => setAddOpen(false)} onCreate={handleCreate} staffOptions={STAFF} defaultDate={selected} />
 
       <RequestTimeOffSheet open={requestOpen} onClose={() => setRequestOpen(false)} onSubmit={submitRequest} />
 

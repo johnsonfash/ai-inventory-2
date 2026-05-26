@@ -1,5 +1,6 @@
 import * as React from "react"
 import { Link } from "react-router-dom"
+import { toast } from "sonner"
 import { Banknote, Building2, Edit3, Plus, Search, Trash2 } from "lucide-react"
 import { PageShell } from "@/components/page-shell"
 import { Button } from "@/components/ui/button"
@@ -20,7 +21,7 @@ type Row = {
   status: "verified" | "pending" | "disabled"
 }
 
-const rows: Row[] = [
+const SEED_ACCOUNTS: Row[] = [
   { id: "VA-001", bank: "Mercury Bank", accountNumber: "0321 4482 1023", accountName: "Pallio Ops — Austin", location: "Downtown Austin", cashier: "Mia Chen", status: "verified" },
   { id: "VA-002", bank: "Mercury Bank", accountNumber: "0321 4482 5581", accountName: "Pallio Ops — Austin 2", location: "Downtown Austin", cashier: "Alex Larson", status: "verified" },
   { id: "VA-003", bank: "Wise", accountNumber: "9011 2255 0042", accountName: "Pallio Atlanta", location: "East DC", cashier: "Priya Patel", status: "pending" },
@@ -35,7 +36,17 @@ const statusTone: Record<Row["status"], StatusTone> = {
 
 export default function PaymentAccounts() {
   const [query, setQuery] = React.useState("")
+  const [rows, setRows] = React.useState<Row[]>(SEED_ACCOUNTS)
   useRegisterPageRefresh(React.useCallback(async () => { await new Promise((r) => setTimeout(r, 400)) }, []))
+
+  const onEdit = (r: Row) => toast(`Edit ${r.bank}`, { description: `${r.accountName} · ${r.accountNumber}` })
+  const onDelete = (r: Row) => {
+    setRows((prev) => prev.filter((x) => x.id !== r.id))
+    toast(`${r.bank} account removed`, {
+      description: r.accountName,
+      action: { label: "Undo", onClick: () => setRows((prev) => [r, ...prev]) },
+    })
+  }
 
   const filtered = React.useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -43,7 +54,7 @@ export default function PaymentAccounts() {
     return rows.filter(
       (r) => r.bank.toLowerCase().includes(q) || r.location.toLowerCase().includes(q) || r.cashier.toLowerCase().includes(q),
     )
-  }, [query])
+  }, [query, rows])
 
   const verified = rows.filter((r) => r.status === "verified").length
   const banks = new Set(rows.map((r) => r.bank)).size
@@ -104,8 +115,8 @@ export default function PaymentAccounts() {
                   </div>
                 </div>
                 <div className="flex shrink-0 items-center gap-1">
-                  <Button size="sm" variant="ghost" aria-label="Edit"><Edit3 className="h-3.5 w-3.5" aria-hidden="true" /></Button>
-                  <Button size="sm" variant="ghost" aria-label="Delete"><Trash2 className="h-3.5 w-3.5" aria-hidden="true" /></Button>
+                  <Button size="sm" variant="ghost" aria-label="Edit" onClick={() => onEdit(r)}><Edit3 className="h-3.5 w-3.5" aria-hidden="true" /></Button>
+                  <Button size="sm" variant="ghost" aria-label="Delete" onClick={() => onDelete(r)} className="text-rose-600 hover:bg-rose-500/10 dark:text-rose-400"><Trash2 className="h-3.5 w-3.5" aria-hidden="true" /></Button>
                 </div>
               </li>
             ))}
