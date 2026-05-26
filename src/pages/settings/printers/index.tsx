@@ -8,6 +8,8 @@ import { useRegisterPageRefresh } from "@/hooks/use-pull-to-refresh"
 import { EmptyState } from "@/components/lists/empty-state"
 import { StatusBadge, type StatusTone } from "@/components/lists/status-badge"
 import { SummaryStrip } from "@/components/lists/summary-strip"
+import { MobileFab } from "@/components/mobile/mobile-fab"
+import { AddPrinterDialog, type QuickPrinter } from "@/components/dialogs/add-printer-dialog"
 
 type Row = {
   id: string
@@ -20,7 +22,7 @@ type Row = {
   isDefault: boolean
 }
 
-const rows: Row[] = [
+const SEED_PRINTERS: Row[] = [
   { id: "P-1", name: "Downtown POS-1", model: "Star TSP100III", type: "receipt", location: "Downtown Austin", connection: "wifi", status: "online", isDefault: true },
   { id: "P-2", name: "Downtown POS-2", model: "Epson TM-m30", type: "receipt", location: "Downtown Austin", connection: "wifi", status: "needs-paper", isDefault: false },
   { id: "P-3", name: "Stock labeller", model: "Zebra ZD420", type: "label", location: "WH-A", connection: "usb", status: "online", isDefault: true },
@@ -41,7 +43,16 @@ const typeTone: Record<Row["type"], StatusTone> = {
 
 export default function Printers() {
   const [query, setQuery] = React.useState("")
+  const [rows, setRows] = React.useState<Row[]>(SEED_PRINTERS)
+  const [addOpen, setAddOpen] = React.useState(false)
   useRegisterPageRefresh(React.useCallback(async () => { await new Promise((r) => setTimeout(r, 400)) }, []))
+
+  const handleCreate = (p: QuickPrinter) => {
+    setRows((prev) => [
+      { id: `P-${Date.now()}`, isDefault: prev.length === 0, status: "online", ...p },
+      ...prev,
+    ])
+  }
 
   const filtered = React.useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -51,7 +62,7 @@ export default function Printers() {
       r.model.toLowerCase().includes(q) ||
       r.location.toLowerCase().includes(q),
     )
-  }, [query])
+  }, [query, rows])
 
   const online = rows.filter((r) => r.status === "online").length
   const offline = rows.filter((r) => r.status === "offline").length
@@ -84,12 +95,17 @@ export default function Printers() {
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search by name, model, or location…" className="pl-9" />
           </div>
-          <Button><Plus className="h-4 w-4" /> Add printer</Button>
+          <Button onClick={() => setAddOpen(true)}><Plus className="h-4 w-4" /> Add printer</Button>
         </div>
 
         {filtered.length === 0 ? (
           <Card><CardContent className="p-0">
-            <EmptyState Icon={Printer} title="No printers match" description="Try a different name." />
+            <EmptyState
+              Icon={Printer}
+              title={query ? "No printers match" : "No printers yet"}
+              description={query ? "Try a different name." : "Add a receipt, label, or kitchen printer to route print jobs."}
+              action={!query ? <Button onClick={() => setAddOpen(true)}><Plus className="h-4 w-4" /> Add printer</Button> : undefined}
+            />
           </CardContent></Card>
         ) : (
           <ul className="space-y-2">
@@ -124,6 +140,9 @@ export default function Printers() {
           </ul>
         )}
       </div>
+
+      <MobileFab onClick={() => setAddOpen(true)} label="Add printer" />
+      <AddPrinterDialog open={addOpen} onClose={() => setAddOpen(false)} onCreate={handleCreate} />
     </PageShell>
   )
 }

@@ -73,6 +73,24 @@ notes what's frontend-doable now vs backend-blocked.
 - Deliver a short matrix in this doc of page → decision.
 **Backend:** none (mock-prepend like customers). **Size:** ~1.5–2 days. Frontend.
 
+**Decision matrix (overlay = quick-add modal/drawer; page = keep full /new):**
+| Entity | Decision | Status |
+|---|---|---|
+| Customer | overlay (`add-customer-dialog`) | ✅ done |
+| Discount | overlay (`add-discount-dialog`) | ✅ done |
+| Expense | overlay (`add-expense-dialog`) | ✅ done |
+| Tax rate | overlay (`add-tax-rate-dialog`) | ✅ done |
+| Warehouse | overlay (`add-warehouse-dialog`) | ✅ done |
+| **Vendor** | overlay (`add-vendor-dialog`, "More details" → /new) | ✅ done (W3) |
+| **Printer** | overlay (`add-printer-dialog`, no full page needed) | ✅ done (W3) |
+| Inventory item | **page** — rich (variants, recipe, stock, images) | keep |
+| Recipe / BOM | **page** — rich builder | keep |
+| Sales order / invoice / shipment / return | **page** — multi-line money docs | keep |
+| Purchase order / bill / receipt / vendor-credit | **page** — multi-line money docs | keep |
+| Team member / role | **page** — invite flow + permission matrix | keep |
+| Payment account / withdrawal | **page** — sensitive / KYC | keep |
+| Storefront product | **page** — rich (media, variants, SEO) | keep |
+
 ## W4 — Communications completeness
 **Goal:** Make the whole Communications section real and editable.
 **Scope:**

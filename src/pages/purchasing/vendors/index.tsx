@@ -25,6 +25,7 @@ import { SwipeableRow } from "@/components/mobile/swipeable-row"
 import { Avatar } from "@/components/avatar"
 import { MobileFab } from "@/components/mobile/mobile-fab"
 import { OnboardingNudge } from "@/components/onboarding/onboarding-nudge"
+import { AddVendorDialog, type QuickVendor } from "@/components/dialogs/add-vendor-dialog"
 import { useCurrency } from "@/contexts/currency"
 import { toast } from "sonner"
 
@@ -53,7 +54,7 @@ type Vendor = {
 
 // Mocked roster. Realistic Nigerian SMB vendors + a couple of
 // international suppliers so the cross-border use case is visible.
-const VENDORS: Vendor[] = [
+const SEED_VENDORS: Vendor[] = [
   { slug: "cobalt",    name: "Cobalt Electronics",     email: "sales@cobalt.com",       phone: "+1 555 0100",          category: "Electronics",   city: "Shenzhen · CN",  paymentTerms: "Net 30", leadTimeDays: 21, ytdSpend: 1840000, openPOs: 3, onTimeRate: 0.78, lastPOAt: "3 days ago",   tier: "active" },
   { slug: "delta",     name: "Delta Apparel",           email: "orders@delta.com",       phone: "+234 803 555 0119",    category: "Fashion",       city: "Aba · NG",       paymentTerms: "Net 14", leadTimeDays: 7,  ytdSpend: 920000,  openPOs: 1, onTimeRate: 0.94, lastPOAt: "yesterday",    tier: "preferred" },
   { slug: "porcel",    name: "Porcel Homewares",        email: "wholesale@porcel.co",    phone: "+234 813 555 0204",    category: "Home goods",    city: "Lagos · NG",     paymentTerms: "Prepay", leadTimeDays: 4,  ytdSpend: 410000,  openPOs: 0, onTimeRate: 0.97, lastPOAt: "12 days ago",  tier: "preferred" },
@@ -86,6 +87,32 @@ export default function Vendors() {
   const { formatPrice } = useCurrency()
   const [query, setQuery] = React.useState("")
   const [tab, setTab] = React.useState<StatusFilter>("all")
+  const [vendors, setVendors] = React.useState<Vendor[]>(SEED_VENDORS)
+  const [addOpen, setAddOpen] = React.useState(false)
+
+  // Quick-add prepends to the roster. Builds a full Vendor row from the
+  // minimal overlay fields with sensible "brand-new vendor" defaults
+  // (no history yet, nothing in flight).
+  const handleCreate = (v: QuickVendor) => {
+    const slug = v.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") || `vendor-${Date.now()}`
+    setVendors((prev) => [
+      {
+        slug,
+        name: v.name,
+        email: v.email,
+        phone: v.phone,
+        category: v.category,
+        paymentTerms: v.paymentTerms,
+        leadTimeDays: 0,
+        ytdSpend: 0,
+        openPOs: 0,
+        onTimeRate: 1,
+        lastPOAt: "just now",
+        tier: "new",
+      },
+      ...prev,
+    ])
+  }
 
   useRegisterPageRefresh(
     React.useCallback(async () => { await new Promise((r) => setTimeout(r, 350)) }, []),
@@ -93,22 +120,22 @@ export default function Vendors() {
 
   const filtered = React.useMemo(() => {
     const q = query.trim().toLowerCase()
-    return VENDORS.filter((v) => {
+    return vendors.filter((v) => {
       if (tab !== "all" && v.tier !== tab) return false
       if (!q) return true
       return [v.name, v.email, v.phone, v.category, v.city]
         .filter(Boolean)
         .some((s) => s!.toLowerCase().includes(q))
     })
-  }, [query, tab])
+  }, [query, tab, vendors])
 
   // KPI ribbon — picks the four numbers a purchasing manager actually
   // looks at every morning.
-  const totalVendors = VENDORS.length
-  const ytdSpend = VENDORS.reduce((s, v) => s + v.ytdSpend, 0)
-  const openPOs = VENDORS.reduce((s, v) => s + v.openPOs, 0)
-  const avgLeadTime = Math.round(VENDORS.reduce((s, v) => s + v.leadTimeDays, 0) / VENDORS.length)
-  const lateVendors = VENDORS.filter((v) => v.onTimeRate < 0.8).length
+  const totalVendors = vendors.length
+  const ytdSpend = vendors.reduce((s, v) => s + v.ytdSpend, 0)
+  const openPOs = vendors.reduce((s, v) => s + v.openPOs, 0)
+  const avgLeadTime = Math.round(vendors.reduce((s, v) => s + v.leadTimeDays, 0) / Math.max(1, vendors.length))
+  const lateVendors = vendors.filter((v) => v.onTimeRate < 0.8).length
 
   const onContactEmail = (v: Vendor) => { window.location.href = `mailto:${v.email}` }
   const onContactCall  = (v: Vendor) => {
@@ -162,9 +189,9 @@ export default function Vendors() {
               className="pl-9"
             />
           </div>
-          <Link to="/purchasing/vendors/new" className="hidden md:inline-flex">
-            <Button><Plus className="h-4 w-4" /> Add vendor</Button>
-          </Link>
+          <Button className="hidden md:inline-flex" onClick={() => setAddOpen(true)}>
+            <Plus className="h-4 w-4" /> Add vendor
+          </Button>
         </div>
 
         {/* Status tabs */}
@@ -195,9 +222,7 @@ export default function Vendors() {
                 title="No vendors match."
                 description={query ? "Try a different search term, or clear the status filter." : "Add your first supplier to start writing POs against them."}
                 action={
-                  <Link to="/purchasing/vendors/new">
-                    <Button><Plus className="h-4 w-4" /> Add vendor</Button>
-                  </Link>
+                  <Button onClick={() => setAddOpen(true)}><Plus className="h-4 w-4" /> Add vendor</Button>
                 }
               />
             </CardContent>
@@ -303,7 +328,9 @@ export default function Vendors() {
         )}
       </div>
 
-      <MobileFab href="/purchasing/vendors/new" label="Add vendor" />
+      <MobileFab onClick={() => setAddOpen(true)} label="Add vendor" />
+
+      <AddVendorDialog open={addOpen} onClose={() => setAddOpen(false)} onCreate={handleCreate} />
     </PageShell>
   )
 }
