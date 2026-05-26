@@ -98,11 +98,18 @@ export default function Marketing() {
                 )}
               </p>
             </div>
-            <Link to="/marketing/listings/new">
-              <Button>
-                <Plus className="h-4 w-4" /> New listing
-              </Button>
-            </Link>
+            <div className="flex items-center gap-2">
+              <Link to="/marketing/generate">
+                <Button variant="outline">
+                  <Sparkles className="h-4 w-4" /> Generate with AI
+                </Button>
+              </Link>
+              <Link to="/marketing/listings/new">
+                <Button>
+                  <Plus className="h-4 w-4" /> New listing
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
 

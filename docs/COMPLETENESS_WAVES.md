@@ -163,6 +163,8 @@ notes what's frontend-doable now vs backend-blocked.
 - Entry point: from the builder after choosing a subject (inventory item or custom).
 **Backend:** generation providers (HeyGen/image/LLM) behind a worker, media to S3/B2, publish, credit ledger. **Size:** ~4–5 days. Heavily backend; frontend builds the chat UX + previews against mocks first.
 
+**Progress (2026-05-26):** ✅ DONE (frontend UX, mock generator) — AI ad studio at `/marketing/generate`: pick subject (inventory item / service / app / custom), format (video/flier/carousel/caption, each with a credit cost), platform (Reels/TikTok/Feed/YouTube → drives 9:16 vs 1:1) and tone; **chat-to-build** thread that generates a draft (headline + body + hashtags + media preview) and **refines** on follow-up prompts; **credits metered** (debits per generation, out-of-credits → Billing top-up); **vertical/square live preview**; copy-to-clipboard; **one-click "Deploy to channels"** → the W8 builder. Entry point: "Generate with AI" on the Marketing dashboard. ⏳ REMAINING: real generation provider + media upload + true credit ledger (backend — already specced in BACKEND_PLAN api/marketing + api/billing).
+
 ## W10 — Ad analytics & performance monitoring
 **Goal:** See and act on ad performance across channels, for any subject.
 **Scope:**
