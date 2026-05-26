@@ -174,6 +174,18 @@ notes what's frontend-doable now vs backend-blocked.
 - Tie insights into the dashboard AI insight cards.
 **Backend:** ad-platform metric sync (cron), conversion events, attribution. **Size:** ~2–3 days frontend; data backend-blocked.
 
+**Progress (2026-05-26):** ✅ DONE — `/marketing/analytics` (linked from the dashboard "Ad performance" card): **goal-aware** (ROAS for sale campaigns, **CPA vs target** for app-install + lead campaigns — so it's not goods-only), KPI band (spend / blended ROAS / conversions / avg CPA), **monitoring alerts** derived from the data (low-ROAS = losing margin, CPA over target, top performer to scale), a per-campaign table with spend bars + per-goal result badges, an **A/B test** card with a winner call, and an **optimization suggestions** list. Mock data; backend wires real metric sync + attribution.
+
+---
+
+## ✅ Program complete (2026-05-26)
+All ten waves shipped and pushed (commits 1086728 → this one). Each wave's
+remaining items are **backend-gated** (real send/sync/publish/OAuth/credit
+ledger/generation providers) and already specced in `BACKEND_PLAN.md`, or
+small documented polish (per-channel ad previews, commission rule-engine
+config, compose attachments/provider-routing, per-provider integration
+guidance). The frontend completeness pass is done.
+
 ---
 
 ## Suggested order & dependencies

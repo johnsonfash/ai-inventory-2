@@ -2,6 +2,7 @@ import * as React from "react"
 import { Link } from "react-router-dom"
 import {
   ArrowRight,
+  BarChart3,
   Facebook,
   Instagram,
   Megaphone,
@@ -181,8 +182,22 @@ export default function Marketing() {
           </div>
         </section>
 
-        {/* Commissions and listings shortcuts */}
-        <section className="grid gap-3 sm:grid-cols-2">
+        {/* Commissions, analytics and listings shortcuts */}
+        <section className="grid gap-3 sm:grid-cols-3">
+          <Link to="/marketing/analytics" className="group rounded-2xl border border-border bg-card p-4 transition-all hover:border-brand/40 hover:shadow-sm">
+            <div className="flex items-start gap-3">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-sky-50 text-sky-600 dark:bg-sky-500/10 dark:text-sky-300">
+                <BarChart3 className="h-4 w-4" />
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold">Ad performance</p>
+                <p className="mt-0.5 text-[11px] text-muted-foreground">
+                  Cross-channel ROAS, CPA, alerts and what to scale.
+                </p>
+              </div>
+              <ArrowRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+            </div>
+          </Link>
           <Link to="/marketing/commissions" className="group rounded-2xl border border-border bg-card p-4 transition-all hover:border-brand/40 hover:shadow-sm">
             <div className="flex items-start gap-3">
               <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-300">
