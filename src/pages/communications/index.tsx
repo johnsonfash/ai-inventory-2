@@ -19,6 +19,7 @@ import { SummaryStrip } from "@/components/lists/summary-strip"
 import { EmptyState } from "@/components/lists/empty-state"
 import { InfoTooltip } from "@/components/info-tooltip"
 import { Avatar } from "@/components/avatar"
+import { BottomSheet } from "@/components/mobile/bottom-sheet"
 import { useRegisterPageRefresh } from "@/hooks/use-pull-to-refresh"
 import { MESSAGES, TEMPLATES } from "@/lib/comms/data"
 import type { EmailMessage } from "@/lib/comms/types"
@@ -47,10 +48,20 @@ export default function CommunicationsHub() {
   useRegisterPageRefresh(React.useCallback(async () => { await new Promise((r) => setTimeout(r, 300)) }, []))
   const [folder, setFolder] = React.useState<Folder>("inbox")
   const [query, setQuery] = React.useState("")
+  const [messages, setMessages] = React.useState<EmailMessage[]>(MESSAGES)
+  const [detail, setDetail] = React.useState<EmailMessage | null>(null)
+
+  // Open a message in the detail drawer; mark inbox messages read.
+  const openMessage = (m: EmailMessage) => {
+    if (m.folder === "inbox" && !m.read) {
+      setMessages((prev) => prev.map((x) => (x.id === m.id ? { ...x, read: true } : x)))
+    }
+    setDetail({ ...m, read: true })
+  }
 
   const filtered = React.useMemo(() => {
     const q = query.trim().toLowerCase()
-    return MESSAGES.filter((m) => m.folder === folder).filter((m) => {
+    return messages.filter((m) => m.folder === folder).filter((m) => {
       if (!q) return true
       return (
         m.subject.toLowerCase().includes(q) ||
@@ -59,14 +70,14 @@ export default function CommunicationsHub() {
         m.to.some((t) => t.name.toLowerCase().includes(q) || t.email.toLowerCase().includes(q))
       )
     })
-  }, [folder, query])
+  }, [folder, query, messages])
 
   const counts: Record<Folder, number> = {
-    inbox: MESSAGES.filter((m) => m.folder === "inbox").length,
-    sent: MESSAGES.filter((m) => m.folder === "sent").length,
-    drafts: MESSAGES.filter((m) => m.folder === "drafts").length,
+    inbox: messages.filter((m) => m.folder === "inbox").length,
+    sent: messages.filter((m) => m.folder === "sent").length,
+    drafts: messages.filter((m) => m.folder === "drafts").length,
   }
-  const unread = MESSAGES.filter((m) => m.folder === "inbox" && !m.read).length
+  const unread = messages.filter((m) => m.folder === "inbox" && !m.read).length
 
   return (
     <PageShell
@@ -158,7 +169,7 @@ export default function CommunicationsHub() {
           <ul className="flex flex-col gap-2">
             {filtered.map((m) => (
               <li key={m.id}>
-                <MessageRow message={m} folder={folder} />
+                <MessageRow message={m} folder={folder} onOpen={() => openMessage(m)} />
               </li>
             ))}
           </ul>
@@ -171,24 +182,70 @@ export default function CommunicationsHub() {
           <span className="ml-1">Sending is a no-op for now — see Templates to author copy.</span>
         </p>
       </div>
+
+      {/* Message detail */}
+      <BottomSheet
+        open={detail !== null}
+        onClose={() => setDetail(null)}
+        title={detail?.subject ?? "Message"}
+        maxHeightVh={85}
+        footer={
+          detail ? (
+            <div className="flex items-center justify-end gap-2 pb-3">
+              <Button variant="ghost" onClick={() => setDetail(null)}>Close</Button>
+              <Link to="/communications/new">
+                <Button onClick={() => setDetail(null)}>
+                  <Pencil className="h-4 w-4" /> {detail.folder === "inbox" ? "Reply" : "Compose"}
+                </Button>
+              </Link>
+            </div>
+          ) : null
+        }
+      >
+        {detail && (
+          <div className="pb-2">
+            <div className="flex items-center gap-3 border-b border-border pb-3">
+              <Avatar seed={detail.from.email || detail.from.name} name={detail.from.name} size={40} />
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-semibold">{detail.from.name}</p>
+                <p className="truncate text-[11px] text-muted-foreground">{detail.from.email}</p>
+              </div>
+              <span className="shrink-0 text-[11px] text-muted-foreground">{relTime(detail.sentAt)} ago</span>
+            </div>
+            <p className="mt-2 text-[11px] text-muted-foreground">
+              To: {detail.to.map((t) => t.name).join(", ")}
+            </p>
+            <div
+              className="prose-pallio mt-3 max-w-none text-sm"
+              dangerouslySetInnerHTML={{ __html: detail.body }}
+            />
+            {detail.templateId && (
+              <div className="mt-4 border-t border-border pt-3">
+                <StatusBadge tone="info">sent from template: {detail.templateId.replace(/^tpl-/, "")}</StatusBadge>
+              </div>
+            )}
+          </div>
+        )}
+      </BottomSheet>
     </PageShell>
   )
 }
 
-function MessageRow({ message, folder }: { message: EmailMessage; folder: Folder }) {
+function MessageRow({ message, folder, onOpen }: { message: EmailMessage; folder: Folder; onOpen: () => void }) {
   const counterparty = folder === "inbox" ? message.from : message.to[0]
   const name = counterparty?.name ?? "Unknown"
   const email = counterparty?.email ?? ""
-  return (
-    <Link
-      to={folder === "drafts" ? "/communications/new" : "/communications"}
-      className={cn(
-        "flex items-start gap-3 rounded-2xl border p-3 transition-colors hover:border-brand/40",
-        message.folder === "inbox" && !message.read
-          ? "border-brand/30 bg-brand-soft/30 dark:bg-primary/10"
-          : "border-border bg-card",
-      )}
-    >
+
+  const rowClass = cn(
+    "flex w-full items-start gap-3 rounded-2xl border p-3 text-left transition-colors hover:border-brand/40",
+    message.folder === "inbox" && !message.read
+      ? "border-brand/30 bg-brand-soft/30 dark:bg-primary/10"
+      : "border-border bg-card",
+  )
+
+  // Drafts open the composer; everything else opens the read drawer.
+  const inner = (
+    <>
       <Avatar seed={email || name} name={name} size={40} />
       <div className="min-w-0 flex-1">
         <div className="flex items-center justify-between gap-2">
@@ -213,7 +270,14 @@ function MessageRow({ message, folder }: { message: EmailMessage; folder: Folder
         </div>
       </div>
       <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
-    </Link>
+    </>
+  )
+
+  if (folder === "drafts") {
+    return <Link to="/communications/new" className={rowClass}>{inner}</Link>
+  }
+  return (
+    <button type="button" onClick={onOpen} className={rowClass}>{inner}</button>
   )
 }
 

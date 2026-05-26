@@ -1,14 +1,17 @@
 import * as React from "react"
-import { Link } from "react-router-dom"
-import { ArrowLeft, ArrowRight, Copy, Lock, Plus, Search, Sparkles } from "lucide-react"
+import { Link, useNavigate } from "react-router-dom"
+import { ArrowLeft, ArrowRight, Copy, Eye, Lock, Pencil, Plus, Search, Sparkles, Trash2 } from "lucide-react"
+import { toast } from "sonner"
 import { PageShell } from "@/components/page-shell"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { BottomSheet } from "@/components/mobile/bottom-sheet"
 import { StatusBadge, type StatusTone } from "@/components/lists/status-badge"
 import { SummaryStrip } from "@/components/lists/summary-strip"
 import { InfoTooltip } from "@/components/info-tooltip"
-import { TEMPLATES } from "@/lib/comms/data"
-import type { TemplateCategory } from "@/lib/comms/types"
+import { interpolate } from "@/lib/comms/data"
+import { loadAllTemplates, deleteUserTemplate, saveUserTemplate, TEMPLATES_CHANGED } from "@/lib/comms/storage"
+import type { EmailTemplate, TemplateCategory } from "@/lib/comms/types"
 import { cn } from "@/lib/utils"
 
 const CATEGORY_LABEL: Record<TemplateCategory, string> = {
@@ -25,22 +28,53 @@ const CATEGORY_TONE: Record<TemplateCategory, StatusTone> = {
   team: "brand",
 }
 
+// Build a {token: sample} map so previews render real-looking copy.
+function sampleMapFor(t: EmailTemplate): Record<string, string> {
+  const m: Record<string, string> = {}
+  for (const tok of t.tokens) m[tok.key] = tok.sample || `{{${tok.key}}}`
+  return m
+}
+
 export default function TemplatesLibrary() {
+  const navigate = useNavigate()
   const [query, setQuery] = React.useState("")
   const [category, setCategory] = React.useState<"all" | TemplateCategory>("all")
+  const [templates, setTemplates] = React.useState<EmailTemplate[]>(() => loadAllTemplates())
+  const [preview, setPreview] = React.useState<EmailTemplate | null>(null)
+
+  // Refresh after an edit/create/delete (the editor dispatches this).
+  React.useEffect(() => {
+    const refresh = () => setTemplates(loadAllTemplates())
+    refresh()
+    window.addEventListener(TEMPLATES_CHANGED, refresh)
+    return () => window.removeEventListener(TEMPLATES_CHANGED, refresh)
+  }, [])
 
   const filtered = React.useMemo(() => {
     const q = query.trim().toLowerCase()
-    return TEMPLATES.filter((t) => category === "all" || t.category === category).filter((t) => {
+    return templates.filter((t) => category === "all" || t.category === category).filter((t) => {
       if (!q) return true
       return t.name.toLowerCase().includes(q) || t.description.toLowerCase().includes(q) || t.subject.toLowerCase().includes(q)
     })
-  }, [query, category])
+  }, [query, category, templates])
 
-  const byCategory: Record<TemplateCategory, number> = {
-    transactional: 0, marketing: 0, ops: 0, team: 0,
+  const byCategory: Record<TemplateCategory, number> = { transactional: 0, marketing: 0, ops: 0, team: 0 }
+  for (const t of templates) byCategory[t.category]++
+
+  // Builtins clone into an editable copy; user templates edit in place.
+  const onEditOrClone = (t: EmailTemplate) => {
+    if (t.builtin) navigate(`/communications/templates/new?from=${t.id}`)
+    else navigate(`/communications/templates/${t.id}`)
   }
-  for (const t of TEMPLATES) byCategory[t.category]++
+
+  const onDelete = (t: EmailTemplate) => {
+    deleteUserTemplate(t.id)
+    setTemplates(loadAllTemplates())
+    toast.success("Template deleted", {
+      description: t.name,
+      action: { label: "Undo", onClick: () => { saveUserTemplate(t); setTemplates(loadAllTemplates()) } },
+    })
+  }
 
   return (
     <PageShell
@@ -62,7 +96,7 @@ export default function TemplatesLibrary() {
 
         <SummaryStrip
           tiles={[
-            { label: "Templates",    value: String(TEMPLATES.length), tone: "brand",   hint: "in library" },
+            { label: "Templates",    value: String(templates.length), tone: "brand",   hint: "in library" },
             { label: "Transactional",value: String(byCategory.transactional), tone: "info",    hint: "invoices, receipts" },
             { label: "Marketing",    value: String(byCategory.marketing), tone: "warning", hint: "promos, restocks" },
             { label: "Internal",     value: String(byCategory.team + byCategory.ops), tone: "success", hint: "team + ops" },
@@ -93,7 +127,7 @@ export default function TemplatesLibrary() {
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search templates…" className="pl-9" />
             </div>
-            <Button>
+            <Button onClick={() => navigate("/communications/templates/new")}>
               <Plus className="h-4 w-4" /> New template
             </Button>
           </div>
@@ -103,34 +137,48 @@ export default function TemplatesLibrary() {
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {filtered.map((t) => (
             <article key={t.id} className="flex flex-col rounded-2xl border border-border bg-card p-4 transition-colors hover:border-brand/40">
-              <div className="flex items-start justify-between gap-2">
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-bold">{t.name}</p>
-                  <p className="mt-0.5 text-[11px] text-muted-foreground line-clamp-2">{t.description}</p>
+              {/* Tapping the body opens the full preview ("full view"). */}
+              <button type="button" onClick={() => setPreview(t)} className="text-left">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-bold">{t.name}</p>
+                    <p className="mt-0.5 text-[11px] text-muted-foreground line-clamp-2">{t.description}</p>
+                  </div>
+                  {t.builtin ? (
+                    <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-border bg-background px-1.5 py-0.5 text-[10px] text-muted-foreground">
+                      <Lock className="h-2.5 w-2.5" /> built-in
+                    </span>
+                  ) : (
+                    <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-brand/30 bg-brand-soft px-1.5 py-0.5 text-[10px] font-semibold text-brand dark:border-primary/30 dark:bg-primary/10 dark:text-primary">
+                      yours
+                    </span>
+                  )}
                 </div>
-                {t.builtin && (
-                  <span className="inline-flex items-center gap-1 rounded-full border border-border bg-background px-1.5 py-0.5 text-[10px] text-muted-foreground">
-                    <Lock className="h-2.5 w-2.5" /> built-in
+
+                <div className="mt-3 rounded-lg border border-dashed border-border bg-background/40 p-2 text-[11px] text-muted-foreground">
+                  <p className="text-[10px] font-semibold uppercase tracking-wider text-foreground/60">Subject</p>
+                  <p className="mt-0.5 line-clamp-2 font-medium text-foreground">{t.subject}</p>
+                </div>
+
+                <div className="mt-3 flex items-center justify-between gap-2">
+                  <StatusBadge tone={CATEGORY_TONE[t.category]}>{CATEGORY_LABEL[t.category]}</StatusBadge>
+                  <span className="inline-flex items-center gap-1 text-[10px] text-muted-foreground">
+                    <Eye className="h-3 w-3" /> {t.tokens.length} variable{t.tokens.length === 1 ? "" : "s"}
                   </span>
-                )}
-              </div>
-
-              <div className="mt-3 rounded-lg border border-dashed border-border bg-background/40 p-2 text-[11px] text-muted-foreground">
-                <p className="text-[10px] font-semibold uppercase tracking-wider text-foreground/60">Subject</p>
-                <p className="mt-0.5 line-clamp-2 font-medium text-foreground">{t.subject}</p>
-              </div>
-
-              <div className="mt-3 flex items-center justify-between gap-2">
-                <StatusBadge tone={CATEGORY_TONE[t.category]}>{CATEGORY_LABEL[t.category]}</StatusBadge>
-                <span className="text-[10px] text-muted-foreground">
-                  {t.tokens.length} variable{t.tokens.length === 1 ? "" : "s"}
-                </span>
-              </div>
+                </div>
+              </button>
 
               <div className="mt-4 flex items-center justify-between gap-2 border-t border-border pt-3">
-                <Button size="sm" variant="ghost">
-                  <Copy className="h-3.5 w-3.5" /> {t.builtin ? "Clone" : "Edit"}
-                </Button>
+                <div className="flex items-center gap-1">
+                  <Button size="sm" variant="ghost" onClick={() => onEditOrClone(t)}>
+                    {t.builtin ? <><Copy className="h-3.5 w-3.5" /> Clone</> : <><Pencil className="h-3.5 w-3.5" /> Edit</>}
+                  </Button>
+                  {!t.builtin && (
+                    <Button size="sm" variant="ghost" onClick={() => onDelete(t)} aria-label="Delete template" className="text-rose-600 hover:bg-rose-500/10 dark:text-rose-400">
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
+                  )}
+                </div>
                 <Link to={`/communications/new?template=${t.id}`}>
                   <Button size="sm">
                     Use template <ArrowRight className="h-3.5 w-3.5" />
@@ -157,6 +205,50 @@ export default function TemplatesLibrary() {
           </Button>
         </section>
       </div>
+
+      {/* Full preview */}
+      <BottomSheet
+        open={preview !== null}
+        onClose={() => setPreview(null)}
+        title={preview?.name ?? "Preview"}
+        description={preview ? CATEGORY_LABEL[preview.category] : undefined}
+        maxHeightVh={85}
+        footer={
+          preview ? (
+            <div className="flex items-center justify-between gap-2 pb-3">
+              <Button variant="ghost" onClick={() => { const t = preview; setPreview(null); onEditOrClone(t) }}>
+                {preview.builtin ? <><Copy className="h-3.5 w-3.5" /> Clone</> : <><Pencil className="h-3.5 w-3.5" /> Edit</>}
+              </Button>
+              <Link to={`/communications/new?template=${preview.id}`}>
+                <Button onClick={() => setPreview(null)}>Use template <ArrowRight className="h-3.5 w-3.5" /></Button>
+              </Link>
+            </div>
+          ) : null
+        }
+      >
+        {preview && (
+          <div className="pb-2">
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Subject</p>
+            <p className="mt-0.5 text-sm font-semibold">{interpolate(preview.subject, sampleMapFor(preview))}</p>
+            <div
+              className="prose-pallio mt-3 max-w-none border-t border-border pt-3 text-sm"
+              dangerouslySetInnerHTML={{ __html: interpolate(preview.body, sampleMapFor(preview)) }}
+            />
+            {preview.tokens.length > 0 && (
+              <div className="mt-4 border-t border-border pt-3">
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Variables</p>
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {preview.tokens.map((tok) => (
+                    <span key={tok.key} className="rounded-full border border-border bg-background px-2 py-0.5 text-[11px] font-medium">
+                      {`{{${tok.key}}}`}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </BottomSheet>
     </PageShell>
   )
 }

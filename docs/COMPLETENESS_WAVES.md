@@ -101,6 +101,8 @@ notes what's frontend-doable now vs backend-blocked.
 - Sweep the Communications nav/submenus for any other dead buttons.
 **Backend:** real send (Resend/Mailgun/WhatsApp/Twilio), socket chat, attachment upload. **Size:** ~2–3 days. Frontend now, backend later.
 
+**Progress (2026-05-26):** ✅ DONE — template **create/edit/clone/delete/preview** (kv store `lib/comms/storage.ts`; editor at `/communications/templates/new` + `/:id`; the dead Clone/Edit button now works; builtins clone into editable copies; live preview + token auto-detection; delete-with-undo). ✅ Inbox **message detail drawer** (rows opened nowhere before — now open a read drawer + mark-as-read; drafts still open the composer). ⏳ REMAINING (lower value / backend-gated): provider routing in compose (email/WhatsApp/SMS picker), attachment upload UI, team-chat deep pass.
+
 ## W5 — Commissions completeness
 **Goal:** Turn the commissions ledger into a comprehensive system.
 **Scope:**
