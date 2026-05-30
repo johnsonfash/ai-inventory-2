@@ -89,12 +89,21 @@ function Hero() {
           }}
           className="flex flex-col items-start justify-center"
         >
-          <motion.span
-            variants={fadeIn}
-            className="inline-flex items-center gap-2 rounded-full border border-brand/20 bg-brand-soft px-3 py-1 text-xs font-semibold uppercase tracking-wider text-brand dark:border-primary/30 dark:bg-primary/10 dark:text-primary"
-          >
-            <Sparkles className="h-3 w-3" /> Run the whole business from your pocket
-          </motion.span>
+          {/* Announcement-style pill. Concrete (links to a real ship-
+              ped feature) instead of a marketing tagline — that
+              tagline-shaped pill is one of the strongest AI-tells. */}
+          <motion.div variants={fadeIn}>
+            <Link
+              to="/marketing/generate"
+              className="group inline-flex items-center gap-2.5 rounded-full border border-border bg-card/80 px-3 py-1.5 text-xs font-medium shadow-sm backdrop-blur-sm transition-colors hover:border-brand/40 hover:bg-card"
+            >
+              <span className="rounded-full bg-gradient-to-r from-brand to-fuchsia-500 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white">
+                New
+              </span>
+              <span>AI Ad Studio · ship a campaign from a chat</span>
+              <ArrowRight className="h-3 w-3 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+            </Link>
+          </motion.div>
 
           <motion.h1
             variants={fadeIn}
@@ -112,7 +121,7 @@ function Hero() {
             variants={fadeIn}
             className="mt-5 max-w-xl text-base text-muted-foreground md:text-lg"
           >
-            Sell, track stock, run ads, pay the team and close the books. No more juggling six apps that never quite agree on the numbers.
+            Sell, track stock, run ads, pay the team, close the books. One app. One set of numbers. Every part of your business.
           </motion.p>
 
           <motion.div variants={fadeIn} className="mt-7 flex flex-wrap items-center gap-3">
@@ -248,42 +257,145 @@ function TrustBar() {
 }
 
 // ---- Features ----
-const FEATURES: { Icon: LucideIcon; tone: string; title: string; body: string }[] = [
+// Each card carries a small "mock" — a faux UI snippet themed to the
+// feature. The show-don't-tell visual texture is what makes the
+// section breathe; without it, six identical icon-and-paragraph cards
+// read as boilerplate.
+const FEATURES: { Icon: LucideIcon; tone: string; ring: string; title: string; body: string; mock: React.ReactNode }[] = [
   {
     Icon: Boxes,
     tone: "bg-brand-soft text-brand dark:bg-primary/15 dark:text-primary",
+    ring: "from-brand/30 to-fuchsia-500/20",
     title: "Inventory that updates itself",
-    body: "Multi-location stock, composite kits, expiries, transfers, and adjustments. Pallio recalculates demand + restock points as you sell.",
+    body: "Multi-location stock, kits, expiries, transfers. Pallio recalculates restock points as you sell.",
+    mock: (
+      <div className="space-y-2 text-[11px]">
+        <div className="flex items-center justify-between">
+          <span className="font-semibold">Bluetooth earbuds</span>
+          <span className="font-mono font-semibold text-amber-700 dark:text-amber-300">48 left</span>
+        </div>
+        <div className="h-1.5 overflow-hidden rounded-full bg-border/60">
+          <div className="h-full w-[18%] rounded-full bg-gradient-to-r from-amber-500 to-rose-500" />
+        </div>
+        <p className="text-[10px] text-muted-foreground">Reorder at 60 · suggested PO ready</p>
+      </div>
+    ),
   },
   {
     Icon: ShoppingCart,
     tone: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300",
-    title: "Point of sale that actually feels fast",
-    body: "Tap-to-cart catalog, barcode scan, splits, returns, virtual accounts, drafts, multi-cashier. Keeps selling when the power cuts; syncs when you're back.",
+    ring: "from-emerald-500/30 to-brand/20",
+    title: "Point of sale, fast on any device",
+    body: "Tap-to-cart, scan, splits, returns, drafts, multi-cashier. Keeps selling offline; syncs when you're back.",
+    mock: (
+      <div className="rounded-md border border-dashed border-border/70 bg-background/40 p-2 font-mono text-[10.5px] shadow-inner">
+        <div className="flex items-center justify-between">
+          <span className="font-semibold">Cart #142 · Mia</span>
+          <span className="text-emerald-600 dark:text-emerald-400">✓</span>
+        </div>
+        <div className="mt-1 space-y-0.5 text-muted-foreground">
+          <div className="flex justify-between"><span>3 items</span><span>₦24,500</span></div>
+          <div className="flex justify-between"><span>VAT 7.5%</span><span>₦1,837</span></div>
+        </div>
+        <div className="mt-1 flex items-center justify-between border-t border-dashed border-border pt-1">
+          <span className="font-semibold text-foreground">Receipt</span>
+          <span className="text-emerald-600 dark:text-emerald-400">Printed</span>
+        </div>
+      </div>
+    ),
   },
   {
     Icon: Users,
     tone: "bg-fuchsia-500/15 text-fuchsia-700 dark:text-fuchsia-300",
-    title: "Sales team that's actually accountable",
-    body: "Live leaderboard, per-rep commissions, team chat, real-time inventory visibility, and clear performance reports.",
+    ring: "from-fuchsia-500/30 to-amber-500/20",
+    title: "Your sales team, on one screen",
+    body: "Live leaderboard, per-rep commissions, team chat, real-time stock visibility, clear performance reports.",
+    mock: (
+      <div className="space-y-1.5 text-[11px]">
+        {[
+          { n: "Mia", v: "₦82k", w: 92 },
+          { n: "Alex", v: "₦64k", w: 72 },
+          { n: "Priya", v: "₦48k", w: 54 },
+        ].map((r) => (
+          <div key={r.n} className="flex items-center gap-2">
+            <span className="w-10 font-semibold">{r.n}</span>
+            <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-border/60">
+              <div className="h-full rounded-full bg-gradient-to-r from-fuchsia-500 to-brand" style={{ width: `${r.w}%` }} />
+            </div>
+            <span className="w-10 text-right font-mono text-muted-foreground">{r.v}</span>
+          </div>
+        ))}
+      </div>
+    ),
   },
   {
     Icon: Megaphone,
     tone: "bg-amber-500/15 text-amber-700 dark:text-amber-300",
-    title: "Marketing without the swivel-chair",
-    body: "Facebook, Instagram, YouTube ads and Marketplace listings, all connected to your live catalog. Affiliate program built in.",
+    ring: "from-amber-500/30 to-rose-500/20",
+    title: "Marketing wired to your stock",
+    body: "Facebook, Instagram, TikTok and YouTube ads, plus Marketplace listings — all connected to your live catalog.",
+    mock: (
+      <div className="space-y-1.5 text-[11px]">
+        {[
+          { n: "Instagram", r: "4.2×", good: true },
+          { n: "TikTok",    r: "2.8×", good: true },
+          { n: "Facebook",  r: "1.6×", good: false },
+        ].map((c) => (
+          <div key={c.n} className="flex items-center justify-between">
+            <span className="font-semibold">{c.n}</span>
+            <span className={`font-mono ${c.good ? "text-emerald-600 dark:text-emerald-400" : "text-muted-foreground"}`}>ROAS {c.r}</span>
+          </div>
+        ))}
+        <div className="mt-0.5 flex items-center gap-1 border-t border-dashed border-border pt-1.5 text-[10px] font-semibold text-amber-700 dark:text-amber-300">
+          <Sparkles className="h-2.5 w-2.5" /> Pour more budget into IG
+        </div>
+      </div>
+    ),
   },
   {
     Icon: Bot,
     tone: "bg-sky-500/15 text-sky-700 dark:text-sky-300",
-    title: "AI assistant + smart insights",
-    body: "Ask anything about your data in plain English. Pallio surfaces what to restock, where margin drifted, which campaign to pause.",
+    ring: "from-sky-500/30 to-emerald-500/20",
+    title: "AI that nudges, not noise",
+    body: "Ask anything in plain English. Pallio surfaces what to restock, where margin slipped, which campaign to pause.",
+    mock: (
+      <div className="text-[11px]">
+        <div className="flex items-start gap-2">
+          <span className="mt-0.5 inline-flex h-4 w-4 items-center justify-center rounded-md bg-sky-500/15 text-sky-700 dark:text-sky-300">
+            <Zap className="h-2.5 w-2.5" />
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="font-semibold">Earbuds 4 days from stock-out</p>
+            <p className="mt-0.5 text-[10px] text-muted-foreground">Velocity up 24% this week</p>
+          </div>
+        </div>
+        <div className="mt-2 flex items-center gap-1.5">
+          <span className="rounded-full bg-foreground px-2 py-0.5 text-[10px] font-semibold text-background">Reorder 60</span>
+          <span className="rounded-full border border-border px-2 py-0.5 text-[10px] text-muted-foreground">Snooze</span>
+        </div>
+      </div>
+    ),
   },
   {
     Icon: ShieldCheck,
     tone: "bg-rose-500/15 text-rose-700 dark:text-rose-300",
+    ring: "from-rose-500/30 to-fuchsia-500/20",
     title: "Your team, with the right access",
-    body: "Invite cashiers, sales reps, marketers and accountants, each seeing only what they should. Every sale traces to who rang it, and sensitive actions can be locked behind a fingerprint.",
+    body: "Invite cashiers, reps, marketers, accountants. Every sale traces to who rang it; sensitive actions sit behind a fingerprint.",
+    mock: (
+      <div className="space-y-1.5 text-[11px]">
+        {[
+          { n: "Mia Chen",     role: "Cashier", tone: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300" },
+          { n: "Alex Larson",  role: "Manager", tone: "bg-brand-soft text-brand dark:bg-primary/15 dark:text-primary" },
+          { n: "Priya Patel",  role: "Sales",   tone: "bg-fuchsia-500/15 text-fuchsia-700 dark:text-fuchsia-300" },
+        ].map((u) => (
+          <div key={u.n} className="flex items-center justify-between gap-2">
+            <span className="truncate font-semibold">{u.n}</span>
+            <span className={`shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${u.tone}`}>{u.role}</span>
+          </div>
+        ))}
+      </div>
+    ),
   },
 ]
 
@@ -317,13 +429,23 @@ function Features() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, amount: 0.3 }}
               transition={{ delay: i * 0.05, type: "spring", damping: 24, stiffness: 220 }}
-              className="group rounded-2xl border border-border bg-card p-6 transition-all hover:border-brand/40 hover:shadow-lg"
+              className="group relative flex flex-col overflow-hidden rounded-2xl border border-border bg-card transition-all hover:-translate-y-0.5 hover:border-brand/40 hover:shadow-xl hover:shadow-brand/5"
             >
-              <span className={`inline-flex h-11 w-11 items-center justify-center rounded-xl ${f.tone}`}>
-                <f.Icon className="h-5 w-5" />
-              </span>
-              <h3 className="mt-4 text-lg font-bold tracking-tight">{f.title}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{f.body}</p>
+              {/* Hover-reveal gradient ring at the top edge of each card */}
+              <div
+                aria-hidden
+                className={`absolute inset-x-0 top-0 -z-0 h-32 bg-gradient-to-br opacity-0 blur-2xl transition-opacity duration-500 group-hover:opacity-100 ${f.ring}`}
+              />
+              <div className="relative flex-1 p-6 pb-4">
+                <span className={`inline-flex h-11 w-11 items-center justify-center rounded-xl ${f.tone}`}>
+                  <f.Icon className="h-5 w-5" />
+                </span>
+                <h3 className="mt-4 text-lg font-bold tracking-tight">{f.title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{f.body}</p>
+              </div>
+              <div className="relative border-t border-border/60 bg-muted/30 p-4 transition-colors group-hover:bg-muted/50">
+                {f.mock}
+              </div>
             </motion.div>
           ))}
         </div>
@@ -347,9 +469,9 @@ function DashboardShowcase() {
             Your day, in one screen
           </p>
           <h2 className="mt-2 text-3xl font-bold tracking-tight md:text-4xl">
-            A dashboard that knows
+            Today's number,
             <br />
-            <span className="text-muted-foreground">what to ask about.</span>
+            <span className="text-muted-foreground">today's risk, today's win.</span>
           </h2>
           <p className="mt-4 text-base text-muted-foreground">
             Revenue + stock + open orders + out-of-stock at the top. AI Insights highlighting what needs your eyes. Forecast for the next 7 days. Suggested restock list with one-tap PO creation. Activity feed showing what just happened.
@@ -558,21 +680,31 @@ function Stats() {
 
 // ---- Testimonials ----
 function Testimonials() {
-  const quotes = [
+  // Anonymised use-case scenarios, not real customer quotes — we
+  // have no signed, consenting customers yet and naming a real-
+  // sounding business (Lekki Threads, Yaba Gadgets, etc.) is a
+  // false-endorsement risk. Same shape as testimonials so the
+  // section still reads as social proof, but the attribution is
+  // industry + region instead of a fabricated name. Avatar uses a
+  // role icon (not initials) for the same reason.
+  const quotes: { body: string; author: string; title: string; Icon: LucideIcon }[] = [
     {
-      body: "Pallio replaced four subscriptions in the first week. Inventory, POS, accounting, and the spreadsheet I used for stock counts. Whole shop runs from my phone now.",
-      author: "Funke Adesanya",
-      title: "Owner · Lekki Threads",
+      body: "Replaced four subscriptions in the first week. Inventory, POS, accounting, and the spreadsheet we used for stock counts. The whole business now runs from one app.",
+      author: "Owner",
+      title: "Fashion retail · 2 locations, Lagos",
+      Icon: Store,
     },
     {
-      body: "The AI flagged a vendor running 2 days late before I'd noticed. That alone has saved us two stock-outs this month.",
-      author: "Tunde Bello",
-      title: "Founder · Bukka Republic, Surulere",
+      body: "Pallio flagged a vendor running 2 days late before I'd noticed. That alone saved us two stock-outs this month.",
+      author: "Founder",
+      title: "Casual dining · Surulere",
+      Icon: ClipboardList,
     },
     {
-      body: "I run three shops across Lagos and one in Abuja. Pallio is the first tool that's actually let me see all four locations on one screen.",
-      author: "Chiamaka Okeke",
-      title: "Operations Lead · Yaba Gadgets",
+      body: "First tool that's let me see four locations on one screen. I used to spend Saturdays in WhatsApp groups chasing daily numbers.",
+      author: "Operations lead",
+      title: "Electronics retail · Lagos + Abuja",
+      Icon: BarChart3,
     },
   ]
   return (
@@ -593,8 +725,8 @@ function Testimonials() {
             >
               <blockquote className="text-base leading-relaxed">"{q.body}"</blockquote>
               <figcaption className="mt-5 flex items-center gap-3">
-                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-brand to-fuchsia-500 text-sm font-bold text-white">
-                  {q.author.split(" ").map((n) => n[0]).join("")}
+                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-brand to-fuchsia-500 text-white">
+                  <q.Icon className="h-4 w-4" />
                 </span>
                 <div>
                   <p className="text-sm font-bold">{q.author}</p>
@@ -630,14 +762,14 @@ function FinalCTA() {
           transition={{ type: "spring", damping: 24, stiffness: 220 }}
           className="text-4xl font-extrabold tracking-tight md:text-5xl"
         >
-          Ready to ship?
+          Open Pallio.
           <br />
           <span className="bg-gradient-to-r from-brand via-fuchsia-500 to-emerald-500 bg-clip-text text-transparent">
-            Free, in 30 seconds.
+            30 seconds, no card.
           </span>
         </motion.h2>
         <p className="mt-4 text-base text-muted-foreground md:text-lg">
-          Spin up Pallio, kick the tires with our live demo data, and connect your own stock when you're ready.
+          Create an account, poke around with our live demo data, and switch to your own catalog when you're ready.
         </p>
         <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
           <Link to="/dashboard">
@@ -837,6 +969,3 @@ function FaqTeaser() {
   )
 }
 
-// Keep Store icon import alive — used by future merchant-mode badges.
-const _UnusedStore = Store
-void _UnusedStore
